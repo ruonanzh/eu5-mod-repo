@@ -1,0 +1,1871 @@
+<!-- source: https://eu5.paradoxwikis.com/Scope revid: 33015 fetched: 2026-09-09 -->
+# Scope
+
+Please help with verifying or updating older sections of this article.
+At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") pre-release.
+
+**Scopes** are game objects used with most [effects](/Effect "Effect") and [triggers](/Trigger "Trigger"). Scopes represent game object types - a `country` scope represents a country, and all effects that are on a country scope will therefore expect to be fired on a country. Relationships between scopes are defined using [event targets](/Event_target "Event target") and, when used in triggers and effects - <#Iterators>. Scopes are set in a few ways. Most scripted content sets a certain scope, such as `country` as the base or **root** scope.
+
+Most scopes are a particular instance of a game object, determined when the scope is called. Certain scopes refer to game object *types* instead.
+
+## Scopes and scripting
+
+Most scripting is done "in scope" meaning that an effect or trigger must be run in a relevant scoped object in order to correctly check or affect the gamestate. For example, an effect that changes a character's ability stats functions only if it is in a character scope. Similarly, a trigger that checks national tax base does not function outside of a country scope.
+
+Some effects and triggers work in multiple scope types, and others do not require a specific scope at all, meaning they can be used nearly anywhere. Scopeless script is sometimes referred to as "global", "any", or "none" scope. In the [effect](/Effect "Effect"), [trigger](/Trigger "Trigger"), and [scope link](/Scope_link "Scope link") tables, script that does not require a specific scope is noted with "none".
+
+## Base scope
+
+Each scripted element in the game files that runs effects or triggers may contain a base scope, which is callable with `root`. Some may contain additional scopes, saved as `saved scope` and referred to using `scope:` datalink.
+
+## Iterators
+
+**Iterators** – also called lists – are [effects](/Effect "Effect") or [triggers](/Trigger "Trigger") which iterate through all eligible scopes of a certain type, returning them for checking triggers or executing effects.
+
+There are four types of iterators, one for triggers and three for effects.
+
+| Prefix | Description |
+| --- | --- |
+| any\_<name> | * Trigger scope, checks that any returned scope returns true for contained triggers.   + Can use `count <operator> <scripted value>` or `percent <operator> <scripted value>` to check a specified amount or ratio   + With `count = all` or `percent = 1`, it requires all scopes to return true   + Can use `filter = { <triggers> }` with `count` or `percent` to limit returned scopes |
+| every\_<name> | * Effect scope, executes effects on all returned scopes   + Can use `limit = { <triggers> }` to narrow the scopes returned |
+| ordered\_<name> | * Effect scope, executes effects on returned scope, by default first scope in ordering is returned   + Uses `order_by = value` to determine the ordering   + Can use `limit = { <triggers> }` to narrow the scopes returned   + Can use `position = int` to select a different position in order, 0-indexed   + Can use `min = int` and `max = value` to limit which and how many scopes are returned in the ordering   + Can use `check_range_bounds = no` to prevent error logging if the number of returned scopes is less than the range betweem min and max |
+| random\_<name> | * Effect scope, executes effects on a single random returned scope   + Can use `limit = { <triggers> }` to narrow the scopes returned   + Can use `weight = { mtth_blocks }` to weight the random selection |
+
+### Trigger iterators
+
+*See also: [Trigger](/Trigger "Trigger")*
+
+List of iterator triggers
+
+| Trigger | Description | Example | Scopes | Targets |
+| --- | --- | --- | --- | --- |
+| any\_accepted\_culture | Iterate through all accepted cultures in a country | ``` any_accepted_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | culture |
+| any\_active\_disaster | Iterate through all active disasters for a country | ``` any_active_disaster = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | disaster |
+| any\_active\_estate | Iterate through all active estates (non-crown) | ``` any_active_estate = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | estate\_type |
+| any\_active\_resolution | Iterate through all currently active resolutions in an international organization or situation | ``` any_active_resolution = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization, situation | active\_resolution |
+| any\_adjacent\_ports\_to\_area | Iterate through all adjacent ports of an seazone area | ``` any_adjacent_ports_to_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area | location |
+| any\_advance\_definition | Iterate through all advance definitions | ``` any_advance_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | advance\_type |
+| any\_allowed\_estate\_in\_heir\_selection | Iterate through all allowed estates a HeirSelection has | ``` any_allowed_estate_in_heir_selection = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | heir\_selection | estate\_type |
+| any\_ancestor | Iterate through all ancestors (parents, grandparents etc) of a character | ``` any_ancestor = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | character |
+| any\_area | Iterate through all existing areas | ``` any_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | area |
+| any\_area\_in\_region | Iterate through all areas in a region | ``` any_area_in_region = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | region | area |
+| any\_area\_in\_scripted\_geography | Iterate through all areas in a scripted geography | ``` any_area_in_scripted_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | scripted\_geography | area |
+| any\_area\_with\_core | Iterate through all areas with cored locations in a country | ``` any_area_with_core = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | area |
+| any\_area\_with\_owned\_province | Iterate through all areas with owned provinces in a country | ``` any_area_with_owned_province = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | area |
+| any\_army | Iterate through all armies in a country | ``` any_army = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | unit |
+| any\_artist | Iterate through all artists in a country | ``` any_artist = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | character |
+| any\_attacker | Iterate through all attackers of a war | ``` any_attacker = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | war | country |
+| any\_avatar\_for\_god | Iterate through all Avatars of a God | ``` any_avatar_for_god = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | god | avatar |
+| any\_besieging\_units | Iterate through all units participating in a siege | ``` any_besieging_units = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | siege | unit |
+| any\_border\_location | Iterate through all owned location in a country which border locations not owned by the current country scope. | ``` any_border_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_buildable\_building\_type | Iterate through all the building types a country can build | ``` any_buildable_building_type = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | building\_type |
+| any\_building\_type | Iterate through all the building types | ``` any_building_type = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | building\_type |
+| any\_buildings\_in\_location | Iterate through all buildings in a location | ``` any_buildings_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | building |
+| any\_cabinet | Iterate through all actions in a country's cabinet | ``` any_cabinet = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | cabinet |
+| any\_cabinet\_action | Iterate through all actions in a country's cabinet actions | ``` any_cabinet_action = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | cabinet\_action |
+| any\_cabinet\_character | Iterate through all characters in a country that is in the cabinet | ``` any_cabinet_character = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | character |
+| any\_cardinal\_in\_country | Iterate through all Cardinals in a country | ``` any_cardinal_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | cardinal |
+| any\_cardinal\_in\_religion | Iterate through all Cardinals in a Religion | ``` any_cardinal_in_religion = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | cardinal |
+| any\_casus\_belli\_on\_us | Iterate through all countries have a casus belli on us | ``` any_casus_belli_on_us = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_casus\_belli\_target | Iterate through all countries we have a casus belli on | ``` any_casus_belli_target = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_center | Iterate through all subunits on the center of a combat-side | ``` any_center = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | combat\_side | sub\_unit |
+| any\_character | Iterate through all characters in a country | ``` any_character = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | character |
+| any\_character\_in\_dynasty | Iterate through all living characters in a Dynasty | ``` any_character_in_dynasty = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | dynasty | character |
+| any\_character\_supporting\_rebel | Iterate through all characters supporting a rebel | ``` any_character_supporting_rebel = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | rebels | character |
+| any\_child | Iterate through all children of a character | ``` any_child = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | character |
+| any\_close\_relative | Iterate through all close relatives of a character | ``` any_close_relative = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | character |
+| any\_coast\_border\_location | Iterate through all bordering, or across one seazone of a location | ``` any_coast_border_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | location |
+| any\_colonial\_charter | Iterate through all colonial charters in a country | ``` any_colonial_charter = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | colonial\_charter |
+| any\_colonial\_claim\_province\_definition | Iterate through all province definitions with colonial claims from the scope country. | ``` any_colonial_claim_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | province\_definition |
+| any\_colonial\_country | Iterate through all colonial countries in the world | ``` any_colonial_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_colonial\_overlord | Iterate through all colonial overlord countries in the world | ``` any_colonial_overlord = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_colonial\_top\_overlord | Iterate through all countries in the world that have a colonial country among their subjects or their subjects subjects and so on | ``` any_colonial_top_overlord = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_connected\_location | Iterate through all locations in the same country as the scope location that are connected by land or strait | ``` any_connected_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | location |
+| any\_construction\_material\_for\_building\_type | Iterate through all goods required to construct a building type | ``` any_construction_material_for_building_type = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | building\_type | goods |
+| any\_continent | Iterate through all existing continents | ``` any_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | continent |
+| any\_continent\_in\_scripted\_geography | Iterate through all continents in a scripted geography | ``` any_continent_in_scripted_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | scripted\_geography | continent |
+| any\_controlled\_location | Iterate through all controlled location in a country | ``` any_controlled_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_core\_in\_location | Iterate through all cores in a location | ``` any_core_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | country |
+| any\_core\_location | Iterate through all core locations in a country | ``` any_core_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_country | Iterate through all existing countries | ``` any_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_country\_annexing\_us | Iterate through all countries which are currently annexing the current country scope. | ``` any_country_annexing_us = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_at\_war\_with | Iterate through all countries at war with | ``` any_country_at_war_with = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_in\_culture | Iterate through all countries with this primary culture | ``` any_country_in_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | culture | country |
+| any\_country\_in\_culture\_group | Iterate through all countries in a culture group. | ``` any_country_in_culture_group = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | culture\_group | country |
+| any\_country\_in\_diplomatic\_range | Iterate through all countries in diplomatic range | ``` any_country_in_diplomatic_range = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_in\_dynasty | Iterate through all countries in a Dynasty | ``` any_country_in_dynasty = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | dynasty | country |
+| any\_country\_in\_hierarchy | Iterate through every country in the entire overlord/subject hierarchy, from the independent top overlord to the deepest subjects | ``` any_country_in_hierarchy = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_in\_religion | Iterate through all countries in a religion | ``` any_country_in_religion = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | country |
+| any\_country\_in\_religion\_group | Iterate through all countries in a religion group. | ``` any_country_in_religion_group = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | group | country |
+| any\_country\_in\_religious\_school | Iterate through all countries within a school | ``` any_country_in_religious_school = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religious\_school | country |
+| any\_country\_lent\_to | Iterate through all countries a country has lent to | ``` any_country_lent_to = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_of\_country\_type | Iterate through all countries of the specified type. | ``` any_country_of_country_type = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_country\_sub\_unit | Iterate through all subunits in all units in a country | ``` any_country_sub_unit = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | sub\_unit |
+| any\_country\_supporting\_rebel | Iterate through all countries supporting a rebel | ``` any_country_supporting_rebel = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | rebels | country |
+| any\_country\_that\_can\_be\_called\_defensively | Iterate through all countries that may be called into a defensive war. | ``` any_country_that_can_be_called_defensively = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_that\_can\_be\_called\_offensively | Iterate through all countries that may be called into an offensive war. | ``` any_country_that_can_be_called_offensively = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_together\_in\_war\_with | Iterate through all countries which are an ally in any of the country scope's wars | ``` any_country_together_in_war_with = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_we\_are\_annexing | Iterate through all countries which are currently annexed by the current country scope. | ``` any_country_we_are_annexing = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_with\_capital\_in\_geography | Iterate through all countries which have their capital in the specified geography | ``` any_country_with_capital_in_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| any\_country\_with\_cardinals | Iterate through all countries with cardinals in a religion | ``` any_country_with_cardinals = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | country |
+| any\_country\_with\_coalition\_grade\_antagonism\_against\_us | Iterate through all countries who have coalition grade antagonism against us | ``` any_country_with_coalition_grade_antagonism_against_us = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_with\_relation\_that\_can\_be\_annulled | Iterate through all countries which have an annullable relation with the scope country. | ``` any_country_with_relation_that_can_be_annulled = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_country\_with\_special\_status\_of\_type | Iterate through all countries in the international organization which have the specified special status | ``` any_country_with_special_status_of_type = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | country |
+| any\_country\_with\_succession\_law | Iterate through all countries with a cached succession law (set cached = yes in the heir\_selection to use this) | ``` any_country_with_succession_law = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_culture | Iterate through all cultures | ``` any_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | culture |
+| any\_culture\_group | Iterate through all culture groups the culture is in. | ``` any_culture_group = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | culture | culture\_group |
+| any\_culture\_in\_culture\_group | Iterate through all cultures in a culture group. | ``` any_culture_in_culture_group = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | culture\_group | culture |
+| any\_current\_avatars | Iterate through all Avatars a country has | ``` any_current_avatars = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | avatar |
+| any\_current\_gods | Iterate through all Gods a country worships | ``` any_current_gods = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | god |
+| any\_current\_law | Iterate through all laws of a country. | ``` any_current_law = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | law |
+| any\_current\_law\_in\_international\_organization | Iterate through all laws that are codified in the international organization | ``` any_current_law_in_international_organization = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | law |
+| any\_current\_policy | Iterate through all policies that are codified in the country | ``` any_current_policy = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | policy |
+| any\_current\_policy\_in\_international\_organization | Iterate through all policies that are codified in the international organization | ``` any_current_policy_in_international_organization = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | policy |
+| any\_current\_reforms | Iterate through all Government Reforms a country has | ``` any_current_reforms = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | government\_reform |
+| any\_current\_war | Iterate through all wars of a country | ``` any_current_war = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | war |
+| any\_defender | Iterate through all defenders of a war | ``` any_defender = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | war | country |
+| any\_descendant | Iterate through all descendants (children, grandchildren etc) of a character | ``` any_descendant = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | character |
+| any\_disloyal\_subject | Iterate through all loyal subject countries | ``` any_disloyal_subject = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_dynasty | Iterate through all dynasties in a country | ``` any_dynasty = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | dynasty |
+| any\_east\_of\_province\_definition | Iterate through all province-definitions east of a province-definition | ``` any_east_of_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | province\_definition | province\_definition |
+| any\_election\_candidates | Iterate through all election candidates of a country with elections! | ``` any_election_candidates = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | character |
+| any\_enemy | Iterate through all Enemy countries | ``` any_enemy = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_enemy\_war\_leader | Iterate through all countries which are leading a war against the scope | ``` any_enemy_war_leader = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_estate | Iterate through all estates in a country | ``` any_estate = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | estate |
+| any\_estate\_privilege | Iterate through all current estate privileges of a Country | ``` any_estate_privilege = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | estate\_privilege |
+| any\_estate\_type\_preferring | Iterate through all estate types that a prefer a policy | ``` any_estate_type_preferring = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | policy | estate\_type |
+| any\_exploration\_from\_country | Iterate through all Explorations a country has | ``` any_exploration_from_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | exploration |
+| any\_export | Iterate through all exports in a market | ``` any_export = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | market | trade |
+| any\_export\_from\_location | Iterate through all exports from location | ``` any_export_from_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | location |
+| any\_foreign\_building\_countries\_in\_location | Iterate through all foreign building countries in a location | ``` any_foreign_building_countries_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | country |
+| any\_foreign\_buildings\_in\_location | Iterate through all foreign buildings in a location | ``` any_foreign_buildings_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | building |
+| any\_fort\_in\_country | Iterate through all Forts in a country | ``` any_fort_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_friendly\_coast\_border\_location | Iterate through all friendly bordering, or across one seazone of a location | ``` any_friendly_coast_border_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | location |
+| any\_friendly\_country | Iterate through all countries with relations marked as friendly | ``` any_friendly_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_friendly\_or\_high\_opinion\_country | Iterate through all countries with relations marked as friendly or that we have a high opinion of set in defines | ``` any_friendly_or_high_opinion_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_friendly\_to\_friendly\_country | Iterate through all friends of our friends | ``` any_friendly_to_friendly_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_friendly\_to\_hostile\_country | Iterate through all friends of our enemies | ``` any_friendly_to_hostile_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_god\_in\_religion | Iterate through all Gods in a Religion | ``` any_god_in_religion = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | god |
+| any\_good\_in\_demand | Iterate through all goods in a goods demand | ``` any_good_in_demand = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | demand | goods |
+| any\_goods | Iterate through all types of goods | ``` any_goods = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | goods |
+| any\_graphical\_culture\_in\_culture | Iterate through all graphical culture in a culture | ``` any_graphical_culture_in_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | culture | graphical\_culture |
+| any\_great\_power | Iterate through all great powers | ``` any_great_power = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_heathen\_location | Iterate through all heathen locations in a country | ``` any_heathen_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_heretic\_location | Iterate through all Heretic locations in a country | ``` any_heretic_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_hired\_mercenary | Iterate through mercenaries a country has hired | ``` any_hired_mercenary = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | mercenary |
+| any\_historical\_enemy | Iterate through all historical Enemy countries | ``` any_historical_enemy = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_historical\_rival | Iterate through all historical rival countries | ``` any_historical_rival = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_holy\_site\_in\_country | Iterate through all Holy Sites in a country | ``` any_holy_site_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | holy\_site |
+| any\_holy\_site\_in\_religion | Iterate through all Holy Sites in a Religion | ``` any_holy_site_in_religion = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | holy\_site |
+| any\_hostile\_country | Iterate through all countries with relations marked as hostile | ``` any_hostile_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_hostile\_or\_low\_opinion\_country | Iterate through all countries with relations marked as hostile or that we have a low opinion of set in defines | ``` any_hostile_or_low_opinion_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_hostile\_to\_friendly\_country | Iterate through all enemies of our friends | ``` any_hostile_to_friendly_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_hostile\_to\_hostile\_country | Iterate through all enemies of our enemies | ``` any_hostile_to_hostile_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_import | Iterate through all imports in a market | ``` any_import = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | market | trade |
+| any\_import\_from\_location | Iterate through all Imports from location | ``` any_import_from_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | location |
+| any\_in\_global\_list | Iterate through all items in global list. | ``` any_in_global_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
+| any\_in\_list | Iterate through all items in list. | ``` any_in_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
+| any\_in\_local\_list | Iterate through all items in local list. | ``` any_in_local_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
+| any\_institutions\_embraced | Iterate through all institutions a country has embraced | ``` any_institutions_embraced = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | institution |
+| any\_international\_organization | Iterate through all international organizations | ``` any_international_organization = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | international\_organization |
+| any\_international\_organization\_elector | Iterate through all countries with an elector special status in the international organization | ``` any_international_organization_elector = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | country |
+| any\_international\_organization\_enemy | Iterate through all countries that are enemies of the international organization | ``` any_international_organization_enemy = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | country |
+| any\_international\_organization\_member | Iterate through all countries that are members of the international organization | ``` any_international_organization_member = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | country |
+| any\_international\_organization\_owned\_location | Iterate through all locations that are owned by the international organization | ``` any_international_organization_owned_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | location |
+| any\_international\_organization\_owner | Iterate through all international organizations which own the location scope | ``` any_international_organization_owner = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | international\_organization |
+| any\_international\_organization\_parliament\_opposers | Iterate through all countries that have voted AGAINST the parliament issue in the in the parliament of the international organization and support the current debate | ``` any_international_organization_parliament_opposers = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | country |
+| any\_international\_organization\_parliament\_supporter | Iterate through all countries that have voted FOR the parliament issue in the parliament of the international organization and support the current debate | ``` any_international_organization_parliament_supporter = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | international\_organization | country |
+| any\_international\_organizations\_member\_of | Iterate through all international organizations a country is a member of | ``` any_international_organizations_member_of = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | international\_organization |
+| any\_international\_organizations\_target\_of | Iterate through all international organizations a country is a target of | ``` any_international_organizations_target_of = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | international\_organization |
+| any\_invited\_religious\_figure | Iterate through all invited religious figures in a Country | ``` any_invited_religious_figure = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | character |
+| any\_key\_in\_global\_variable\_map | Iterate through all items in global variable map. | ``` any_key_in_global_variable_map = {  variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } ``` | none |  |
+| any\_key\_in\_local\_variable\_map | Iterate through all items in local variable map. | ``` any_key_in_local_variable_map = {  variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } ``` | none |  |
+| any\_key\_in\_variable\_map | Iterate through all items in variable map. | ``` any_key_in_variable_map = {  variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } ``` | none |  |
+| any\_known\_country | Iterate through all known countries | ``` any_known_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_known\_institution | Iterate through all institutions a country knows of | ``` any_known_institution = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | institution |
+| any\_left\_flank | Iterate through all subunits on the left-flank of a combat-side | ``` any_left_flank = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | combat\_side | sub\_unit |
+| any\_lent\_loan | Iterate through all loans that a country lent | ``` any_lent_loan = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | loan |
+| any\_loan | Iterate through all loans in a country | ``` any_loan = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | loan |
+| any\_loan\_lent\_to\_country | Iterate through all loans a country has lent to the supplied borrower country | ``` any_loan_lent_to_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | loan |
+| any\_location\_in\_area | Iterate through all Locations in a area | ``` any_location_in_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area | location |
+| any\_location\_in\_continent | Iterate through all Locations in a continent | ``` any_location_in_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | continent | location |
+| any\_location\_in\_market | Iterate through all locations in a market | ``` any_location_in_market = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | market | location |
+| any\_location\_in\_province | Iterate through all Locations in a province | ``` any_location_in_province = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | province | location |
+| any\_location\_in\_province\_definition | Iterate through all Locations in a province definition | ``` any_location_in_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | province\_definition | location |
+| any\_location\_in\_region | Iterate through all Locations in a region | ``` any_location_in_region = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | region | location |
+| any\_location\_in\_scripted\_geography | Iterate through all Locations in a scripted geography | ``` any_location_in_scripted_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | scripted\_geography | location |
+| any\_location\_in\_sub\_continent | Iterate through all Locations in a sub-continent | ``` any_location_in_sub_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | sub\_continent | location |
+| any\_location\_in\_the\_world | Iterate through all location | ``` any_location_in_the_world = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | location |
+| any\_loyal\_subject | Iterate through all loyal subject countries | ``` any_loyal_subject = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_maritime\_area | Iterate through all maritime areas for a country | ``` any_maritime_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | area |
+| any\_market\_center\_in\_country | Iterate through all markets in a country which market centers are owned by the country | ``` any_market_center_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | market |
+| any\_market\_in\_world | Iterate through all markets in the world | ``` any_market_in_world = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | market |
+| any\_market\_present\_in\_country | Iterate through all markets in a country | ``` any_market_present_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | market |
+| any\_market\_with\_merchants | Iterate through all markets a country has active merchants | ``` any_market_with_merchants = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | market |
+| any\_mercenary | Iterate through all mercenaries in the world | ``` any_mercenary = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | mercenary |
+| any\_mercenary\_sub\_unit | Iterate through all subunits in a Mercenary | ``` any_mercenary_sub_unit = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | mercenary | sub\_unit |
+| any\_merchant\_in\_market | Iterate through all merchants in a market | ``` any_merchant_in_market = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | market | country |
+| any\_navy | Iterate through all navies in a country | ``` any_navy = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | unit |
+| any\_neighbor\_area | Iterate through all neighboring areas in a area | ``` any_neighbor_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area | area |
+| any\_neighbor\_country | Iterate through all neighbour countries | ``` any_neighbor_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_neighbor\_location | Iterate through all neighbors of a location | ``` any_neighbor_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | location |
+| any\_neighbor\_province\_definition | Iterate through all neighboring ProvinceDefinitions in a ProvinceDefinition | ``` any_neighbor_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | province\_definition | province\_definition |
+| any\_new\_world\_goods | Iterate through all new-world goods | ``` any_new_world_goods = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | goods |
+| any\_nomad\_countries\_in\_location | Iterate through all nomad pop countries in a location | ``` any_nomad_countries_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | country |
+| any\_non\_state\_religion\_location | Iterate through all NonStateReligion locations in a country | ``` any_non_state_religion_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_old\_world\_goods | Iterate through all old-world goods | ``` any_old_world_goods = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | goods |
+| any\_other\_core\_country | Iterate through all other countries which have a core on the current country | ``` any_other_core_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_other\_country | Iterate through all other countries | ``` any_other_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_other\_great\_power | Iterate through all other great powers | ``` any_other_great_power = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_other\_religion\_in\_same\_group | Iterate through all other religions that has the same group as Religion | ``` any_other_religion_in_same_group = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | religion |
+| any\_other\_revolutionary | Iterate through all other revolutionary countries | ``` any_other_revolutionary = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_overlord\_or\_above | Iterate through your overlord, your overlord's overlord, and so on | ``` any_overlord_or_above = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_ownable\_location | Iterate through all ownable location | ``` any_ownable_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | location |
+| any\_ownable\_location\_in\_area | Iterate through all ownable Locations in an area | ``` any_ownable_location_in_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area | location |
+| any\_ownable\_location\_in\_continent | Iterate through all ownable Locations in a continent | ``` any_ownable_location_in_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | continent | location |
+| any\_ownable\_location\_in\_province\_definition | Iterate through all ownable Locations in a province definition | ``` any_ownable_location_in_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | province\_definition | location |
+| any\_ownable\_location\_in\_region | Iterate through all ownable Locations in a region | ``` any_ownable_location_in_region = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | region | location |
+| any\_ownable\_location\_in\_scripted\_geography | Iterate through all ownable Locations in a scripted geography | ``` any_ownable_location_in_scripted_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | scripted\_geography | location |
+| any\_ownable\_location\_in\_sub\_continent | Iterate through all ownable Locations in a sub continent | ``` any_ownable_location_in_sub_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | sub\_continent | location |
+| any\_owned\_building | Iterate through all the owned buildings in a country | ``` any_owned_building = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | building |
+| any\_owned\_foreign\_building | Iterate through all the owned foreign buildings in a country | ``` any_owned_foreign_building = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | building |
+| any\_owned\_foreign\_building\_location | Iterate through all the location of owned foreign buildings in a country | ``` any_owned_foreign_building_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_owned\_foreign\_building\_region | Iterate through all the regions of owned foreign buildings in a country | ``` any_owned_foreign_building_region = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | region |
+| any\_owned\_location | Iterate through all owned location in a country | ``` any_owned_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_owned\_nomad\_pop | Iterate through all owned nomad pops in a country | ``` any_owned_nomad_pop = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | pop |
+| any\_owned\_non\_rural\_location | Iterate through all owned non-rural locations in a country | ``` any_owned_non_rural_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_owned\_rural\_location | Iterate through all owned rural locations in a country | ``` any_owned_rural_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_owner\_in\_region | Iterate through all the countries that own locations in a region | ``` any_owner_in_region = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | region | country |
+| any\_parent | Iterate through parents (order: father, mother) of a character. | ``` any_parent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | character |
+| any\_participating\_countries | Iterate through all Countrys participating in 1 side of a combat | ``` any_participating_countries = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | combat\_side | country |
+| any\_participating\_units | Iterate through all units participating in 1 side of a combat | ``` any_participating_units = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | combat\_side | unit |
+| any\_past\_liturgical\_dialect | Iterate through all liturgical dialects a country has had before | ``` any_past_liturgical_dialect = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_policy\_in\_law | Iterate through all policies that are part of the law scope | ``` any_policy_in_law = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | law | policy |
+| any\_political\_border\_location | Iterate through all owned location in a country which border another country. | ``` any_political_border_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_pop | Iterate through all pops in a location or country | ``` any_pop = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country, location | pop |
+| any\_pops\_supporting\_rebel | Iterate through all pops supporting a rebel | ``` any_pops_supporting_rebel = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | rebels | pop |
+| any\_port\_in\_country | Iterate through all Ports in a country | ``` any_port_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_possible\_disaster | Iterate through all possible disasters for a country | ``` any_possible_disaster = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | disaster |
+| any\_possible\_parliament\_issue | Iterate through all possible parliament issues in a country's or an international organization's parliament | ``` any_possible_parliament_issue = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country, international\_organization | parliament\_issue |
+| any\_possible\_policy | Iterate through all possible policies of a Country that is not currently implemeted | ``` any_possible_policy = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | policy |
+| any\_possible\_privilege | Iterate through all possible & allowed estate privileges of a Country that is not currently implemeted | ``` any_possible_privilege = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | estate | estate\_privilege |
+| any\_possible\_recruit\_location | Iterate through all possible recruit locations in a country | ``` any_possible_recruit_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_present\_country | Iterate through all countries in the specified geography | ``` any_present_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| any\_present\_culture\_in\_country | Iterate through all cultures present in the country. | ``` any_present_culture_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | culture |
+| any\_present\_culture\_in\_location | Iterate through all cultures present in the location. | ``` any_present_culture_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | culture |
+| any\_present\_overlord | Iterate through all countries which have a subject in the specified geography | ``` any_present_overlord = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| any\_present\_religion\_in\_country | Iterate through all religions present in the country. | ``` any_present_religion_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | religion |
+| any\_present\_religion\_in\_location | Iterate through all religions present in the location. | ``` any_present_religion_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | religion |
+| any\_primary\_or\_accepted\_culture | Iterate through primary culture and all accepted cultures in a country. Primary is ordered first. | ``` any_primary_or_accepted_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | culture |
+| any\_primary\_or\_accepted\_or\_tolerated\_culture | Iterate through primary culture and all accepted and all tolerated cultures in a country. Primary is ordered first. | ``` any_primary_or_accepted_or_tolerated_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | culture |
+| any\_privateer | Iterate through all privateers in the world | ``` any_privateer = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | privateer |
+| any\_privateer\_from\_country | Iterate through all privateers a country has | ``` any_privateer_from_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | privateer |
+| any\_privateer\_in\_area | Iterate through all privateers in a area | ``` any_privateer_in_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area | privateer |
+| any\_production\_method | Iterate through all types of production methods. | ``` any_production_method = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | production\_method |
+| any\_production\_method\_of\_building | Iterate through all available production methods of the building. | ``` any_production_method_of_building = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | building | production\_method |
+| any\_province | Iterate through all provinces in a country | ``` any_province = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | province |
+| any\_province\_definition | Iterate through all existing province\_definition | ``` any_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | province\_definition |
+| any\_province\_definition\_in\_area | Iterate through all province-definitions in an area | ``` any_province_definition_in_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area | province\_definition |
+| any\_province\_definition\_in\_scripted\_geography | Iterate through all province-definitions in a scripted geography | ``` any_province_definition_in_scripted_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | scripted\_geography | province\_definition |
+| any\_province\_in\_area | Iterate through all provinces in an area | ``` any_province_in_area = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | area | province |
+| any\_province\_in\_province\_definition | Iterate through all provinces in a province-definition | ``` any_province_in_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | province\_definition | province |
+| any\_rebel | Iterate through all Rebels in a country | ``` any_rebel = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | rebels |
+| any\_region | Iterate through all existing regions | ``` any_region = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | region |
+| any\_region\_in\_continent | Iterate through all regions in a sub-continent | ``` any_region_in_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | sub\_continent | region |
+| any\_region\_in\_scripted\_geography | Iterate through all regions in a scripted geography | ``` any_region_in_scripted_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | scripted\_geography | region |
+| any\_related\_country | Iterate through all related countries | ``` any_related_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_religion | Iterate through all religions | ``` any_religion = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | religion |
+| any\_religion\_for\_god | Iterate through all Religions of a God | ``` any_religion_for_god = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | god | religion |
+| any\_religion\_in\_religion\_group | Iterate through all religions in a religion group. | ``` any_religion_in_religion_group = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | group | religion |
+| any\_religion\_international\_organization | Iterate through all international organisations of a religion | ``` any_religion_international_organization = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | international\_organization |
+| any\_religious\_aspect | Iterate through all religious aspects of a Country | ``` any_religious_aspect = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | religious\_aspect |
+| any\_religious\_focus | Iterate through all completed religious focuses of a Country | ``` any_religious_focus = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | religious\_focus |
+| any\_religious\_school\_in\_religion | Iterate through all Religious Schools in a Religion | ``` any_religious_school_in_religion = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religion | religious\_school |
+| any\_rented\_out\_mercenary | Iterate through mercenaries a country has rented out to the market | ``` any_rented_out_mercenary = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | mercenary |
+| any\_required\_goods | Iterate through all goods required by the scope production method. | ``` any_required_goods = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | production\_method | goods |
+| any\_reserves | Iterate through all subunits on the reserve of a combat-side | ``` any_reserves = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | combat\_side | sub\_unit |
+| any\_retreated | Iterate through all subunits on the retreated of a combat-side | ``` any_retreated = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | combat\_side | sub\_unit |
+| any\_revolutionary | Iterate through all revolutionary states | ``` any_revolutionary = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | country |
+| any\_right\_flank | Iterate through all subunits on the right-flank of a combat-side | ``` any_right_flank = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | combat\_side | sub\_unit |
+| any\_rival | Iterate through all rival countries | ``` any_rival = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_road\_type | Iterate through all the road types | ``` any_road_type = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | road\_type |
+| any\_royal\_marriage | Iterate through all royal married countries | ``` any_royal_marriage = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_ruler | Iterate through all characters that have ever been rulers in a country, including the dead | ``` any_ruler = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | character |
+| any\_ruling\_countries | Iterate through countries a character rulers | ``` any_ruling_countries = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | country |
+| any\_sound\_toll\_in\_country | Iterate through all Sound Tolls in a country | ``` any_sound_toll_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | location |
+| any\_spouse | Iterate through all spouses of a character | ``` any_spouse = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | character |
+| any\_spy\_network\_built\_in\_us | Iterate through all countries building spy networks | ``` any_spy_network_built_in_us = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_sub\_continent | Iterate through all existing sub\_continents | ``` any_sub_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | sub\_continent |
+| any\_sub\_continent\_in\_continent | Iterate through all sub-continents in a continent | ``` any_sub_continent_in_continent = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | continent | sub\_continent |
+| any\_sub\_continent\_in\_scripted\_geography | Iterate through all sub-continents in a scripted geography | ``` any_sub_continent_in_scripted_geography = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | scripted\_geography | sub\_continent |
+| any\_sub\_unit | Iterate through all subunits in a unit | ``` any_sub_unit = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | unit | sub\_unit |
+| any\_subject | Iterate through all subject countries | ``` any_subject = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_subject\_or\_below | Iterate through all subject countries and their subject countries, and so on | ``` any_subject_or_below = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_tolerated\_culture | Iterate through all Tolerated cultures in a country | ``` any_tolerated_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | culture |
+| any\_trade | Iterate through all trades in a Country | ``` any_trade = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | trade |
+| any\_union\_partner | Iterate through all countries which are in a personal union with the current country scope. | ``` any_union_partner = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | country |
+| any\_unit | Iterate through all units in a country | ``` any_unit = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | unit |
+| any\_unit\_in\_location | Iterate through all units in a location | ``` any_unit_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | unit |
+| any\_valid\_religion\_for\_aspect | Iterate through all religion that an aspect can be for | ``` any_valid_religion_for_aspect = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | religious\_aspect | religion |
+| any\_voter | Iterate through all voters in an active resolution | ``` any_voter = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | active\_resolution | country |
+| any\_war | Iterate through all wars going on globally | ``` any_war = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | war |
+| any\_war\_participant | Iterate through all participants of a war | ``` any_war_participant = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | war | country |
+| any\_weather\_system\_in\_location | Iterate through all weather systems in a location | ``` any_weather_system_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | weather\_system |
+| any\_west\_of\_province\_definition | Iterate through all province-definitions west of a province-definition | ``` any_west_of_province_definition = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | province\_definition | province\_definition |
+| any\_work\_of\_art | Iterate through all WorkOfArts in the world | ``` any_work_of_art = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | work\_of\_art |
+| any\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` any_work_of_art_by_creator = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | work\_of\_art |
+| any\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` any_work_of_art_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | work\_of\_art |
+| any\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` any_work_of_art_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | work\_of\_art |
+
+Trigger iterators all start with `any_` and return true if any scope meets the contained triggers. This behavior can be changed with the parameter `count op int value` or `percent op value [0-1]` when then requires at least the specified number or percent of the scope to meet the contained triggers. These use the usual [comparison operators](/Trigger#Comparison_triggers "Trigger").
+
+If `count` or `percent` are used, another parameter `filter` can be used to limit which scopes are considered.
+
+When negated, trigger iterators behave like `count = all` is set by default, such that it returns true if no scope meets the contained triggers; actually setting `count = all`, however, inverts the behavior back to returning true if any scope does not meet the contained triggers.
+
+### Effect iterators
+
+*See also: [Effect](/Effect "Effect")*
+
+List of iterator effects
+
+| Effect | Description | Example | Scopes | Targets |
+| --- | --- | --- | --- | --- |
+| every\_accepted\_culture | Iterate through all accepted cultures in a country | ``` every_accepted_culture = {  limit = { <triggers> }  <effects> } ``` | country | culture |
+| every\_active\_disaster | Iterate through all active disasters for a country | ``` every_active_disaster = {  limit = { <triggers> }  <effects> } ``` | country | disaster |
+| every\_active\_estate | Iterate through all active estates (non-crown) | ``` every_active_estate = {  limit = { <triggers> }  <effects> } ``` | none | estate\_type |
+| every\_active\_resolution | Iterate through all currently active resolutions in an international organization or situation | ``` every_active_resolution = {  limit = { <triggers> }  <effects> } ``` | international\_organization, situation | active\_resolution |
+| every\_adjacent\_ports\_to\_area | Iterate through all adjacent ports of an seazone area | ``` every_adjacent_ports_to_area = {  limit = { <triggers> }  <effects> } ``` | area | location |
+| every\_advance\_definition | Iterate through all advance definitions | ``` every_advance_definition = {  limit = { <triggers> }  <effects> } ``` | none | advance\_type |
+| every\_allowed\_estate\_in\_heir\_selection | Iterate through all allowed estates a HeirSelection has | ``` every_allowed_estate_in_heir_selection = {  limit = { <triggers> }  <effects> } ``` | heir\_selection | estate\_type |
+| every\_ancestor | Iterate through all ancestors (parents, grandparents etc) of a character | ``` every_ancestor = {  limit = { <triggers> }  <effects> } ``` | character | character |
+| every\_area | Iterate through all existing areas | ``` every_area = {  limit = { <triggers> }  <effects> } ``` | none | area |
+| every\_area\_in\_region | Iterate through all areas in a region | ``` every_area_in_region = {  limit = { <triggers> }  <effects> } ``` | region | area |
+| every\_area\_in\_scripted\_geography | Iterate through all areas in a scripted geography | ``` every_area_in_scripted_geography = {  limit = { <triggers> }  <effects> } ``` | scripted\_geography | area |
+| every\_area\_with\_core | Iterate through all areas with cored locations in a country | ``` every_area_with_core = {  limit = { <triggers> }  <effects> } ``` | country | area |
+| every\_area\_with\_owned\_province | Iterate through all areas with owned provinces in a country | ``` every_area_with_owned_province = {  limit = { <triggers> }  <effects> } ``` | country | area |
+| every\_army | Iterate through all armies in a country | ``` every_army = {  limit = { <triggers> }  <effects> } ``` | country | unit |
+| every\_artist | Iterate through all artists in a country | ``` every_artist = {  limit = { <triggers> }  <effects> } ``` | country | character |
+| every\_attacker | Iterate through all attackers of a war | ``` every_attacker = {  limit = { <triggers> }  <effects> } ``` | war | country |
+| every\_available\_dynasty\_member | Iterate through adult dynasty members who are not a ruler or heir (cached) | ``` every_available_dynasty_member = {  limit = { <triggers> }  <effects> } ``` | dynasty | character |
+| every\_avatar\_for\_god | Iterate through all Avatars of a God | ``` every_avatar_for_god = {  limit = { <triggers> }  <effects> } ``` | god | avatar |
+| every\_besieging\_units | Iterate through all units participating in a siege | ``` every_besieging_units = {  limit = { <triggers> }  <effects> } ``` | siege | unit |
+| every\_border\_location | Iterate through all owned location in a country which border locations not owned by the current country scope. | ``` every_border_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_buildable\_building\_type | Iterate through all the building types a country can build | ``` every_buildable_building_type = {  limit = { <triggers> }  <effects> } ``` | country | building\_type |
+| every\_building\_owned\_by\_estate | Iterate through all buildings that an estate has | ``` every_building_owned_by_estate = {  limit = { <triggers> }  <effects> } ``` | estate | building |
+| every\_building\_type | Iterate through all the building types | ``` every_building_type = {  limit = { <triggers> }  <effects> } ``` | none | building\_type |
+| every\_buildings\_in\_location | Iterate through all buildings in a location | ``` every_buildings_in_location = {  limit = { <triggers> }  <effects> } ``` | location | building |
+| every\_cabinet | Iterate through all actions in a country's cabinet | ``` every_cabinet = {  limit = { <triggers> }  <effects> } ``` | country | cabinet |
+| every\_cabinet\_action | Iterate through all actions in a country's cabinet actions | ``` every_cabinet_action = {  limit = { <triggers> }  <effects> } ``` | country | cabinet\_action |
+| every\_cabinet\_character | Iterate through all characters in a country that is in the cabinet | ``` every_cabinet_character = {  limit = { <triggers> }  <effects> } ``` | country | character |
+| every\_cardinal\_in\_country | Iterate through all Cardinals in a country | ``` every_cardinal_in_country = {  limit = { <triggers> }  <effects> } ``` | country | cardinal |
+| every\_cardinal\_in\_religion | Iterate through all Cardinals in a Religion | ``` every_cardinal_in_religion = {  limit = { <triggers> }  <effects> } ``` | religion | cardinal |
+| every\_casus\_belli\_on\_us | Iterate through all countries have a casus belli on us | ``` every_casus_belli_on_us = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_casus\_belli\_target | Iterate through all countries we have a casus belli on | ``` every_casus_belli_target = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_center | Iterate through all subunits on the center of a combat-side | ``` every_center = {  limit = { <triggers> }  <effects> } ``` | combat\_side | sub\_unit |
+| every\_character | Iterate through all characters in a country | ``` every_character = {  limit = { <triggers> }  <effects> } ``` | country | character |
+| every\_character\_in\_dynasty | Iterate through all living characters in a Dynasty | ``` every_character_in_dynasty = {  limit = { <triggers> }  <effects> } ``` | dynasty | character |
+| every\_character\_supporting\_rebel | Iterate through all characters supporting a rebel | ``` every_character_supporting_rebel = {  limit = { <triggers> }  <effects> } ``` | rebels | character |
+| every\_child | Iterate through all children of a character | ``` every_child = {  limit = { <triggers> }  <effects> } ``` | character | character |
+| every\_close\_relative | Iterate through all close relatives of a character | ``` every_close_relative = {  limit = { <triggers> }  <effects> } ``` | character | character |
+| every\_coast\_border\_location | Iterate through all bordering, or across one seazone of a location | ``` every_coast_border_location = {  limit = { <triggers> }  <effects> } ``` | location | location |
+| every\_colonial\_charter | Iterate through all colonial charters in a country | ``` every_colonial_charter = {  limit = { <triggers> }  <effects> } ``` | country | colonial\_charter |
+| every\_colonial\_claim\_province\_definition | Iterate through all province definitions with colonial claims from the scope country. | ``` every_colonial_claim_province_definition = {  limit = { <triggers> }  <effects> } ``` | country | province\_definition |
+| every\_colonial\_country | Iterate through all colonial countries in the world | ``` every_colonial_country = {  limit = { <triggers> }  <effects> } ``` | none | country |
+| every\_colonial\_overlord | Iterate through all colonial overlord countries in the world | ``` every_colonial_overlord = {  limit = { <triggers> }  <effects> } ``` | none | country |
+| every\_colonial\_top\_overlord | Iterate through all countries in the world that have a colonial country among their subjects or their subjects subjects and so on | ``` every_colonial_top_overlord = {  limit = { <triggers> }  <effects> } ``` | none | country |
+| every\_connected\_location | Iterate through all locations in the same country as the scope location that are connected by land or strait | ``` every_connected_location = {  limit = { <triggers> }  <effects> } ``` | location | location |
+| every\_construction\_material\_for\_building\_type | Iterate through all goods required to construct a building type | ``` every_construction_material_for_building_type = {  limit = { <triggers> }  <effects> } ``` | building\_type | goods |
+| every\_continent | Iterate through all existing continents | ``` every_continent = {  limit = { <triggers> }  <effects> } ``` | none | continent |
+| every\_continent\_in\_scripted\_geography | Iterate through all continents in a scripted geography | ``` every_continent_in_scripted_geography = {  limit = { <triggers> }  <effects> } ``` | scripted\_geography | continent |
+| every\_controlled\_location | Iterate through all controlled location in a country | ``` every_controlled_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_core\_in\_location | Iterate through all cores in a location | ``` every_core_in_location = {  limit = { <triggers> }  <effects> } ``` | location | country |
+| every\_core\_location | Iterate through all core locations in a country | ``` every_core_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_country | Iterate through all existing countries | ``` every_country = {  limit = { <triggers> }  <effects> } ``` | none | country |
+| every\_country\_annexing\_us | Iterate through all countries which are currently annexing the current country scope. | ``` every_country_annexing_us = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_at\_war\_with | Iterate through all countries at war with | ``` every_country_at_war_with = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_in\_culture | Iterate through all countries with this primary culture | ``` every_country_in_culture = {  limit = { <triggers> }  <effects> } ``` | culture | country |
+| every\_country\_in\_culture\_group | Iterate through all countries in a culture group. | ``` every_country_in_culture_group = {  limit = { <triggers> }  <effects> } ``` | culture\_group | country |
+| every\_country\_in\_diplomatic\_range | Iterate through all countries in diplomatic range | ``` every_country_in_diplomatic_range = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_in\_dynasty | Iterate through all countries in a Dynasty | ``` every_country_in_dynasty = {  limit = { <triggers> }  <effects> } ``` | dynasty | country |
+| every\_country\_in\_hierarchy | Iterate through every country in the entire overlord/subject hierarchy, from the independent top overlord to the deepest subjects | ``` every_country_in_hierarchy = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_in\_religion | Iterate through all countries in a religion | ``` every_country_in_religion = {  limit = { <triggers> }  <effects> } ``` | religion | country |
+| every\_country\_in\_religion\_group | Iterate through all countries in a religion group. | ``` every_country_in_religion_group = {  limit = { <triggers> }  <effects> } ``` | group | country |
+| every\_country\_in\_religious\_school | Iterate through all countries within a school | ``` every_country_in_religious_school = {  limit = { <triggers> }  <effects> } ``` | religious\_school | country |
+| every\_country\_lent\_to | Iterate through all countries a country has lent to | ``` every_country_lent_to = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_sub\_unit | Iterate through all subunits in all units in a country | ``` every_country_sub_unit = {  limit = { <triggers> }  <effects> } ``` | country | sub\_unit |
+| every\_country\_supporting\_rebel | Iterate through all countries supporting a rebel | ``` every_country_supporting_rebel = {  limit = { <triggers> }  <effects> } ``` | rebels | country |
+| every\_country\_that\_can\_be\_called\_defensively | Iterate through all countries that may be called into a defensive war. | ``` every_country_that_can_be_called_defensively = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_that\_can\_be\_called\_offensively | Iterate through all countries that may be called into an offensive war. | ``` every_country_that_can_be_called_offensively = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_together\_in\_war\_with | Iterate through all countries which are an ally in any of the country scope's wars | ``` every_country_together_in_war_with = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_we\_are\_annexing | Iterate through all countries which are currently annexed by the current country scope. | ``` every_country_we_are_annexing = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_with\_antagonism\_against\_us | Iterate through all countries who have antagonism against us | ``` every_country_with_antagonism_against_us = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_with\_capital\_in\_geography | Iterate through all countries which have their capital in the specified geography | ``` every_country_with_capital_in_geography = {  limit = { <triggers> }  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| every\_country\_with\_cardinals | Iterate through all countries with cardinals in a religion | ``` every_country_with_cardinals = {  limit = { <triggers> }  <effects> } ``` | religion | country |
+| every\_country\_with\_coalition\_grade\_antagonism\_against\_us | Iterate through all countries who have coalition grade antagonism against us | ``` every_country_with_coalition_grade_antagonism_against_us = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_with\_relation\_that\_can\_be\_annulled | Iterate through all countries which have an annullable relation with the scope country. | ``` every_country_with_relation_that_can_be_annulled = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_country\_with\_special\_status\_of\_type | Iterate through all countries in the international organization which have the specified special status | ``` every_country_with_special_status_of_type = {  limit = { <triggers> }  <effects> } ``` | international\_organization | country |
+| every\_country\_with\_succession\_law | Iterate through all countries with a cached succession law (set cached = yes in the heir\_selection to use this) | ``` every_country_with_succession_law = {  limit = { <triggers> }  <effects> } ``` | none | country |
+| every\_culture | Iterate through all cultures | ``` every_culture = {  limit = { <triggers> }  <effects> } ``` | none | culture |
+| every\_culture\_group | Iterate through all culture groups the culture is in. | ``` every_culture_group = {  limit = { <triggers> }  <effects> } ``` | culture | culture\_group |
+| every\_culture\_in\_culture\_group | Iterate through all cultures in a culture group. | ``` every_culture_in_culture_group = {  limit = { <triggers> }  <effects> } ``` | culture\_group | culture |
+| every\_current\_avatars | Iterate through all Avatars a country has | ``` every_current_avatars = {  limit = { <triggers> }  <effects> } ``` | country | avatar |
+| every\_current\_bureaucracy | Iterate through all Bureaucracies a country has | ``` every_current_bureaucracy = {  limit = { <triggers> }  <effects> } ``` | country | bureaucracy |
+| every\_current\_bureaucracy\_type | Iterate through all Bureaucracy types a country has | ``` every_current_bureaucracy_type = {  limit = { <triggers> }  <effects> } ``` | country | bureaucracy\_type |
+| every\_current\_gods | Iterate through all Gods a country worships | ``` every_current_gods = {  limit = { <triggers> }  <effects> } ``` | country | god |
+| every\_current\_law | Iterate through all laws of a country. | ``` every_current_law = {  limit = { <triggers> }  <effects> } ``` | country | law |
+| every\_current\_law\_in\_international\_organization | Iterate through all laws that are codified in the international organization | ``` every_current_law_in_international_organization = {  limit = { <triggers> }  <effects> } ``` | international\_organization | law |
+| every\_current\_policy | Iterate through all policies that are codified in the country | ``` every_current_policy = {  limit = { <triggers> }  <effects> } ``` | country | policy |
+| every\_current\_policy\_in\_international\_organization | Iterate through all policies that are codified in the international organization | ``` every_current_policy_in_international_organization = {  limit = { <triggers> }  <effects> } ``` | international\_organization | policy |
+| every\_current\_reforms | Iterate through all Government Reforms a country has | ``` every_current_reforms = {  limit = { <triggers> }  <effects> } ``` | country | government\_reform |
+| every\_current\_war | Iterate through all wars of a country | ``` every_current_war = {  limit = { <triggers> }  <effects> } ``` | country | war |
+| every\_defender | Iterate through all defenders of a war | ``` every_defender = {  limit = { <triggers> }  <effects> } ``` | war | country |
+| every\_descendant | Iterate through all descendants (children, grandchildren etc) of a character | ``` every_descendant = {  limit = { <triggers> }  <effects> } ``` | character | character |
+| every\_disloyal\_subject | Iterate through all loyal subject countries | ``` every_disloyal_subject = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_dynasty | Iterate through all dynasties in a country | ``` every_dynasty = {  limit = { <triggers> }  <effects> } ``` | country | dynasty |
+| every\_east\_of\_province\_definition | Iterate through all province-definitions east of a province-definition | ``` every_east_of_province_definition = {  limit = { <triggers> }  <effects> } ``` | province\_definition | province\_definition |
+| every\_election\_candidates | Iterate through all election candidates of a country with elections! | ``` every_election_candidates = {  limit = { <triggers> }  <effects> } ``` | country | character |
+| every\_enemy | Iterate through all Enemy countries | ``` every_enemy = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_enemy\_war\_leader | Iterate through all countries which are leading a war against the scope | ``` every_enemy_war_leader = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_estate | Iterate through all estates in a country | ``` every_estate = {  limit = { <triggers> }  <effects> } ``` | country | estate |
+| every\_estate\_privilege | Iterate through all current estate privileges of a Country | ``` every_estate_privilege = {  limit = { <triggers> }  <effects> } ``` | country | estate\_privilege |
+| every\_estate\_type\_preferring | Iterate through all estate types that a prefer a policy | ``` every_estate_type_preferring = {  limit = { <triggers> }  <effects> } ``` | policy | estate\_type |
+| every\_estate\_type\_that\_dislikes\_bureaucracy | Iterate through all estate types that do NOT prefer a bureaucracy | ``` every_estate_type_that_dislikes_bureaucracy = {  limit = { <triggers> }  <effects> } ``` | bureaucracy\_type | estate\_type |
+| every\_estate\_type\_that\_likes\_bureaucracy | Iterate through all estate types that a prefer a bureaucracy | ``` every_estate_type_that_likes_bureaucracy = {  limit = { <triggers> }  <effects> } ``` | bureaucracy\_type | estate\_type |
+| every\_exploration\_from\_country | Iterate through all Explorations a country has | ``` every_exploration_from_country = {  limit = { <triggers> }  <effects> } ``` | country | exploration |
+| every\_export | Iterate through all exports in a market | ``` every_export = {  limit = { <triggers> }  <effects> } ``` | market | trade |
+| every\_export\_from\_location | Iterate through all exports from location | ``` every_export_from_location = {  limit = { <triggers> }  <effects> } ``` | location | location |
+| every\_food\_goods | Iterate through all food goods | ``` every_food_goods = {  limit = { <triggers> }  <effects> } ``` | none | goods |
+| every\_foreign\_building\_countries\_in\_location | Iterate through all foreign building countries in a location | ``` every_foreign_building_countries_in_location = {  limit = { <triggers> }  <effects> } ``` | location | country |
+| every\_foreign\_buildings\_in\_location | Iterate through all foreign buildings in a location | ``` every_foreign_buildings_in_location = {  limit = { <triggers> }  <effects> } ``` | location | building |
+| every\_fort\_in\_country | Iterate through all Forts in a country | ``` every_fort_in_country = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_friendly\_coast\_border\_location | Iterate through all friendly bordering, or across one seazone of a location | ``` every_friendly_coast_border_location = {  limit = { <triggers> }  <effects> } ``` | location | location |
+| every\_friendly\_country | Iterate through all countries with relations marked as friendly | ``` every_friendly_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_friendly\_or\_high\_opinion\_country | Iterate through all countries with relations marked as friendly or that we have a high opinion of set in defines | ``` every_friendly_or_high_opinion_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_friendly\_to\_friendly\_country | Iterate through all friends of our friends | ``` every_friendly_to_friendly_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_friendly\_to\_hostile\_country | Iterate through all friends of our enemies | ``` every_friendly_to_hostile_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_god\_in\_religion | Iterate through all Gods in a Religion | ``` every_god_in_religion = {  limit = { <triggers> }  <effects> } ``` | religion | god |
+| every\_good\_in\_demand | Iterate through all goods in a goods demand | ``` every_good_in_demand = {  limit = { <triggers> }  <effects> } ``` | demand | goods |
+| every\_goods | Iterate through all types of goods | ``` every_goods = {  limit = { <triggers> }  <effects> } ``` | none | goods |
+| every\_graphical\_culture\_in\_culture | Iterate through all graphical culture in a culture | ``` every_graphical_culture_in_culture = {  limit = { <triggers> }  <effects> } ``` | culture | graphical\_culture |
+| every\_great\_power | Iterate through all great powers | ``` every_great_power = {  limit = { <triggers> }  <effects> } ``` | none | country |
+| every\_heathen\_location | Iterate through all heathen locations in a country | ``` every_heathen_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_heretic\_location | Iterate through all Heretic locations in a country | ``` every_heretic_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_hired\_mercenary | Iterate through mercenaries a country has hired | ``` every_hired_mercenary = {  limit = { <triggers> }  <effects> } ``` | country | mercenary |
+| every\_historical\_enemy | Iterate through all historical Enemy countries | ``` every_historical_enemy = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_historical\_rival | Iterate through all historical rival countries | ``` every_historical_rival = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_holy\_site\_in\_country | Iterate through all Holy Sites in a country | ``` every_holy_site_in_country = {  limit = { <triggers> }  <effects> } ``` | country | holy\_site |
+| every\_holy\_site\_in\_religion | Iterate through all Holy Sites in a Religion | ``` every_holy_site_in_religion = {  limit = { <triggers> }  <effects> } ``` | religion | holy\_site |
+| every\_hostile\_country | Iterate through all countries with relations marked as hostile | ``` every_hostile_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_hostile\_or\_low\_opinion\_country | Iterate through all countries with relations marked as hostile or that we have a low opinion of set in defines | ``` every_hostile_or_low_opinion_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_hostile\_to\_friendly\_country | Iterate through all enemies of our friends | ``` every_hostile_to_friendly_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_hostile\_to\_hostile\_country | Iterate through all enemies of our enemies | ``` every_hostile_to_hostile_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_import | Iterate through all imports in a market | ``` every_import = {  limit = { <triggers> }  <effects> } ``` | market | trade |
+| every\_import\_from\_location | Iterate through all Imports from location | ``` every_import_from_location = {  limit = { <triggers> }  <effects> } ``` | location | location |
+| every\_in\_global\_list | Iterate through all items in global list. | ``` every_in_global_list = {  limit = { <triggers> }  list = name or variable = name  <effects> } ``` | none |  |
+| every\_in\_list | Iterate through all items in list. | ``` every_in_list = {  limit = { <triggers> }  list = name or variable = name  <effects> } ``` | none |  |
+| every\_in\_local\_list | Iterate through all items in local list. | ``` every_in_local_list = {  limit = { <triggers> }  list = name or variable = name  <effects> } ``` | none |  |
+| every\_institutions\_embraced | Iterate through all institutions a country has embraced | ``` every_institutions_embraced = {  limit = { <triggers> }  <effects> } ``` | country | institution |
+| every\_international\_organization | Iterate through all international organizations | ``` every_international_organization = {  limit = { <triggers> }  <effects> } ``` | none | international\_organization |
+| every\_international\_organization\_elector | Iterate through all countries with an elector special status in the international organization | ``` every_international_organization_elector = {  limit = { <triggers> }  <effects> } ``` | international\_organization | country |
+| every\_international\_organization\_enemy | Iterate through all countries that are enemies of the international organization | ``` every_international_organization_enemy = {  limit = { <triggers> }  <effects> } ``` | international\_organization | country |
+| every\_international\_organization\_member | Iterate through all countries that are members of the international organization | ``` every_international_organization_member = {  limit = { <triggers> }  <effects> } ``` | international\_organization | country |
+| every\_international\_organization\_owned\_location | Iterate through all locations that are owned by the international organization | ``` every_international_organization_owned_location = {  limit = { <triggers> }  <effects> } ``` | international\_organization | location |
+| every\_international\_organization\_owner | Iterate through all international organizations which own the location scope | ``` every_international_organization_owner = {  limit = { <triggers> }  <effects> } ``` | location | international\_organization |
+| every\_international\_organization\_parliament\_opposers | Iterate through all countries that have voted AGAINST the parliament issue in the in the parliament of the international organization and support the current debate | ``` every_international_organization_parliament_opposers = {  limit = { <triggers> }  <effects> } ``` | international\_organization | country |
+| every\_international\_organization\_parliament\_supporter | Iterate through all countries that have voted FOR the parliament issue in the parliament of the international organization and support the current debate | ``` every_international_organization_parliament_supporter = {  limit = { <triggers> }  <effects> } ``` | international\_organization | country |
+| every\_international\_organizations\_member\_of | Iterate through all international organizations a country is a member of | ``` every_international_organizations_member_of = {  limit = { <triggers> }  <effects> } ``` | country | international\_organization |
+| every\_international\_organizations\_target\_of | Iterate through all international organizations a country is a target of | ``` every_international_organizations_target_of = {  limit = { <triggers> }  <effects> } ``` | country | international\_organization |
+| every\_invited\_religious\_figure | Iterate through all invited religious figures in a Country | ``` every_invited_religious_figure = {  limit = { <triggers> }  <effects> } ``` | country | character |
+| every\_key\_in\_global\_variable\_map | Iterate through all items in global variable map. | ``` every_key_in_global_variable_map = {  limit = { <triggers> }  variable = name  <effects> } ``` | none |  |
+| every\_key\_in\_local\_variable\_map | Iterate through all items in local variable map. | ``` every_key_in_local_variable_map = {  limit = { <triggers> }  variable = name  <effects> } ``` | none |  |
+| every\_key\_in\_variable\_map | Iterate through all items in variable map. | ``` every_key_in_variable_map = {  limit = { <triggers> }  variable = name  <effects> } ``` | none |  |
+| every\_known\_country | Iterate through all known countries | ``` every_known_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_known\_institution | Iterate through all institutions a country knows of | ``` every_known_institution  = {  limit = { <triggers> }  <effects> } ``` | country | institution |
+| every\_left\_flank | Iterate through all subunits on the left-flank of a combat-side | ``` every_left_flank = {  limit = { <triggers> }  <effects> } ``` | combat\_side | sub\_unit |
+| every\_lent\_loan | Iterate through all loans that a country lent | ``` every_lent_loan = {  limit = { <triggers> }  <effects> } ``` | country | loan |
+| every\_loan | Iterate through all loans in a country | ``` every_loan = {  limit = { <triggers> }  <effects> } ``` | country | loan |
+| every\_loan\_lent\_to\_country | Iterate through all loans a country has lent to the supplied borrower country | ``` every_loan_lent_to_country = {  limit = { <triggers> }  <effects> } ``` | country | loan |
+| every\_location\_in\_area | Iterate through all Locations in a area | ``` every_location_in_area = {  limit = { <triggers> }  <effects> } ``` | area | location |
+| every\_location\_in\_continent | Iterate through all Locations in a continent | ``` every_location_in_continent = {  limit = { <triggers> }  <effects> } ``` | continent | location |
+| every\_location\_in\_market | Iterate through all locations in a market | ``` every_location_in_market = {  limit = { <triggers> }  <effects> } ``` | market | location |
+| every\_location\_in\_province | Iterate through all Locations in a province | ``` every_location_in_province = {  limit = { <triggers> }  <effects> } ``` | province | location |
+| every\_location\_in\_province\_definition | Iterate through all Locations in a province definition | ``` every_location_in_province_definition = {  limit = { <triggers> }  <effects> } ``` | province\_definition | location |
+| every\_location\_in\_region | Iterate through all Locations in a region | ``` every_location_in_region = {  limit = { <triggers> }  <effects> } ``` | region | location |
+| every\_location\_in\_scripted\_geography | Iterate through all locations in a scripted geography | ``` every_location_in_scripted_geography = {  limit = { <triggers> }  <effects> } ``` | scripted\_geography | location |
+| every\_location\_in\_sub\_continent | Iterate through all Locations in a sub-continent | ``` every_location_in_sub_continent = {  limit = { <triggers> }  <effects> } ``` | sub\_continent | location |
+| every\_location\_in\_the\_world | Iterate through all location | ``` every_location_in_the_world = {  limit = { <triggers> }  <effects> } ``` | none | location |
+| every\_location\_with\_movement | Iterate through all locations affected by the scope movement | ``` every_location_with_movement = {  limit = { <triggers> }  <effects> } ``` | movement | location |
+| every\_location\_with\_town\_rights\_in\_country | Iterate through all locations with Town Rights in a country | ``` every_location_with_town_rights_in_country = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_loyal\_subject | Iterate through all loyal subject countries | ``` every_loyal_subject = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_maritime\_area | Iterate through all maritime areas for a country | ``` every_maritime_area = {  limit = { <triggers> }  <effects> } ``` | country | area |
+| every\_market\_center\_in\_country | Iterate through all markets in a country which market centers are owned by the country | ``` every_market_center_in_country = {  limit = { <triggers> }  <effects> } ``` | country | market |
+| every\_market\_in\_world | Iterate through all markets in the world | ``` every_market_in_world = {  limit = { <triggers> }  <effects> } ``` | none | market |
+| every\_market\_present\_in\_country | Iterate through all markets in a country | ``` every_market_present_in_country = {  limit = { <triggers> }  <effects> } ``` | country | market |
+| every\_market\_with\_merchants | Iterate through all markets a country has active merchants | ``` every_market_with_merchants = {  limit = { <triggers> }  <effects> } ``` | country | market |
+| every\_mercenary | Iterate through all mercenaries in the world | ``` every_mercenary = {  limit = { <triggers> }  <effects> } ``` | none | mercenary |
+| every\_mercenary\_sub\_unit | Iterate through all subunits in a Mercenary | ``` every_mercenary_sub_unit = {  limit = { <triggers> }  <effects> } ``` | mercenary | sub\_unit |
+| every\_merchant\_in\_market | Iterate through all merchants in a market | ``` every_merchant_in_market = {  limit = { <triggers> }  <effects> } ``` | market | country |
+| every\_movement | Iterate through all movements | ``` every_movement = {  limit = { <triggers> }  <effects> } ``` | none | movement |
+| every\_movement\_in\_country | Iterate through all movements in a country | ``` every_movement_in_country = {  limit = { <triggers> }  <effects> } ``` | country | movement |
+| every\_movement\_in\_culture | Iterate through all movements in a culture | ``` every_movement_in_culture = {  limit = { <triggers> }  <effects> } ``` | culture | movement |
+| every\_movement\_in\_religion | Iterate through all movements in a religion | ``` every_movement_in_religion = {  limit = { <triggers> }  <effects> } ``` | religion | movement |
+| every\_navy | Iterate through all navies in a country | ``` every_navy = {  limit = { <triggers> }  <effects> } ``` | country | unit |
+| every\_neighbor\_area | Iterate through all neighboring areas in a area | ``` every_neighbor_area = {  limit = { <triggers> }  <effects> } ``` | area | area |
+| every\_neighbor\_country | Iterate through all neighbour countries | ``` every_neighbor_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_neighbor\_location | Iterate through all neighbors of a location | ``` every_neighbor_location = {  limit = { <triggers> }  <effects> } ``` | location | location |
+| every\_neighbor\_province\_definition | Iterate through all neighboring ProvinceDefinitions in a ProvinceDefinition | ``` every_neighbor_province_definition = {  limit = { <triggers> }  <effects> } ``` | province\_definition | province\_definition |
+| every\_new\_world\_goods | Iterate through all new-world goods | ``` every_new_world_goods = {  limit = { <triggers> }  <effects> } ``` | none | goods |
+| every\_nomad\_countries\_in\_location | Iterate through all nomad pop countries in a location | ``` every_nomad_countries_in_location = {  limit = { <triggers> }  <effects> } ``` | location | country |
+| every\_non\_state\_religion\_location | Iterate through all NonStateReligion locations in a country | ``` every_non_state_religion_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_old\_world\_goods | Iterate through all old-world goods | ``` every_old_world_goods = {  limit = { <triggers> }  <effects> } ``` | none | goods |
+| every\_omen\_in\_country | Iterate through all Omens active in a country | ``` every_omen_in_country = {  limit = { <triggers> }  <effects> } ``` | country | omen |
+| every\_omen\_in\_god | Iterate through all Omens associated with a God | ``` every_omen_in_god = {  limit = { <triggers> }  <effects> } ``` | god | omen |
+| every\_omen\_in\_religion | Iterate through all Omens in a religion | ``` every_omen_in_religion = {  limit = { <triggers> }  <effects> } ``` | religion | omen |
+| every\_other\_core\_country | Iterate through all other countries which have a core on the current country | ``` every_other_core_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_other\_country | Iterate through all other countries | ``` every_other_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_other\_great\_power | Iterate through all other great powers | ``` every_other_great_power = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_other\_religion\_in\_same\_group | Iterate through all other religions that has the same group as Religion | ``` every_other_religion_in_same_group = {  limit = { <triggers> }  <effects> } ``` | religion | religion |
+| every\_other\_revolutionary | Iterate through all other revolutionary countries | ``` every_other_revolutionary = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_overlord\_or\_above | Iterate through your overlord, your overlord's overlord, and so on | ``` every_overlord_or_above = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_ownable\_location | Iterate through all ownable location | ``` every_ownable_location = {  limit = { <triggers> }  <effects> } ``` | none | location |
+| every\_ownable\_location\_in\_area | Iterate through all ownable Locations in an area | ``` every_ownable_location_in_area = {  limit = { <triggers> }  <effects> } ``` | area | location |
+| every\_ownable\_location\_in\_continent | Iterate through all ownable Locations in a continent | ``` every_ownable_location_in_continent = {  limit = { <triggers> }  <effects> } ``` | continent | location |
+| every\_ownable\_location\_in\_province\_definition | Iterate through all ownable Locations in a province definition | ``` every_ownable_location_in_province_definition = {  limit = { <triggers> }  <effects> } ``` | province\_definition | location |
+| every\_ownable\_location\_in\_region | Iterate through all ownable Locations in a region | ``` every_ownable_location_in_region = {  limit = { <triggers> }  <effects> } ``` | region | location |
+| every\_ownable\_location\_in\_scripted\_geography | Iterate through all ownable locations in a scripted geography | ``` every_ownable_location_in_scripted_geography = {  limit = { <triggers> }  <effects> } ``` | scripted\_geography | location |
+| every\_ownable\_location\_in\_sub\_continent | Iterate through all ownable Locations in a sub continent | ``` every_ownable_location_in_sub_continent = {  limit = { <triggers> }  <effects> } ``` | sub\_continent | location |
+| every\_owned\_building | Iterate through all the owned buildings in a country | ``` every_owned_building = {  limit = { <triggers> }  <effects> } ``` | country | building |
+| every\_owned\_foreign\_building | Iterate through all the owned foreign buildings in a country | ``` every_owned_foreign_building = {  limit = { <triggers> }  <effects> } ``` | country | building |
+| every\_owned\_foreign\_building\_location | Iterate through all the location of owned foreign buildings in a country | ``` every_owned_foreign_building_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_owned\_foreign\_building\_region | Iterate through all the regions of owned foreign buildings in a country | ``` every_owned_foreign_building_region = {  limit = { <triggers> }  <effects> } ``` | country | region |
+| every\_owned\_location | Iterate through all owned location in a country | ``` every_owned_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_owned\_nomad\_pop | Iterate through all owned nomad pops in a country | ``` every_owned_nomad_pop = {  limit = { <triggers> }  <effects> } ``` | country | pop |
+| every\_owned\_non\_rural\_location | Iterate through all owned non-rural locations in a country | ``` every_owned_non_rural_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_owned\_rural\_location | Iterate through all owned rural locations in a country | ``` every_owned_rural_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_owner\_in\_region | Iterate through all the countries that own locations in a region | ``` every_owner_in_region = {  limit = { <triggers> }  <effects> } ``` | region | country |
+| every\_parent | Iterate through parents (order: father, mother) of a character. | ``` every_parent = {  limit = { <triggers> }  <effects> } ``` | character | character |
+| every\_participating\_countries | Iterate through all Countrys participating in 1 side of a combat | ``` every_participating_countries = {  limit = { <triggers> }  <effects> } ``` | combat\_side | country |
+| every\_participating\_units | Iterate through all units participating in 1 side of a combat | ``` every_participating_units = {  limit = { <triggers> }  <effects> } ``` | combat\_side | unit |
+| every\_past\_liturgical\_dialect | Iterate through all liturgical dialects a country has had before | ``` every_past_liturgical_dialect = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_policy\_in\_law | Iterate through all policies that are part of the law scope | ``` every_policy_in_law = {  limit = { <triggers> }  <effects> } ``` | law | policy |
+| every\_political\_border\_location | Iterate through all owned location in a country which border another country. | ``` every_political_border_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_pop | Iterate through all pops in a location or country | ``` every_pop = {  limit = { <triggers> }  <effects> } ``` | country, location | pop |
+| every\_pops\_supporting\_rebel | Iterate through all pops supporting a rebel | ``` every_pops_supporting_rebel = {  limit = { <triggers> }  <effects> } ``` | rebels | pop |
+| every\_port\_in\_country | Iterate through all Ports in a country | ``` every_port_in_country = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_possible\_disaster | Iterate through all possible disasters for a country | ``` every_possible_disaster = {  limit = { <triggers> }  <effects> } ``` | country | disaster |
+| every\_possible\_parliament\_issue | Iterate through all possible parliament issues in a country's or an international organization's parliament | ``` every_possible_parliament_issue = {  limit = { <triggers> }  <effects> } ``` | country, international\_organization | parliament\_issue |
+| every\_possible\_policy | Iterate through all possible policies of a Country that is not currently implemeted | ``` every_possible_policy = {  limit = { <triggers> }  <effects> } ``` | country | policy |
+| every\_possible\_privilege | Iterate through all possible & allowed estate privileges of a Country that is not currently implemeted | ``` every_possible_privilege = {  limit = { <triggers> }  <effects> } ``` | estate | estate\_privilege |
+| every\_possible\_recruit\_location | Iterate through all possible recruit locations in a country | ``` every_possible_recruit_location = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_present\_country | Iterate through all countries in the specified geography | ``` every_present_country = {  limit = { <triggers> }  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| every\_present\_culture\_in\_country | Iterate through all cultures present in the country. | ``` every_present_culture_in_country = {  limit = { <triggers> }  <effects> } ``` | country | culture |
+| every\_present\_culture\_in\_location | Iterate through all cultures present in the location. | ``` every_present_culture_in_location = {  limit = { <triggers> }  <effects> } ``` | location | culture |
+| every\_present\_overlord | Iterate through all countries which have a subject in the specified geography | ``` every_present_overlord = {  limit = { <triggers> }  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| every\_present\_religion\_in\_country | Iterate through all religions present in the country. | ``` every_present_religion_in_country = {  limit = { <triggers> }  <effects> } ``` | country | religion |
+| every\_present\_religion\_in\_location | Iterate through all religions present in the location. | ``` every_present_religion_in_location = {  limit = { <triggers> }  <effects> } ``` | location | religion |
+| every\_primary\_or\_accepted\_culture | Iterate through primary culture and all accepted cultures in a country. Primary is ordered first. | ``` every_primary_or_accepted_culture = {  limit = { <triggers> }  <effects> } ``` | country | culture |
+| every\_primary\_or\_accepted\_or\_tolerated\_culture | Iterate through primary culture and all accepted and all tolerated cultures in a country. Primary is ordered first. | ``` every_primary_or_accepted_or_tolerated_culture = {  limit = { <triggers> }  <effects> } ``` | country | culture |
+| every\_privateer | Iterate through all privateers in the world | ``` every_privateer = {  limit = { <triggers> }  <effects> } ``` | none | privateer |
+| every\_privateer\_from\_country | Iterate through all privateers a country has | ``` every_privateer_from_country = {  limit = { <triggers> }  <effects> } ``` | country | privateer |
+| every\_privateer\_in\_area | Iterate through all privateers in a area | ``` every_privateer_in_area = {  limit = { <triggers> }  <effects> } ``` | area | privateer |
+| every\_production\_method | Iterate through all types of production methods. | ``` every_production_method = {  limit = { <triggers> }  <effects> } ``` | none | production\_method |
+| every\_production\_method\_of\_building | Iterate through all available production methods of the building. | ``` every_production_method_of_building = {  limit = { <triggers> }  <effects> } ``` | building | production\_method |
+| every\_province | Iterate through all provinces in a country | ``` every_province = {  limit = { <triggers> }  <effects> } ``` | country | province |
+| every\_province\_definition | Iterate through all existing province\_definition | ``` every_province_definition = {  limit = { <triggers> }  <effects> } ``` | none | province\_definition |
+| every\_province\_definition\_in\_area | Iterate through all province-definitions in an area | ``` every_province_definition_in_area = {  limit = { <triggers> }  <effects> } ``` | area | province\_definition |
+| every\_province\_definition\_in\_scripted\_geography | Iterate through all province-definitions in a scripted geography | ``` every_province_definition_in_scripted_geography = {  limit = { <triggers> }  <effects> } ``` | scripted\_geography | province\_definition |
+| every\_province\_in\_area | Iterate through all provinces in an area | ``` every_province_in_area = {  limit = { <triggers> }  <effects> } ``` | area | province |
+| every\_province\_in\_province\_definition | Iterate through all provinces in a province-definition | ``` every_province_in_province_definition = {  limit = { <triggers> }  <effects> } ``` | province\_definition | province |
+| every\_rebel | Iterate through all Rebels in a country | ``` every_rebel = {  limit = { <triggers> }  <effects> } ``` | country | rebels |
+| every\_region | Iterate through all existing regions | ``` every_region = {  limit = { <triggers> }  <effects> } ``` | none | region |
+| every\_region\_in\_continent | Iterate through all regions in a sub-continent | ``` every_region_in_continent = {  limit = { <triggers> }  <effects> } ``` | sub\_continent | region |
+| every\_region\_in\_province\_definition | Iterate through all regions in a province-definition | ``` every_region_in_province_definition = {  limit = { <triggers> }  <effects> } ``` | province\_definition | region |
+| every\_related\_country | Iterate through all related countries | ``` every_related_country = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_religion | Iterate through all religions | ``` every_religion = {  limit = { <triggers> }  <effects> } ``` | none | religion |
+| every\_religion\_for\_god | Iterate through all Religions of a God | ``` every_religion_for_god = {  limit = { <triggers> }  <effects> } ``` | god | religion |
+| every\_religion\_in\_religion\_group | Iterate through all religions in a religion group. | ``` every_religion_in_religion_group = {  limit = { <triggers> }  <effects> } ``` | group | religion |
+| every\_religion\_international\_organization | Iterate through all international organisations of a religion | ``` every_religion_international_organization = {  limit = { <triggers> }  <effects> } ``` | religion | international\_organization |
+| every\_religious\_aspect | Iterate through all religious aspects of a Country | ``` every_religious_aspect = {  limit = { <triggers> }  <effects> } ``` | country | religious\_aspect |
+| every\_religious\_focus | Iterate through all completed religious focuses of a Country | ``` every_religious_focus = {  limit = { <triggers> }  <effects> } ``` | country | religious\_focus |
+| every\_religious\_school\_in\_religion | Iterate through all Religious Schools in a Religion | ``` every_religious_school_in_religion = {  limit = { <triggers> }  <effects> } ``` | religion | religious\_school |
+| every\_rented\_out\_mercenary | Iterate through mercenaries a country has rented out to the market | ``` every_rented_out_mercenary = {  limit = { <triggers> }  <effects> } ``` | country | mercenary |
+| every\_required\_goods | Iterate through all goods required by the scope production method. | ``` every_required_goods = {  limit = { <triggers> }  <effects> } ``` | production\_method | goods |
+| every\_reserves | Iterate through all subunits on the reserve of a combat-side | ``` every_reserves = {  limit = { <triggers> }  <effects> } ``` | combat\_side | sub\_unit |
+| every\_retreated | Iterate through all subunits on the retreated of a combat-side | ``` every_retreated = {  limit = { <triggers> }  <effects> } ``` | combat\_side | sub\_unit |
+| every\_revolutionary | Iterate through all revolutionary states | ``` every_revolutionary = {  limit = { <triggers> }  <effects> } ``` | none | country |
+| every\_right\_flank | Iterate through all subunits on the right-flank of a combat-side | ``` every_right_flank = {  limit = { <triggers> }  <effects> } ``` | combat\_side | sub\_unit |
+| every\_rival | Iterate through all rival countries | ``` every_rival = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_road\_type | Iterate through all the road types | ``` every_road_type = {  limit = { <triggers> }  <effects> } ``` | none | road\_type |
+| every\_royal\_marriage | Iterate through all royal married countries | ``` every_royal_marriage = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_ruled\_international\_organization | Iterate through IOs a character rules | ``` every_ruled_international_organization = {  limit = { <triggers> }  <effects> } ``` | character | international\_organization |
+| every\_ruler | Iterate through all characters that have ever been rulers in a country, including the dead | ``` every_ruler = {  limit = { <triggers> }  <effects> } ``` | country | character |
+| every\_ruling\_countries | Iterate through countries a character rulers | ``` every_ruling_countries = {  limit = { <triggers> }  <effects> } ``` | character | country |
+| every\_sound\_toll\_in\_country | Iterate through all Sound Tolls in a country | ``` every_sound_toll_in_country = {  limit = { <triggers> }  <effects> } ``` | country | location |
+| every\_spouse | Iterate through all spouses of a character | ``` every_spouse = {  limit = { <triggers> }  <effects> } ``` | character | character |
+| every\_spy\_network\_built\_in\_us | Iterate through all countries building spy networks | ``` every_spy_network_built_in_us = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_sub\_continent | Iterate through all existing sub\_continents | ``` every_sub_continent = {  limit = { <triggers> }  <effects> } ``` | none | sub\_continent |
+| every\_sub\_continent\_in\_continent | Iterate through all sub-continents in a continent | ``` every_sub_continent_in_continent = {  limit = { <triggers> }  <effects> } ``` | continent | sub\_continent |
+| every\_sub\_continent\_in\_scripted\_geography | Iterate through all sub-continents in a scripted geography | ``` every_sub_continent_in_scripted_geography = {  limit = { <triggers> }  <effects> } ``` | scripted\_geography | sub\_continent |
+| every\_sub\_unit | Iterate through all subunits in a unit | ``` every_sub_unit = {  limit = { <triggers> }  <effects> } ``` | unit | sub\_unit |
+| every\_subject | Iterate through all subject countries | ``` every_subject = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_subject\_or\_below | Iterate through all subject countries and their subject countries, and so on | ``` every_subject_or_below = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_tolerated\_culture | Iterate through all Tolerated cultures in a country | ``` every_tolerated_culture = {  limit = { <triggers> }  <effects> } ``` | country | culture |
+| every\_town\_rights\_in\_country | Iterate through all Town Rights in a country | ``` every_town_rights_in_country = {  limit = { <triggers> }  <effects> } ``` | country | town\_rights |
+| every\_town\_rights\_in\_location | Iterate through all Town Rights in a location | ``` every_town_rights_in_location = {  limit = { <triggers> }  <effects> } ``` | location | town\_rights |
+| every\_trade | Iterate through all trades in a Country | ``` every_trade = {  limit = { <triggers> }  <effects> } ``` | country | trade |
+| every\_trait | Iterate through all traits of a character | ``` every_trait = {  limit = { <triggers> }  <effects> } ``` | character | trait |
+| every\_union\_partner | Iterate through all countries which are in a personal union with the current country scope. | ``` every_union_partner = {  limit = { <triggers> }  <effects> } ``` | country | country |
+| every\_unit | Iterate through all units in a country | ``` every_unit = {  limit = { <triggers> }  <effects> } ``` | country | unit |
+| every\_unit\_in\_location | Iterate through all units in a location | ``` every_unit_in_location = {  limit = { <triggers> }  <effects> } ``` | location | unit |
+| every\_valid\_religion\_for\_aspect | Iterate through all religion that an aspect can be for | ``` every_valid_religion_for_aspect = {  limit = { <triggers> }  <effects> } ``` | religious\_aspect | religion |
+| every\_voter | Iterate through all voters in an active resolution | ``` every_voter = {  limit = { <triggers> }  <effects> } ``` | active\_resolution | country |
+| every\_war | Iterate through all wars going on globally | ``` every_war = {  limit = { <triggers> }  <effects> } ``` | none | war |
+| every\_war\_participant | Iterate through all participants of a war | ``` every_war_participant = {  limit = { <triggers> }  <effects> } ``` | war | country |
+| every\_weather\_system\_in\_location | Iterate through all weather systems in a location | ``` every_weather_system_in_location = {  limit = { <triggers> }  <effects> } ``` | location | weather\_system |
+| every\_west\_of\_province\_definition | Iterate through all province-definitions west of a province-definition | ``` every_west_of_province_definition = {  limit = { <triggers> }  <effects> } ``` | province\_definition | province\_definition |
+| every\_work\_of\_art | Iterate through all WorkOfArts in the world | ``` every_work_of_art = {  limit = { <triggers> }  <effects> } ``` | none | work\_of\_art |
+| every\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` every_work_of_art_by_creator = {  limit = { <triggers> }  <effects> } ``` | character | work\_of\_art |
+| every\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` every_work_of_art_in_country = {  limit = { <triggers> }  <effects> } ``` | country | work\_of\_art |
+| every\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` every_work_of_art_in_location = {  limit = { <triggers> }  <effects> } ``` | location | work\_of\_art |
+| ordered\_accepted\_culture | Iterate through all accepted cultures in a country | ``` ordered_accepted_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | culture |
+| ordered\_active\_disaster | Iterate through all active disasters for a country | ``` ordered_active_disaster = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | disaster |
+| ordered\_active\_estate | Iterate through all active estates (non-crown) | ``` ordered_active_estate = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | estate\_type |
+| ordered\_active\_resolution | Iterate through all currently active resolutions in an international organization or situation | ``` ordered_active_resolution = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization, situation | active\_resolution |
+| ordered\_adjacent\_ports\_to\_area | Iterate through all adjacent ports of an seazone area | ``` ordered_adjacent_ports_to_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area | location |
+| ordered\_advance\_definition | Iterate through all advance definitions | ``` ordered_advance_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | advance\_type |
+| ordered\_allowed\_estate\_in\_heir\_selection | Iterate through all allowed estates a HeirSelection has | ``` ordered_allowed_estate_in_heir_selection = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | heir\_selection | estate\_type |
+| ordered\_ancestor | Iterate through all ancestors (parents, grandparents etc) of a character | ``` ordered_ancestor = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | character |
+| ordered\_area | Iterate through all existing areas | ``` ordered_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | area |
+| ordered\_area\_in\_region | Iterate through all areas in a region | ``` ordered_area_in_region = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | region | area |
+| ordered\_area\_in\_scripted\_geography | Iterate through all areas in a scripted geography | ``` ordered_area_in_scripted_geography = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | scripted\_geography | area |
+| ordered\_area\_with\_core | Iterate through all areas with cored locations in a country | ``` ordered_area_with_core = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | area |
+| ordered\_area\_with\_owned\_province | Iterate through all areas with owned provinces in a country | ``` ordered_area_with_owned_province = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | area |
+| ordered\_army | Iterate through all armies in a country | ``` ordered_army = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | unit |
+| ordered\_artist | Iterate through all artists in a country | ``` ordered_artist = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | character |
+| ordered\_attacker | Iterate through all attackers of a war | ``` ordered_attacker = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | war | country |
+| ordered\_available\_dynasty\_member | Iterate through adult dynasty members who are not a ruler or heir (cached) | ``` ordered_available_dynasty_member = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | dynasty | character |
+| ordered\_avatar\_for\_god | Iterate through all Avatars of a God | ``` ordered_avatar_for_god = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | god | avatar |
+| ordered\_besieging\_units | Iterate through all units participating in a siege | ``` ordered_besieging_units = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | siege | unit |
+| ordered\_border\_location | Iterate through all owned location in a country which border locations not owned by the current country scope. | ``` ordered_border_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_buildable\_building\_type | Iterate through all the building types a country can build | ``` ordered_buildable_building_type = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | building\_type |
+| ordered\_building\_owned\_by\_estate | Iterate through all buildings that an estate has | ``` ordered_building_owned_by_estate = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | estate | building |
+| ordered\_building\_type | Iterate through all the building types | ``` ordered_building_type = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | building\_type |
+| ordered\_buildings\_in\_location | Iterate through all buildings in a location | ``` ordered_buildings_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | building |
+| ordered\_cabinet | Iterate through all actions in a country's cabinet | ``` ordered_cabinet = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | cabinet |
+| ordered\_cabinet\_action | Iterate through all actions in a country's cabinet actions | ``` ordered_cabinet_action = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | cabinet\_action |
+| ordered\_cabinet\_character | Iterate through all characters in a country that is in the cabinet | ``` ordered_cabinet_character = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | character |
+| ordered\_cardinal\_in\_country | Iterate through all Cardinals in a country | ``` ordered_cardinal_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | cardinal |
+| ordered\_cardinal\_in\_religion | Iterate through all Cardinals in a Religion | ``` ordered_cardinal_in_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | cardinal |
+| ordered\_casus\_belli\_on\_us | Iterate through all countries have a casus belli on us | ``` ordered_casus_belli_on_us = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_casus\_belli\_target | Iterate through all countries we have a casus belli on | ``` ordered_casus_belli_target = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_center | Iterate through all subunits on the center of a combat-side | ``` ordered_center = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | combat\_side | sub\_unit |
+| ordered\_character | Iterate through all characters in a country | ``` ordered_character = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | character |
+| ordered\_character\_in\_dynasty | Iterate through all living characters in a Dynasty | ``` ordered_character_in_dynasty = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | dynasty | character |
+| ordered\_character\_supporting\_rebel | Iterate through all characters supporting a rebel | ``` ordered_character_supporting_rebel = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | rebels | character |
+| ordered\_child | Iterate through all children of a character | ``` ordered_child = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | character |
+| ordered\_close\_relative | Iterate through all close relatives of a character | ``` ordered_close_relative = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | character |
+| ordered\_coast\_border\_location | Iterate through all bordering, or across one seazone of a location | ``` ordered_coast_border_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | location |
+| ordered\_colonial\_charter | Iterate through all colonial charters in a country | ``` ordered_colonial_charter = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | colonial\_charter |
+| ordered\_colonial\_claim\_province\_definition | Iterate through all province definitions with colonial claims from the scope country. | ``` ordered_colonial_claim_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | province\_definition |
+| ordered\_colonial\_country | Iterate through all colonial countries in the world | ``` ordered_colonial_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | country |
+| ordered\_colonial\_overlord | Iterate through all colonial overlord countries in the world | ``` ordered_colonial_overlord = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | country |
+| ordered\_colonial\_top\_overlord | Iterate through all countries in the world that have a colonial country among their subjects or their subjects subjects and so on | ``` ordered_colonial_top_overlord = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | country |
+| ordered\_connected\_location | Iterate through all locations in the same country as the scope location that are connected by land or strait | ``` ordered_connected_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | location |
+| ordered\_construction\_material\_for\_building\_type | Iterate through all goods required to construct a building type | ``` ordered_construction_material_for_building_type = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | building\_type | goods |
+| ordered\_continent | Iterate through all existing continents | ``` ordered_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | continent |
+| ordered\_continent\_in\_scripted\_geography | Iterate through all continents in a scripted geography | ``` ordered_continent_in_scripted_geography = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | scripted\_geography | continent |
+| ordered\_controlled\_location | Iterate through all controlled location in a country | ``` ordered_controlled_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_core\_in\_location | Iterate through all cores in a location | ``` ordered_core_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | country |
+| ordered\_core\_location | Iterate through all core locations in a country | ``` ordered_core_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_country | Iterate through all existing countries | ``` ordered_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | country |
+| ordered\_country\_annexing\_us | Iterate through all countries which are currently annexing the current country scope. | ``` ordered_country_annexing_us = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_at\_war\_with | Iterate through all countries at war with | ``` ordered_country_at_war_with = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_in\_culture | Iterate through all countries with this primary culture | ``` ordered_country_in_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | culture | country |
+| ordered\_country\_in\_culture\_group | Iterate through all countries in a culture group. | ``` ordered_country_in_culture_group = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | culture\_group | country |
+| ordered\_country\_in\_diplomatic\_range | Iterate through all countries in diplomatic range | ``` ordered_country_in_diplomatic_range = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_in\_dynasty | Iterate through all countries in a Dynasty | ``` ordered_country_in_dynasty = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | dynasty | country |
+| ordered\_country\_in\_hierarchy | Iterate through every country in the entire overlord/subject hierarchy, from the independent top overlord to the deepest subjects | ``` ordered_country_in_hierarchy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_in\_religion | Iterate through all countries in a religion | ``` ordered_country_in_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | country |
+| ordered\_country\_in\_religion\_group | Iterate through all countries in a religion group. | ``` ordered_country_in_religion_group = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | group | country |
+| ordered\_country\_in\_religious\_school | Iterate through all countries within a school | ``` ordered_country_in_religious_school = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religious\_school | country |
+| ordered\_country\_lent\_to | Iterate through all countries a country has lent to | ``` ordered_country_lent_to = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_sub\_unit | Iterate through all subunits in all units in a country | ``` ordered_country_sub_unit = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | sub\_unit |
+| ordered\_country\_supporting\_rebel | Iterate through all countries supporting a rebel | ``` ordered_country_supporting_rebel = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | rebels | country |
+| ordered\_country\_that\_can\_be\_called\_defensively | Iterate through all countries that may be called into a defensive war. | ``` ordered_country_that_can_be_called_defensively = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_that\_can\_be\_called\_offensively | Iterate through all countries that may be called into an offensive war. | ``` ordered_country_that_can_be_called_offensively = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_together\_in\_war\_with | Iterate through all countries which are an ally in any of the country scope's wars | ``` ordered_country_together_in_war_with = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_we\_are\_annexing | Iterate through all countries which are currently annexed by the current country scope. | ``` ordered_country_we_are_annexing = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_with\_antagonism\_against\_us | Iterate through all countries who have antagonism against us | ``` ordered_country_with_antagonism_against_us = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_with\_capital\_in\_geography | Iterate through all countries which have their capital in the specified geography | ``` ordered_country_with_capital_in_geography = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| ordered\_country\_with\_cardinals | Iterate through all countries with cardinals in a religion | ``` ordered_country_with_cardinals = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | country |
+| ordered\_country\_with\_coalition\_grade\_antagonism\_against\_us | Iterate through all countries who have coalition grade antagonism against us | ``` ordered_country_with_coalition_grade_antagonism_against_us = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_with\_relation\_that\_can\_be\_annulled | Iterate through all countries which have an annullable relation with the scope country. | ``` ordered_country_with_relation_that_can_be_annulled = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_country\_with\_succession\_law | Iterate through all countries with a cached succession law (set cached = yes in the heir\_selection to use this) | ``` ordered_country_with_succession_law = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | country |
+| ordered\_culture | Iterate through all cultures | ``` ordered_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | culture |
+| ordered\_culture\_group | Iterate through all culture groups the culture is in. | ``` ordered_culture_group = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | culture | culture\_group |
+| ordered\_culture\_in\_culture\_group | Iterate through all cultures in a culture group. | ``` ordered_culture_in_culture_group = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | culture\_group | culture |
+| ordered\_current\_avatars | Iterate through all Avatars a country has | ``` ordered_current_avatars = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | avatar |
+| ordered\_current\_bureaucracy | Iterate through all Bureaucracies a country has | ``` ordered_current_bureaucracy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | bureaucracy |
+| ordered\_current\_bureaucracy\_type | Iterate through all Bureaucracy types a country has | ``` ordered_current_bureaucracy_type = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | bureaucracy\_type |
+| ordered\_current\_gods | Iterate through all Gods a country worships | ``` ordered_current_gods = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | god |
+| ordered\_current\_law | Iterate through all laws of a country. | ``` ordered_current_law = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | law |
+| ordered\_current\_law\_in\_international\_organization | Iterate through all laws that are codified in the international organization | ``` ordered_current_law_in_international_organization = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | law |
+| ordered\_current\_policy | Iterate through all policies that are codified in the country | ``` ordered_current_policy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | policy |
+| ordered\_current\_policy\_in\_international\_organization | Iterate through all policies that are codified in the international organization | ``` ordered_current_policy_in_international_organization = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | policy |
+| ordered\_current\_reforms | Iterate through all Government Reforms a country has | ``` ordered_current_reforms = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | government\_reform |
+| ordered\_current\_war | Iterate through all wars of a country | ``` ordered_current_war = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | war |
+| ordered\_defender | Iterate through all defenders of a war | ``` ordered_defender = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | war | country |
+| ordered\_descendant | Iterate through all descendants (children, grandchildren etc) of a character | ``` ordered_descendant = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | character |
+| ordered\_disloyal\_subject | Iterate through all loyal subject countries | ``` ordered_disloyal_subject = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_dynasty | Iterate through all dynasties in a country | ``` ordered_dynasty = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | dynasty |
+| ordered\_east\_of\_province\_definition | Iterate through all province-definitions east of a province-definition | ``` ordered_east_of_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | province\_definition | province\_definition |
+| ordered\_election\_candidates | Iterate through all election candidates of a country with elections! | ``` ordered_election_candidates = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | character |
+| ordered\_enemy | Iterate through all Enemy countries | ``` ordered_enemy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_enemy\_war\_leader | Iterate through all countries which are leading a war against the scope | ``` ordered_enemy_war_leader = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_estate | Iterate through all estates in a country | ``` ordered_estate = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | estate |
+| ordered\_estate\_privilege | Iterate through all current estate privileges of a Country | ``` ordered_estate_privilege = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | estate\_privilege |
+| ordered\_estate\_type\_preferring | Iterate through all estate types that a prefer a policy | ``` ordered_estate_type_preferring = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | policy | estate\_type |
+| ordered\_estate\_type\_that\_dislikes\_bureaucracy | Iterate through all estate types that do NOT prefer a bureaucracy | ``` ordered_estate_type_that_dislikes_bureaucracy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | bureaucracy\_type | estate\_type |
+| ordered\_estate\_type\_that\_likes\_bureaucracy | Iterate through all estate types that a prefer a bureaucracy | ``` ordered_estate_type_that_likes_bureaucracy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | bureaucracy\_type | estate\_type |
+| ordered\_exploration\_from\_country | Iterate through all Explorations a country has | ``` ordered_exploration_from_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | exploration |
+| ordered\_export | Iterate through all exports in a market | ``` ordered_export = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | market | trade |
+| ordered\_export\_from\_location | Iterate through all exports from location | ``` ordered_export_from_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | location |
+| ordered\_food\_goods | Iterate through all food-goods | ``` ordered_food_goods = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | food |
+| ordered\_foreign\_building\_countries\_in\_location | Iterate through all foreign building countries in a location | ``` ordered_foreign_building_countries_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | country |
+| ordered\_foreign\_buildings\_in\_location | Iterate through all foreign buildings in a location | ``` ordered_foreign_buildings_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | building |
+| ordered\_fort\_in\_country | Iterate through all Forts in a country | ``` ordered_fort_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_friendly\_coast\_border\_location | Iterate through all friendly bordering, or across one seazone of a location | ``` ordered_friendly_coast_border_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | location |
+| ordered\_friendly\_country | Iterate through all countries with relations marked as friendly | ``` ordered_friendly_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_friendly\_or\_high\_opinion\_country | Iterate through all countries with relations marked as friendly or that we have a high opinion of set in defines | ``` ordered_friendly_or_high_opinion_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_friendly\_to\_friendly\_country | Iterate through all friends of our friends | ``` ordered_friendly_to_friendly_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_friendly\_to\_hostile\_country | Iterate through all friends of our enemies | ``` ordered_friendly_to_hostile_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_god\_in\_religion | Iterate through all Gods in a Religion | ``` ordered_god_in_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | god |
+| ordered\_good\_in\_demand | Iterate through all goods in a goods demand | ``` ordered_good_in_demand = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | demand | goods |
+| ordered\_goods | Iterate through all types of goods | ``` ordered_goods = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | goods |
+| ordered\_graphical\_culture\_in\_culture | Iterate through all graphical culture in a culture | ``` ordered_graphical_culture_in_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | culture | graphical\_culture |
+| ordered\_great\_power | Iterate through all great powers | ``` ordered_great_power = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | country |
+| ordered\_heathen\_location | Iterate through all heathen locations in a country | ``` ordered_heathen_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_heretic\_location | Iterate through all Heretic locations in a country | ``` ordered_heretic_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_hired\_mercenary | Iterate through mercenaries a country has hired | ``` ordered_hired_mercenary = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | mercenary |
+| ordered\_historical\_enemy | Iterate through all historical Enemy countries | ``` ordered_historical_enemy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_historical\_rival | Iterate through all historical rival countries | ``` ordered_historical_rival = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_holy\_site\_in\_country | Iterate through all Holy Sites in a country | ``` ordered_holy_site_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | holy\_site |
+| ordered\_holy\_site\_in\_religion | Iterate through all Holy Sites in a Religion | ``` ordered_holy_site_in_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | holy\_site |
+| ordered\_hostile\_country | Iterate through all countries with relations marked as hostile | ``` ordered_hostile_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_hostile\_or\_low\_opinion\_country | Iterate through all countries with relations marked as hostile or that we have a low opinion of set in defines | ``` ordered_hostile_or_low_opinion_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_hostile\_to\_friendly\_country | Iterate through all enemies of our friends | ``` ordered_hostile_to_friendly_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_hostile\_to\_hostile\_country | Iterate through all enemies of our enemies | ``` ordered_hostile_to_hostile_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_import | Iterate through all imports in a market | ``` ordered_import = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | market | trade |
+| ordered\_import\_from\_location | Iterate through all Imports from location | ``` ordered_import_from_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | location |
+| ordered\_in\_global\_list | Iterate through all items in global list. | ``` ordered_in_global_list = {  list = name or variable = name  limit = { <triggers> }  order_by = script_value  position = int  min = int  max = script_value  check_range_bounds = no # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none |  |
+| ordered\_in\_list | Iterate through all items in list. | ``` ordered_in_list = {  list = name or variable = name  limit = { <triggers> }  order_by = script_value  position = int  min = int  max = script_value  check_range_bounds = no # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none |  |
+| ordered\_in\_local\_list | Iterate through all items in local list. | ``` ordered_in_local_list = {  list = name or variable = name  limit = { <triggers> }  order_by = script_value  position = int  min = int  max = script_value  check_range_bounds = no # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none |  |
+| ordered\_institutions\_embraced | Iterate through all institutions a country has embraced | ``` ordered_institutions_embraced = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | institution |
+| ordered\_international\_organization | Iterate through all international organizations | ``` ordered_international_organization = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | international\_organization |
+| ordered\_international\_organization\_elector | Iterate through all countries with an elector special status in the international organization | ``` ordered_international_organization_elector = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | country |
+| ordered\_international\_organization\_enemy | Iterate through all countries that are enemies of the international organization | ``` ordered_international_organization_enemy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | country |
+| ordered\_international\_organization\_member | Iterate through all countries that are members of the international organization | ``` ordered_international_organization_member = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | country |
+| ordered\_international\_organization\_owned\_location | Iterate through all locations that are owned by the international organization | ``` ordered_international_organization_owned_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | location |
+| ordered\_international\_organization\_owner | Iterate through all international organizations which own the location scope | ``` ordered_international_organization_owner = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | international\_organization |
+| ordered\_international\_organization\_parliament\_opposers | Iterate through all countries that have voted AGAINST the parliament issue in the in the parliament of the international organization and support the current debate | ``` ordered_international_organization_parliament_opposers = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | country |
+| ordered\_international\_organization\_parliament\_supporter | Iterate through all countries that have voted FOR the parliament issue in the parliament of the international organization and support the current debate | ``` ordered_international_organization_parliament_supporter = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | international\_organization | country |
+| ordered\_international\_organizations\_member\_of | Iterate through all international organizations a country is a member of | ``` ordered_international_organizations_member_of = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | international\_organization |
+| ordered\_international\_organizations\_target\_of | Iterate through all international organizations a country is a target of | ``` ordered_international_organizations_target_of = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | international\_organization |
+| ordered\_invited\_religious\_figure | Iterate through all invited religious figures in a Country | ``` ordered_invited_religious_figure = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | character |
+| ordered\_key\_in\_global\_variable\_map | Iterate through all keys in a global variable map. | ``` ordered_key_in_global_variable_map = {  variable = name  limit = { <triggers> }  order_by = script_value  position = int  min = int  max = script_value  check_range_bounds = no # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none |  |
+| ordered\_key\_in\_local\_variable\_map | Iterate through all keys in a local variable map. | ``` ordered_key_in_local_variable_map = {  variable = name  limit = { <triggers> }  order_by = script_value  position = int  min = int  max = script_value  check_range_bounds = no # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none |  |
+| ordered\_key\_in\_variable\_map | Iterate through all keys in a variable map. | ``` ordered_key_in_variable_map = {  variable = name  limit = { <triggers> }  order_by = script_value  position = int  min = int  max = script_value  check_range_bounds = no # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none |  |
+| ordered\_known\_country | Iterate through all known countries | ``` ordered_known_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_known\_institution | Iterate through all institutions a country knows of | ``` ordered_known_institution = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | institution |
+| ordered\_left\_flank | Iterate through all subunits on the left-flank of a combat-side | ``` ordered_left_flank = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | combat\_side | sub\_unit |
+| ordered\_lent\_loan | Iterate through all loans that a country lent | ``` ordered_lent_loan = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | loan |
+| ordered\_loan | Iterate through all loans in a country | ``` ordered_loan = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | loan |
+| ordered\_loan\_lent\_to\_country | Iterate through all loans a country has lent to the supplied borrower country | ``` ordered_loan_lent_to_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | loan |
+| ordered\_location\_in\_area | Iterate through all Locations in a area | ``` ordered_location_in_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area | location |
+| ordered\_location\_in\_continent | Iterate through all Locations in a continent | ``` ordered_location_in_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | continent | location |
+| ordered\_location\_in\_market | Iterate through all locations in a market | ``` ordered_location_in_market = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | market | location |
+| ordered\_location\_in\_province | Iterate through all Locations in a province | ``` ordered_location_in_province = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | province | location |
+| ordered\_location\_in\_province\_definition | Iterate through all Locations in a province definition | ``` ordered_location_in_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | province\_definition | location |
+| ordered\_location\_in\_region | Iterate through all Locations in a region | ``` ordered_location_in_region = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | region | location |
+| ordered\_location\_in\_scripted\_geography | Iterate through all locations in a scripted geography | ``` ordered_location_in_scripted_geography = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | region | scripted\_geography |
+| ordered\_location\_in\_sub\_continent | Iterate through all Locations in a sub-continent | ``` ordered_location_in_sub_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | sub\_continent | location |
+| ordered\_location\_in\_the\_world | Iterate through all location | ``` ordered_location_in_the_world = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | location |
+| ordered\_location\_with\_movement | Iterate through all locations affected by the scope movement | ``` ordered_location_with_movement = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | movement | location |
+| ordered\_location\_with\_town\_rights\_in\_country | Iterate through all locations with Town Rights in a country | ``` ordered_location_with_town_rights_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_loyal\_subject | Iterate through all loyal subject countries | ``` ordered_loyal_subject = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_maritime\_area | Iterate through all maritime areas for a country | ``` ordered_maritime_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | area |
+| ordered\_market\_center\_in\_country | Iterate through all markets in a country which market centers are owned by the country | ``` ordered_market_center_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | market |
+| ordered\_market\_in\_world | Iterate through all markets in the world | ``` ordered_market_in_world = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | market |
+| ordered\_market\_present\_in\_country | Iterate through all markets in a country | ``` ordered_market_present_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | market |
+| ordered\_market\_with\_merchants | Iterate through all markets a country has active merchants | ``` ordered_market_with_merchants = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | market |
+| ordered\_mercenary | Iterate through all mercenaries in the world | ``` ordered_mercenary = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | mercenary |
+| ordered\_mercenary\_sub\_unit | Iterate through all subunits in a Mercenary | ``` ordered_mercenary_sub_unit = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | mercenary | sub\_unit |
+| ordered\_merchant\_in\_market | Iterate through all merchants in a market | ``` ordered_merchant_in_market = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | market | country |
+| ordered\_movement | Iterate through all movements | ``` ordered_movement = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | movement |
+| ordered\_movement\_in\_country | Iterate through all movements in a country | ``` ordered_movement_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | movement |
+| ordered\_movement\_in\_culture | Iterate through all movements in a culture | ``` ordered_movement_in_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | culture | movement |
+| ordered\_movement\_in\_religion | Iterate through all movements in a religion | ``` ordered_movement_in_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | movement |
+| ordered\_navy | Iterate through all navies in a country | ``` ordered_navy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | unit |
+| ordered\_neighbor\_area | Iterate through all neighboring areas in a area | ``` ordered_neighbor_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area | area |
+| ordered\_neighbor\_country | Iterate through all neighbour countries | ``` ordered_neighbor_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_neighbor\_location | Iterate through all neighbors of a location | ``` ordered_neighbor_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | location |
+| ordered\_neighbor\_province\_definition | Iterate through all neighboring ProvinceDefinitions in a ProvinceDefinition | ``` ordered_neighbor_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | province\_definition | province\_definition |
+| ordered\_new\_world\_goods | Iterate through all new-world goods | ``` ordered_new_world_goods = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | goods |
+| ordered\_nomad\_countries\_in\_location | Iterate through all nomad pop countries in a location | ``` ordered_nomad_countries_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | country |
+| ordered\_non\_state\_religion\_location | Iterate through all NonStateReligion locations in a country | ``` ordered_non_state_religion_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_old\_world\_goods | Iterate through all old-world goods | ``` ordered_old_world_goods = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | goods |
+| ordered\_omen\_in\_country | Iterate through all Omens active in a country | ``` ordered_omen_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | omen |
+| ordered\_omen\_in\_god | Iterate through all Omens associated with a God | ``` ordered_omen_in_god = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | god | omen |
+| ordered\_omen\_in\_religion | Iterate through all Omens in a religion | ``` ordered_omen_in_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | omen |
+| ordered\_other\_core\_country | Iterate through all other countries which have a core on the current country | ``` ordered_other_core_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_other\_country | Iterate through all other countries | ``` ordered_other_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_other\_great\_power | Iterate through all other great powers | ``` ordered_other_great_power = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_other\_religion\_in\_same\_group | Iterate through all other religions that has the same group as Religion | ``` ordered_other_religion_in_same_group = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | religion |
+| ordered\_other\_revolutionary | Iterate through all other revolutionary countries | ``` ordered_other_revolutionary = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_overlord\_or\_above | Iterate through your overlord, your overlord's overlord, and so on | ``` ordered_overlord_or_above = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_ownable\_location | Iterate through all ownable location | ``` ordered_ownable_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | location |
+| ordered\_ownable\_location\_in\_area | Iterate through all ownable Locations in an area | ``` ordered_ownable_location_in_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area | location |
+| ordered\_ownable\_location\_in\_continent | Iterate through all ownable Locations in a continent | ``` ordered_ownable_location_in_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | continent | location |
+| ordered\_ownable\_location\_in\_province\_definition | Iterate through all ownable Locations in a province definition | ``` ordered_ownable_location_in_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | province\_definition | location |
+| ordered\_ownable\_location\_in\_region | Iterate through all ownable Locations in a region | ``` ordered_ownable_location_in_region = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | region | location |
+| ordered\_ownable\_location\_in\_scripted\_geography | Iterate through all ownable Locations in a scripted geography | ``` ordered_ownable_location_in_scripted_geography = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | scripted\_geography | location |
+| ordered\_ownable\_location\_in\_sub\_continent | Iterate through all ownable Locations in a sub continent | ``` ordered_ownable_location_in_sub_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | sub\_continent | location |
+| ordered\_owned\_building | Iterate through all the owned buildings in a country | ``` ordered_owned_building = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | building |
+| ordered\_owned\_foreign\_building | Iterate through all the owned foreign buildings in a country | ``` ordered_owned_foreign_building = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | building |
+| ordered\_owned\_foreign\_building\_location | Iterate through all the location of owned foreign buildings in a country | ``` ordered_owned_foreign_building_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_owned\_foreign\_building\_region | Iterate through all the regions of owned foreign buildings in a country | ``` ordered_owned_foreign_building_region = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | region |
+| ordered\_owned\_location | Iterate through all owned location in a country | ``` ordered_owned_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_owned\_nomad\_pop | Iterate through all owned nomad pops in a country | ``` ordered_owned_nomad_pop = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | pop |
+| ordered\_owned\_non\_rural\_location | Iterate through all owned non-rural locations in a country | ``` ordered_owned_non_rural_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_owned\_rural\_location | Iterate through all owned rural locations in a country | ``` ordered_owned_rural_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_owner\_in\_region | Iterate through all the countries that own locations in a region | ``` ordered_owner_in_region = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | region | country |
+| ordered\_parent | Iterate through parents (order: father, mother) of a character. | ``` ordered_parent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | character |
+| ordered\_participating\_countries | Iterate through all Countrys participating in 1 side of a combat | ``` ordered_participating_countries = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | combat\_side | country |
+| ordered\_participating\_units | Iterate through all units participating in 1 side of a combat | ``` ordered_participating_units = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | combat\_side | unit |
+| ordered\_past\_liturgical\_dialect | Iterate through all liturgical dialects a country has had before | ``` ordered_past_liturgical_dialect = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_policy\_in\_law | Iterate through all policies that are part of the law scope | ``` ordered_policy_in_law = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | law | policy |
+| ordered\_political\_border\_location | Iterate through all owned location in a country which border another country. | ``` ordered_political_border_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_pop | Iterate through all pops in a location or country | ``` ordered_pop = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country, location | pop |
+| ordered\_pops\_supporting\_rebel | Iterate through all pops supporting a rebel | ``` ordered_pops_supporting_rebel = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | rebels | pop |
+| ordered\_port\_in\_country | Iterate through all Ports in a country | ``` ordered_port_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_possible\_disaster | Iterate through all possible disasters for a country | ``` ordered_possible_disaster = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | disaster |
+| ordered\_possible\_parliament\_issue | Iterate through all possible parliament issues in a country's or an international organization's parliament | ``` ordered_possible_parliament_issue = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country, international\_organization | parliament\_issue |
+| ordered\_possible\_policy | Iterate through all possible policies of a Country that is not currently implemeted | ``` ordered_possible_policy = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | policy |
+| ordered\_possible\_privilege | Iterate through all possible & allowed estate privileges of a Country that is not currently implemeted | ``` ordered_possible_privilege = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | estate | estate\_privilege |
+| ordered\_possible\_recruit\_location | Iterate through all possible recruit locations in a country | ``` ordered_possible_recruit_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_present\_country | Iterate through all countries in the specified geography | ``` ordered_present_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| ordered\_present\_culture\_in\_country | Iterate through all cultures present in the country. | ``` ordered_present_culture_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | culture |
+| ordered\_present\_culture\_in\_location | Iterate through all cultures present in the location. | ``` ordered_present_culture_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | culture |
+| ordered\_present\_overlord | Iterate through all countries which have a subject in the specified geography | ``` ordered_present_overlord = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| ordered\_present\_religion\_in\_country | Iterate through all religions present in the country. | ``` ordered_present_religion_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | religion |
+| ordered\_present\_religion\_in\_location | Iterate through all religions present in the location. | ``` ordered_present_religion_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | religion |
+| ordered\_primary\_or\_accepted\_culture | Iterate through primary culture and all accepted cultures in a country. Primary is ordered first. | ``` ordered_primary_or_accepted_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | culture |
+| ordered\_primary\_or\_accepted\_or\_tolerated\_culture | Iterate through primary culture and all accepted and all tolerated cultures in a country. Primary is ordered first. | ``` ordered_primary_or_accepted_or_tolerated_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | culture |
+| ordered\_privateer | Iterate through all privateers in the world | ``` ordered_privateer = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | privateer |
+| ordered\_privateer\_from\_country | Iterate through all privateers a country has | ``` ordered_privateer_from_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | privateer |
+| ordered\_privateer\_in\_area | Iterate through all privateers in a area | ``` ordered_privateer_in_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area | privateer |
+| ordered\_production\_method | Iterate through all types of production methods. | ``` ordered_production_method = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | production\_method |
+| ordered\_production\_method\_of\_building | Iterate through all available production methods of the building. | ``` ordered_production_method_of_building = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | building | production\_method |
+| ordered\_province | Iterate through all provinces in a country | ``` ordered_province = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | province |
+| ordered\_province\_definition | Iterate through all existing province\_definition | ``` ordered_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | province\_definition |
+| ordered\_province\_definition\_in\_area | Iterate through all province-definitions in an area | ``` ordered_province_definition_in_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area | province\_definition |
+| ordered\_province\_definition\_in\_scripted\_geography | Iterate through all province\_definitions in a scripted geography | ``` ordered_province_definition_in_scripted_geography = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | scripted\_geography | province\_definition |
+| ordered\_province\_in\_area | Iterate through all provinces in an area | ``` ordered_province_in_area = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | area | province |
+| ordered\_province\_in\_province\_definition | Iterate through all provinces in a province-definition | ``` ordered_province_in_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | province\_definition | province |
+| ordered\_rebel | Iterate through all Rebels in a country | ``` ordered_rebel = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | rebels |
+| ordered\_region | Iterate through all existing regions | ``` ordered_region = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | region |
+| ordered\_region\_in\_continent | Iterate through all regions in a sub-continent | ``` ordered_region_in_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | sub\_continent | region |
+| ordered\_region\_in\_scripted\_geography | Iterate through all regions in a scripted\_geography | ``` ordered_region_in_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | scripted\_geography | region |
+| ordered\_related\_country | Iterate through all related countries | ``` ordered_related_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_religion | Iterate through all religions | ``` ordered_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | religion |
+| ordered\_religion\_for\_god | Iterate through all Religions of a God | ``` ordered_religion_for_god = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | god | religion |
+| ordered\_religion\_in\_religion\_group | Iterate through all religions in a religion group. | ``` ordered_religion_in_religion_group = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | group | religion |
+| ordered\_religion\_international\_organization | Iterate through all international organisations of a religion | ``` ordered_religion_international_organization = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | international\_organization |
+| ordered\_religious\_aspect | Iterate through all religious aspects of a Country | ``` ordered_religious_aspect = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | religious\_aspect |
+| ordered\_religious\_focus | Iterate through all completed religious focuses of a Country | ``` ordered_religious_focus = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | religious\_focus |
+| ordered\_religious\_school\_in\_religion | Iterate through all Religious Schools in a Religion | ``` ordered_religious_school_in_religion = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religion | religious\_school |
+| ordered\_rented\_out\_mercenary | Iterate through mercenaries a country has rented out to the market | ``` ordered_rented_out_mercenary = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | mercenary |
+| ordered\_required\_goods | Iterate through all goods required by the scope production method. | ``` ordered_required_goods = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | production\_method | goods |
+| ordered\_reserves | Iterate through all subunits on the reserve of a combat-side | ``` ordered_reserves = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | combat\_side | sub\_unit |
+| ordered\_retreated | Iterate through all subunits on the retreated of a combat-side | ``` ordered_retreated = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | combat\_side | sub\_unit |
+| ordered\_revolutionary | Iterate through all revolutionary states | ``` ordered_revolutionary = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | country |
+| ordered\_right\_flank | Iterate through all subunits on the right-flank of a combat-side | ``` ordered_right_flank = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | combat\_side | sub\_unit |
+| ordered\_rival | Iterate through all rival countries | ``` ordered_rival = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_road\_type | Iterate through all the road types | ``` ordered_road_type = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | road\_type |
+| ordered\_royal\_marriage | Iterate through all royal married countries | ``` ordered_royal_marriage = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_ruled\_international\_organization | Iterate through IOs a character rules | ``` ordered_ruled_international_organization = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | international\_organization |
+| ordered\_ruler | Iterate through all characters that have ever been rulers in a country, including the dead | ``` ordered_ruler = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | character |
+| ordered\_ruling\_countries | Iterate through countries a character rulers | ``` ordered_ruling_countries = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | country |
+| ordered\_sound\_toll\_in\_country | Iterate through all Sound Tolls in a country | ``` ordered_sound_toll_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | location |
+| ordered\_spouse | Iterate through all spouses of a character | ``` ordered_spouse = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | character |
+| ordered\_spy\_network\_built\_in\_us | Iterate through all countries building spy networks | ``` ordered_spy_network_built_in_us = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_sub\_continent | Iterate through all existing sub\_continents | ``` ordered_sub_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | sub\_continent |
+| ordered\_sub\_continent\_in\_continent | Iterate through all sub-continents in a continent | ``` ordered_sub_continent_in_continent = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | continent | sub\_continent |
+| ordered\_sub\_continent\_in\_scripted\_geography | Iterate through all sub-continents in a scripted geography | ``` ordered_sub_continent_in_scripted_geography = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | scripted\_geography | sub\_continent |
+| ordered\_sub\_unit | Iterate through all subunits in a unit | ``` ordered_sub_unit = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | unit | sub\_unit |
+| ordered\_subject | Iterate through all subject countries | ``` ordered_subject = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_subject\_or\_below | Iterate through all subject countries and their subject countries, and so on | ``` ordered_subject_or_below = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_tolerated\_culture | Iterate through all Tolerated cultures in a country | ``` ordered_tolerated_culture = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | culture |
+| ordered\_town\_rights\_in\_country | Iterate through all Town Rights in a country | ``` ordered_town_rights_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | town\_rights |
+| ordered\_town\_rights\_in\_location | Iterate through all Town Rights in a location | ``` ordered_town_rights_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | town\_rights |
+| ordered\_trade | Iterate through all trades in a Country | ``` ordered_trade = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | trade |
+| ordered\_trait | Iterate through all traits of a character | ``` ordered_trait = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | trait |
+| ordered\_union\_partner | Iterate through all countries which are in a personal union with the current country scope. | ``` ordered_union_partner = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | country |
+| ordered\_unit | Iterate through all units in a country | ``` ordered_unit = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | unit |
+| ordered\_unit\_in\_location | Iterate through all units in a location | ``` ordered_unit_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | unit |
+| ordered\_valid\_religion\_for\_aspect | Iterate through all religion that an aspect can be for | ``` ordered_valid_religion_for_aspect = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | religious\_aspect | religion |
+| ordered\_voter | Iterate through all voters in an active resolution | ``` ordered_voter = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | active\_resolution | country |
+| ordered\_war | Iterate through all wars going on globally | ``` ordered_war = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | war |
+| ordered\_war\_participant | Iterate through all participants of a war | ``` ordered_war_participant = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | war | country |
+| ordered\_weather\_system\_in\_location | Iterate through all weather systems in a location | ``` ordered_weather_system_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | weather\_system |
+| ordered\_west\_of\_province\_definition | Iterate through all province-definitions west of a province-definition | ``` ordered_west_of_province_definition = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | province\_definition | province\_definition |
+| ordered\_work\_of\_art | Iterate through all WorkOfArts in the world | ``` ordered_work_of_art = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none | work\_of\_art |
+| ordered\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` ordered_work_of_art_by_creator = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | character | work\_of\_art |
+| ordered\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` ordered_work_of_art_in_country = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | country | work\_of\_art |
+| ordered\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` ordered_work_of_art_in_location = {  limit = { <triggers> }  order_by = script_value  (position = int)  (min = int)  (max = script_value)  (check_range_bounds = no) # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | location | work\_of\_art |
+| random\_accepted\_culture | Iterate through all accepted cultures in a country | ``` random_accepted_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | culture |
+| random\_active\_disaster | Iterate through all active disasters for a country | ``` random_active_disaster = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | disaster |
+| random\_active\_estate | Iterate through all active estates (non-crown) | ``` random_active_estate = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | estate\_type |
+| random\_active\_resolution | Iterate through all currently active resolutions in an international organization or situation | ``` random_active_resolution = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization, situation | active\_resolution |
+| random\_adjacent\_ports\_to\_area | Iterate through all adjacent ports of an seazone area | ``` random_adjacent_ports_to_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area | location |
+| random\_advance\_definition | Iterate through all advance definitions | ``` random_advance_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | advance\_type |
+| random\_allowed\_estate\_in\_heir\_selection | Iterate through all allowed estates a HeirSelection has | ``` random_allowed_estate_in_heir_selection = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | heir\_selection | estate\_type |
+| random\_ancestor | Iterate through all ancestors (parents, grandparents etc) of a character | ``` random_ancestor = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | character |
+| random\_area | Iterate through all existing areas | ``` random_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | area |
+| random\_area\_in\_region | Iterate through all areas in a region | ``` random_area_in_region = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | region | area |
+| random\_area\_in\_scripted\_geography | Iterate through all areas in a scripted geography | ``` random_area_in_scripted_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | scripted\_geography | area |
+| random\_area\_with\_core | Iterate through all areas with cored locations in a country | ``` random_area_with_core = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | area |
+| random\_area\_with\_owned\_province | Iterate through all areas with owned provinces in a country | ``` random_area_with_owned_province = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | area |
+| random\_army | Iterate through all armies in a country | ``` random_army = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | unit |
+| random\_artist | Iterate through all artists in a country | ``` random_artist = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | character |
+| random\_attacker | Iterate through all attackers of a war | ``` random_attacker = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | war | country |
+| random\_available\_dynasty\_member | Iterate through adult dynasty members who are not a ruler or heir (cached) | ``` random_available_dynasty_member = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | dynasty | character |
+| random\_avatar\_for\_god | Iterate through all Avatars of a God | ``` random_avatar_for_god = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | god | avatar |
+| random\_besieging\_units | Iterate through all units participating in a siege | ``` random_besieging_units = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | siege | unit |
+| random\_border\_location | Iterate through all owned location in a country which border locations not owned by the current country scope. | ``` random_border_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_buildable\_building\_type | Iterate through all the building types a country can build | ``` random_buildable_building_type = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | building\_type |
+| random\_building\_owned\_by\_estate | Iterate through all buildings that an estate has | ``` random_building_owned_by_estate = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | estate | building |
+| random\_building\_type | Iterate through all the building types | ``` random_building_type = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | building\_type |
+| random\_buildings\_in\_location | Iterate through all buildings in a location | ``` random_buildings_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | building |
+| random\_cabinet | Iterate through all actions in a country's cabinet | ``` random_cabinet = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | cabinet |
+| random\_cabinet\_action | Iterate through all actions in a country's cabinet actions | ``` random_cabinet_action = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | cabinet\_action |
+| random\_cabinet\_character | Iterate through all characters in a country that is in the cabinet | ``` random_cabinet_character = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | character |
+| random\_cardinal\_in\_country | Iterate through all Cardinals in a country | ``` random_cardinal_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | cardinal |
+| random\_cardinal\_in\_religion | Iterate through all Cardinals in a Religion | ``` random_cardinal_in_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | cardinal |
+| random\_casus\_belli\_on\_us | Iterate through all countries have a casus belli on us | ``` random_casus_belli_on_us = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_casus\_belli\_target | Iterate through all countries we have a casus belli on | ``` random_casus_belli_target = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_center | Iterate through all subunits on the center of a combat-side | ``` random_center = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | combat\_side | sub\_unit |
+| random\_character | Iterate through all characters in a country | ``` random_character = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | character |
+| random\_character\_in\_dynasty | Iterate through all living characters in a Dynasty | ``` random_character_in_dynasty = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | dynasty | character |
+| random\_character\_supporting\_rebel | Iterate through all characters supporting a rebel | ``` random_character_supporting_rebel = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | rebels | character |
+| random\_child | Iterate through all children of a character | ``` random_child = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | character |
+| random\_close\_relative | Iterate through all close relatives of a character | ``` random_close_relative = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | character |
+| random\_coast\_border\_location | Iterate through all bordering, or across one seazone of a location | ``` random_coast_border_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | location |
+| random\_colonial\_charter | Iterate through all colonial charters in a country | ``` random_colonial_charter = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | colonial\_charter |
+| random\_colonial\_claim\_province\_definition | Iterate through all province definitions with colonial claims from the scope country. | ``` random_colonial_claim_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | province\_definition |
+| random\_colonial\_country | Iterate through all colonial countries in the world | ``` random_colonial_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | country |
+| random\_colonial\_overlord | Iterate through all colonial overlord countries in the world | ``` random_colonial_overlord = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | country |
+| random\_colonial\_top\_overlord | Iterate through all countries in the world that have a colonial country among their subjects or their subjects subjects and so on | ``` random_colonial_top_overlord = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | country |
+| random\_connected\_location | Iterate through all locations in the same country as the scope location that are connected by land or strait | ``` random_connected_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | location |
+| random\_construction\_material\_for\_building\_type | Iterate through all goods required to construct a building type | ``` random_construction_material_for_building_type = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | building\_type | goods |
+| random\_continent | Iterate through all existing continents | ``` random_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | continent |
+| random\_continent\_in\_scripted\_geography | Iterate through all continents in a scripted geography | ``` random_continent_in_scripted_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | scripted\_geography | continent |
+| random\_controlled\_location | Iterate through all controlled location in a country | ``` random_controlled_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_core\_in\_location | Iterate through all cores in a location | ``` random_core_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | country |
+| random\_core\_location | Iterate through all core locations in a country | ``` random_core_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_country | Iterate through all existing countries | ``` random_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | country |
+| random\_country\_annexing\_us | Iterate through all countries which are currently annexing the current country scope. | ``` random_country_annexing_us = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_at\_war\_with | Iterate through all countries at war with | ``` random_country_at_war_with = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_in\_culture | Iterate through all countries with this primary culture | ``` random_country_in_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | culture | country |
+| random\_country\_in\_culture\_group | Iterate through all countries in a culture group. | ``` random_country_in_culture_group = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | culture\_group | country |
+| random\_country\_in\_diplomatic\_range | Iterate through all countries in diplomatic range | ``` random_country_in_diplomatic_range = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_in\_dynasty | Iterate through all countries in a Dynasty | ``` random_country_in_dynasty = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | dynasty | country |
+| random\_country\_in\_hierarchy | Iterate through every country in the entire overlord/subject hierarchy, from the independent top overlord to the deepest subjects | ``` random_country_in_hierarchy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_in\_religion | Iterate through all countries in a religion | ``` random_country_in_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | country |
+| random\_country\_in\_religion\_group | Iterate through all countries in a religion group. | ``` random_country_in_religion_group = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | group | country |
+| random\_country\_in\_religious\_school | Iterate through all countries within a school | ``` random_country_in_religious_school = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religious\_school | country |
+| random\_country\_lent\_to | Iterate through all countries a country has lent to | ``` random_country_lent_to = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_sub\_unit | Iterate through all subunits in all units in a country | ``` random_country_sub_unit = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | sub\_unit |
+| random\_country\_supporting\_rebel | Iterate through all countries supporting a rebel | ``` random_country_supporting_rebel = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | rebels | country |
+| random\_country\_that\_can\_be\_called\_defensively | Iterate through all countries that may be called into a defensive war. | ``` random_country_that_can_be_called_defensively = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_that\_can\_be\_called\_offensively | Iterate through all countries that may be called into an offensive war. | ``` random_country_that_can_be_called_offensively = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_together\_in\_war\_with | Iterate through all countries which are an ally in any of the country scope's wars | ``` random_country_together_in_war_with = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_we\_are\_annexing | Iterate through all countries which are currently annexed by the current country scope. | ``` random_country_we_are_annexing = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_with\_antagonism\_against\_us | Iterate through all countries who have antagonism against us | ``` random_country_with_antagonism_against_us = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_with\_capital\_in\_geography | Iterate through all countries which have their capital in the specified geography | ``` random_country_with_capital_in_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| random\_country\_with\_cardinals | Iterate through all countries with cardinals in a religion | ``` random_country_with_cardinals = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | country |
+| random\_country\_with\_coalition\_grade\_antagonism\_against\_us | Iterate through all countries who have coalition grade antagonism against us | ``` random_country_with_coalition_grade_antagonism_against_us = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_country\_with\_special\_status\_of\_type | Iterate through all countries in the international organization which have the specified special status | ``` random_country_with_special_status_of_type = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | country |
+| random\_country\_with\_succession\_law | Iterate through all countries with a cached succession law (set cached = yes in the heir\_selection to use this) | ``` random_country_with_succession_law = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | country |
+| random\_culture | Iterate through all cultures | ``` random_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | culture |
+| random\_culture\_group | Iterate through all culture groups the culture is in. | ``` random_culture_group = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | culture | culture\_group |
+| random\_culture\_in\_culture\_group | Iterate through all cultures in a culture group. | ``` random_culture_in_culture_group = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | culture\_group | culture |
+| random\_current\_avatars | Iterate through all Avatars a country has | ``` random_current_avatars = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | avatar |
+| random\_current\_bureaucracy | Iterate through all Bureaucracies a country has | ``` random_current_bureaucracy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | bureaucracy |
+| random\_current\_bureaucracy\_type | Iterate through all Bureaucracy types a country has | ``` random_current_bureaucracy_type = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | bureaucracy\_type |
+| random\_current\_gods | Iterate through all Gods a country worships | ``` random_current_gods = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | god |
+| random\_current\_law | Iterate through all laws of a country. | ``` random_current_law = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | law |
+| random\_current\_law\_in\_international\_organization | Iterate through all laws that are codified in the international organization | ``` random_current_law_in_international_organization = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | law |
+| random\_current\_policy | Iterate through all policies that are codified in the country | ``` random_current_policy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | policy |
+| random\_current\_policy\_in\_international\_organization | Iterate through all policies that are codified in the international organization | ``` random_current_policy_in_international_organization = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | policy |
+| random\_current\_reforms | Iterate through all Government Reforms a country has | ``` random_current_reforms = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | government\_reform |
+| random\_current\_war | Iterate through all wars of a country | ``` random_current_war = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | war |
+| random\_defender | Iterate through all defenders of a war | ``` random_defender = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | war | country |
+| random\_descendant | Iterate through all descendants (children, grandchildren etc) of a character | ``` random_descendant = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | character |
+| random\_disloyal\_subject | Iterate through all loyal subject countries | ``` random_disloyal_subject = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_dynasty | Iterate through all dynasties in a country | ``` random_dynasty = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | dynasty |
+| random\_east\_of\_province\_definition | Iterate through all province-definitions east of a province-definition | ``` random_east_of_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | province\_definition | province\_definition |
+| random\_election\_candidates | Iterate through all election candidates of a country with elections! | ``` random_election_candidates = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | character |
+| random\_enemy | Iterate through all Enemy countries | ``` random_enemy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_enemy\_war\_leader | Iterate through all countries which are leading a war against the scope | ``` random_enemy_war_leader = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_estate | Iterate through all estates in a country | ``` random_estate = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | estate |
+| random\_estate\_privilege | Iterate through all current estate privileges of a Country | ``` random_estate_privilege = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | estate\_privilege |
+| random\_estate\_type\_preferring | Iterate through all estate types that a prefer a policy | ``` random_estate_type_preferring = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | policy | estate\_type |
+| random\_exploration\_from\_country | Iterate through all Explorations a country has | ``` random_exploration_from_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | exploration |
+| random\_export | Iterate through all exports in a market | ``` random_export = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | market | trade |
+| random\_export\_from\_location | Iterate through all exports from location | ``` random_export_from_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | location |
+| random\_food\_goods | Iterate through all food-goods | ``` random_food_goods = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | goods |
+| random\_foreign\_building\_countries\_in\_location | Iterate through all foreign building countries in a location | ``` random_foreign_building_countries_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | country |
+| random\_foreign\_buildings\_in\_location | Iterate through all foreign buildings in a location | ``` random_foreign_buildings_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | building |
+| random\_fort\_in\_country | Iterate through all Forts in a country | ``` random_fort_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_friendly\_coast\_border\_location | Iterate through all friendly bordering, or across one seazone of a location | ``` random_friendly_coast_border_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | location |
+| random\_friendly\_country | Iterate through all countries with relations marked as friendly | ``` random_friendly_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_friendly\_or\_high\_opinion\_country | Iterate through all countries with relations marked as friendly or that we have a high opinion of set in defines | ``` random_friendly_or_high_opinion_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_friendly\_to\_friendly\_country | Iterate through all friends of our friends | ``` random_friendly_to_friendly_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_friendly\_to\_hostile\_country | Iterate through all friends of our enemies | ``` random_friendly_to_hostile_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_god\_in\_religion | Iterate through all Gods in a Religion | ``` random_god_in_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | god |
+| random\_good\_in\_demand | Iterate through all goods in a goods demand | ``` random_good_in_demand = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | demand | goods |
+| random\_goods | Iterate through all types of goods | ``` random_goods = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | goods |
+| random\_graphical\_culture\_in\_culture | Iterate through all graphical culture in a culture | ``` random_graphical_culture_in_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | culture | graphical\_culture |
+| random\_great\_power | Iterate through all great powers | ``` random_great_power = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | country |
+| random\_heathen\_location | Iterate through all heathen locations in a country | ``` random_heathen_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_heretic\_location | Iterate through all Heretic locations in a country | ``` random_heretic_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_hired\_mercenary | Iterate through mercenaries a country has hired | ``` random_hired_mercenary = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | mercenary |
+| random\_historical\_enemy | Iterate through all historical Enemy countries | ``` random_historical_enemy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_historical\_rival | Iterate through all historical rival countries | ``` random_historical_rival = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_holy\_site\_in\_country | Iterate through all Holy Sites in a country | ``` random_holy_site_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | holy\_site |
+| random\_holy\_site\_in\_religion | Iterate through all Holy Sites in a Religion | ``` random_holy_site_in_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | holy\_site |
+| random\_hostile\_country | Iterate through all countries with relations marked as hostile | ``` random_hostile_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_hostile\_or\_low\_opinion\_country | Iterate through all countries with relations marked as hostile or that we have a low opinion of set in defines | ``` random_hostile_or_low_opinion_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_hostile\_to\_friendly\_country | Iterate through all enemies of our friends | ``` random_hostile_to_friendly_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_hostile\_to\_hostile\_country | Iterate through all enemies of our enemies | ``` random_hostile_to_hostile_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_import | Iterate through all imports in a market | ``` random_import = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | market | trade |
+| random\_import\_from\_location | Iterate through all Imports from location | ``` random_import_from_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | location |
+| random\_in\_global\_list | Iterate through all items in global list. | ``` random_in_global_list = {  list = name or variable = name  limit = { <triggers> }  (optional) weight = { mtth }  <effects> } ``` | none |  |
+| random\_in\_list | Iterate through all items in list. | ``` random_in_list = {  list = name or variable = name  limit = { <triggers> }  (optional) weight = { mtth }  <effects> } ``` | none |  |
+| random\_in\_local\_list | Iterate through all items in local list. | ``` random_in_local_list = {  list = name or variable = name  limit = { <triggers> }  (optional) weight = { mtth }  <effects> } ``` | none |  |
+| random\_institutions\_embraced | Iterate through all institutions a country has embraced | ``` random_institutions_embraced = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | institution |
+| random\_international\_organization | Iterate through all international organizations | ``` random_international_organization = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | international\_organization |
+| random\_international\_organization\_elector | Iterate through all countries with an elector special status in the international organization | ``` random_international_organization_elector = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | country |
+| random\_international\_organization\_enemy | Iterate through all countries that are enemies of the international organization | ``` random_international_organization_enemy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | country |
+| random\_international\_organization\_member | Iterate through all countries that are members of the international organization | ``` random_international_organization_member = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | country |
+| random\_international\_organization\_owned\_location | Iterate through all locations that are owned by the international organization | ``` random_international_organization_owned_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | location |
+| random\_international\_organization\_owner | Iterate through all international organizations which own the location scope | ``` random_international_organization_owner = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | international\_organization |
+| random\_international\_organization\_parliament\_opposers | Iterate through all countries that have voted AGAINST the parliament issue in the in the parliament of the international organization and support the current debate | ``` random_international_organization_parliament_opposers = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | country |
+| random\_international\_organization\_parliament\_supporter | Iterate through all countries that have voted FOR the parliament issue in the parliament of the international organization and support the current debate | ``` random_international_organization_parliament_supporter = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | international\_organization | country |
+| random\_international\_organizations\_member\_of | Iterate through all international organizations a country is a member of | ``` random_international_organizations_member_of = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | international\_organization |
+| random\_international\_organizations\_target\_of | Iterate through all international organizations a country is a target of | ``` random_international_organizations_target_of = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | international\_organization |
+| random\_invited\_religious\_figure | Iterate through all invited religious figures in a Country | ``` random_invited_religious_figure = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | character |
+| random\_key\_in\_global\_variable\_map | Iterate through all items in global variable map. | ``` random_key_in_global_variable_map = {  variable = name  limit = { <triggers> }  (optional) weight = { mtth }  <effects> } ``` | none |  |
+| random\_key\_in\_local\_variable\_map | Iterate through all items in local variable map. | ``` random_key_in_local_variable_map = {  variable = name  limit = { <triggers> }  (optional) weight = { mtth }  <effects> } ``` | none |  |
+| random\_key\_in\_variable\_map | Iterate through all items in variable map. | ``` random_key_in_variable_map = {  variable = name  limit = { <triggers> }  (optional) weight = { mtth }  <effects> } ``` | none |  |
+| random\_known\_country | Iterate through all known countries | ``` random_known_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_known\_institution | Iterate through all institutions a country knows of | ``` random_known_institution = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | institution |
+| random\_left\_flank | Iterate through all subunits on the left-flank of a combat-side | ``` random_left_flank = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | combat\_side | sub\_unit |
+| random\_lent\_loan | Iterate through all loans that a country lent | ``` random_lent_loan = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | loan |
+| random\_loan | Iterate through all loans in a country | ``` random_loan = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | loan |
+| random\_loan\_lent\_to\_country | Iterate through all loans a country has lent to the supplied borrower country | ``` random_loan_lent_to_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | loan |
+| random\_location\_in\_area | Iterate through all Locations in a area | ``` random_location_in_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area | location |
+| random\_location\_in\_continent | Iterate through all Locations in a continent | ``` random_location_in_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | continent | location |
+| random\_location\_in\_market | Iterate through all locations in a market | ``` random_location_in_market = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | market | location |
+| random\_location\_in\_province | Iterate through all Locations in a province | ``` random_location_in_province = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | province | location |
+| random\_location\_in\_province\_definition | Iterate through all Locations in a province definition | ``` random_location_in_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | province\_definition | location |
+| random\_location\_in\_region | Iterate through all Locations in a region | ``` random_location_in_region = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | region | location |
+| random\_location\_in\_scripted\_geography | Iterate through all Locations in a scripted geography | ``` random_location_in_scripted_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | scripted\_geography | location |
+| random\_location\_in\_sub\_continent | Iterate through all Locations in a sub-continent | ``` random_location_in_sub_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | sub\_continent | location |
+| random\_location\_in\_the\_world | Iterate through all location | ``` random_location_in_the_world = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | location |
+| random\_location\_with\_movement | Iterate through all locations affected by the scope movement | ``` random_location_with_movement = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | movement | location |
+| random\_location\_with\_town\_rights\_in\_country | Iterate through all locations with Town Rights in a country | ``` random_location_with_town_rights_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_loyal\_subject | Iterate through all loyal subject countries | ``` random_loyal_subject = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_maritime\_area | Iterate through all maritime areas for a country | ``` random_maritime_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | area |
+| random\_market\_center\_in\_country | Iterate through all markets in a country which market centers are owned by the country | ``` random_market_center_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | market |
+| random\_market\_in\_world | Iterate through all markets in the world | ``` random_market_in_world = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | market |
+| random\_market\_present\_in\_country | Iterate through all markets in a country | ``` random_market_present_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | market |
+| random\_market\_with\_merchants | Iterate through all markets a country has active merchants | ``` random_market_with_merchants = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | market |
+| random\_mercenary | Iterate through all mercenaries in the world | ``` random_mercenary = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | mercenary |
+| random\_mercenary\_sub\_unit | Iterate through all subunits in a Mercenary | ``` random_mercenary_sub_unit = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | mercenary | sub\_unit |
+| random\_merchant\_in\_market | Iterate through all merchants in a market | ``` random_merchant_in_market = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | market | country |
+| random\_movement | Iterate through all movements | ``` random_movement = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | movement |
+| random\_movement\_in\_country | Iterate through all movements in a country | ``` random_movement_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | movement |
+| random\_movement\_in\_culture | Iterate through all movements in a culture | ``` random_movement_in_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | culture | movement |
+| random\_movement\_in\_religion | Iterate through all movements in a religion | ``` random_movement_in_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | movement |
+| random\_navy | Iterate through all navies in a country | ``` random_navy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | unit |
+| random\_neighbor\_area | Iterate through all neighboring areas in a area | ``` random_neighbor_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area | area |
+| random\_neighbor\_country | Iterate through all neighbour countries | ``` random_neighbor_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_neighbor\_location | Iterate through all neighbors of a location | ``` random_neighbor_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | location |
+| random\_neighbor\_province\_definition | Iterate through all neighboring ProvinceDefinitions in a ProvinceDefinition | ``` random_neighbor_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | province\_definition | province\_definition |
+| random\_new\_world\_goods | Iterate through all new-world goods | ``` random_new_world_goods = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | goods |
+| random\_nomad\_countries\_in\_location | Iterate through all nomad pop countries in a location | ``` random_nomad_countries_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | country |
+| random\_non\_state\_religion\_location | Iterate through all NonStateReligion locations in a country | ``` random_non_state_religion_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_old\_world\_goods | Iterate through all old-world goods | ``` random_old_world_goods = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | goods |
+| random\_omen\_in\_country | Iterate through all Omens active in a country | ``` random_omen_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | omen |
+| random\_omen\_in\_god | Iterate through all Omens associated with a God | ``` random_omen_in_god = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | god | omen |
+| random\_omen\_in\_religion | Iterate through all Omens in a religion | ``` random_omen_in_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | omen |
+| random\_other\_core\_country | Iterate through all other countries which have a core on the current country | ``` random_other_core_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_other\_country | Iterate through all other countries | ``` random_other_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_other\_great\_power | Iterate through all other great powers | ``` random_other_great_power = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_other\_religion\_in\_same\_group | Iterate through all other religions that has the same group as Religion | ``` random_other_religion_in_same_group = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | religion |
+| random\_other\_revolutionary | Iterate through all other revolutionary countries | ``` random_other_revolutionary = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_overlord\_or\_above | Iterate through your overlord, your overlord's overlord, and so on | ``` random_overlord_or_above = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_ownable\_location | Iterate through all ownable location | ``` random_ownable_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | location |
+| random\_ownable\_location\_in\_area | Iterate through all ownable Locations in an area | ``` random_ownable_location_in_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area | location |
+| random\_ownable\_location\_in\_continent | Iterate through all ownable Locations in a continent | ``` random_ownable_location_in_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | continent | location |
+| random\_ownable\_location\_in\_province\_definition | Iterate through all ownable Locations in a province definition | ``` random_ownable_location_in_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | province\_definition | location |
+| random\_ownable\_location\_in\_region | Iterate through all ownable Locations in a region | ``` random_ownable_location_in_region = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | region | location |
+| random\_ownable\_location\_in\_scripted\_geography | Iterate through all ownable Locations in a scripted geography | ``` random_ownable_location_in_scripted_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | region | scripted\_geography |
+| random\_ownable\_location\_in\_sub\_continent | Iterate through all ownable Locations in a sub continent | ``` random_ownable_location_in_sub_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | sub\_continent | location |
+| random\_owned\_building | Iterate through all the owned buildings in a country | ``` random_owned_building = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | building |
+| random\_owned\_foreign\_building | Iterate through all the owned foreign buildings in a country | ``` random_owned_foreign_building = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | building |
+| random\_owned\_foreign\_building\_location | Iterate through all the location of owned foreign buildings in a country | ``` random_owned_foreign_building_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_owned\_foreign\_building\_region | Iterate through all the regions of owned foreign buildings in a country | ``` random_owned_foreign_building_region = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | region |
+| random\_owned\_location | Iterate through all owned location in a country | ``` random_owned_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_owned\_nomad\_pop | Iterate through all owned nomad pops in a country | ``` random_owned_nomad_pop = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | pop |
+| random\_owned\_non\_rural\_location | Iterate through all owned non-rural locations in a country | ``` random_owned_non_rural_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_owned\_rural\_location | Iterate through all owned rural locations in a country | ``` random_owned_rural_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_owner\_in\_region | Iterate through all the countries that own locations in a region | ``` random_owner_in_region = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | region | country |
+| random\_parent | Iterate through parents (order: father, mother) of a character. | ``` random_parent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | character |
+| random\_participating\_countries | Iterate through all Countrys participating in 1 side of a combat | ``` random_participating_countries = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | combat\_side | country |
+| random\_participating\_units | Iterate through all units participating in 1 side of a combat | ``` random_participating_units = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | combat\_side | unit |
+| random\_past\_liturgical\_dialect | Iterate through all liturgical dialects a country has had before | ``` random_past_liturgical_dialect = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_policy\_in\_law | Iterate through all policies that are part of the law scope | ``` random_policy_in_law = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | law | policy |
+| random\_political\_border\_location | Iterate through all owned location in a country which border another country. | ``` random_political_border_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_pop | Iterate through all pops in a location or country | ``` random_pop = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country, location | pop |
+| random\_pops\_supporting\_rebel | Iterate through all pops supporting a rebel | ``` random_pops_supporting_rebel = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | rebels | pop |
+| random\_port\_in\_country | Iterate through all Ports in a country | ``` random_port_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_possible\_disaster | Iterate through all possible disasters for a country | ``` random_possible_disaster = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | disaster |
+| random\_possible\_parliament\_issue | Iterate through all possible parliament issues in a country's or an international organization's parliament | ``` random_possible_parliament_issue = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country, international\_organization | parliament\_issue |
+| random\_possible\_policy | Iterate through all possible policies of a Country that is not currently implemeted | ``` random_possible_policy = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | policy |
+| random\_possible\_privilege | Iterate through all possible & allowed estate privileges of a Country that is not currently implemeted | ``` random_possible_privilege = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | estate | estate\_privilege |
+| random\_possible\_recruit\_location | Iterate through all possible recruit locations in a country | ``` random_possible_recruit_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_present\_country | Iterate through all countries in the specified geography | ``` random_present_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| random\_present\_culture\_in\_country | Iterate through all cultures present in the country. | ``` random_present_culture_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | culture |
+| random\_present\_culture\_in\_location | Iterate through all cultures present in the location. | ``` random_present_culture_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | culture |
+| random\_present\_overlord | Iterate through all countries which have a subject in the specified geography | ``` random_present_overlord = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area, continent, location, province\_definition, region, scripted\_geography, sub\_continent | country |
+| random\_present\_religion\_in\_country | Iterate through all religions present in the country. | ``` random_present_religion_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | religion |
+| random\_present\_religion\_in\_location | Iterate through all religions present in the location. | ``` random_present_religion_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | religion |
+| random\_primary\_or\_accepted\_culture | Iterate through primary culture and all accepted cultures in a country. Primary is random first. | ``` random_primary_or_accepted_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | culture |
+| random\_primary\_or\_accepted\_or\_tolerated\_culture | Iterate through primary culture and all accepted and all tolerated cultures in a country. Primary is random first. | ``` random_primary_or_accepted_or_tolerated_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | culture |
+| random\_privateer | Iterate through all privateers in the world | ``` random_privateer = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | privateer |
+| random\_privateer\_from\_country | Iterate through all privateers a country has | ``` random_privateer_from_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | privateer |
+| random\_privateer\_in\_area | Iterate through all privateers in a area | ``` random_privateer_in_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area | privateer |
+| random\_production\_method | Iterate through all types of production methods. | ``` random_production_method = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | production\_method |
+| random\_production\_method\_of\_building | Iterate through all available production methods of the building. | ``` random_production_method_of_building = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | building | production\_method |
+| random\_province | Iterate through all provinces in a country | ``` random_province = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | province |
+| random\_province\_definition | Iterate through all existing province\_definition | ``` random_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | province\_definition |
+| random\_province\_definition\_in\_area | Iterate through all province-definitions in an area | ``` random_province_definition_in_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area | province\_definition |
+| random\_province\_definition\_in\_scripted\_geography | Iterate through all provinces in a scripted geography | ``` random_province_definition_in_scripted_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | scripted\_geography | province |
+| random\_province\_in\_area | Iterate through all provinces in an area | ``` random_province_in_area = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | area | province |
+| random\_province\_in\_province\_definition | Iterate through all provinces in a province-definition | ``` random_province_in_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | province\_definition | province |
+| random\_rebel | Iterate through all Rebels in a country | ``` random_rebel = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | rebels |
+| random\_region | Iterate through all existing regions | ``` random_region = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | region |
+| random\_region\_in\_continent | Iterate through all regions in a sub-continent | ``` random_region_in_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | sub\_continent | region |
+| random\_region\_in\_scripted\_geography | Iterate through all regions in a scripted geography | ``` random_region_in_scripted_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | scripted\_geography | region |
+| random\_related\_country | Iterate through all related countries | ``` random_related_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_religion | Iterate through all religions | ``` random_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | religion |
+| random\_religion\_for\_god | Iterate through all Religions of a God | ``` random_religion_for_god = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | god | religion |
+| random\_religion\_in\_religion\_group | Iterate through all religions in a religion group. | ``` random_religion_in_religion_group = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | group | religion |
+| random\_religion\_international\_organization | Iterate through all international organisations of a religion | ``` random_religion_international_organization = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | international\_organization |
+| random\_religious\_aspect | Iterate through all religious aspects of a Country | ``` random_religious_aspect = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | religious\_aspect |
+| random\_religious\_focus | Iterate through all completed religious focuses of a Country | ``` random_religious_focus = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | religious\_focus |
+| random\_religious\_school\_in\_religion | Iterate through all Religious Schools in a Religion | ``` random_religious_school_in_religion = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religion | religious\_school |
+| random\_rented\_out\_mercenary | Iterate through mercenaries a country has rented out to the market | ``` random_rented_out_mercenary = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | mercenary |
+| random\_required\_goods | Iterate through all goods required by the scope production method. | ``` random_required_goods = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | production\_method | goods |
+| random\_reserves | Iterate through all subunits on the reserve of a combat-side | ``` random_reserves = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | combat\_side | sub\_unit |
+| random\_retreated | Iterate through all subunits on the retreated of a combat-side | ``` random_retreated = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | combat\_side | sub\_unit |
+| random\_revolutionary | Iterate through all revolutionary states | ``` random_revolutionary = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | country |
+| random\_right\_flank | Iterate through all subunits on the right-flank of a combat-side | ``` random_right_flank = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | combat\_side | sub\_unit |
+| random\_rival | Iterate through all rival countries | ``` random_rival = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_road\_type | Iterate through all the road types | ``` random_road_type = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | road\_type |
+| random\_royal\_marriage | Iterate through all royal married countries | ``` random_royal_marriage = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_ruled\_international\_organization | Iterate through IOs a character rules | ``` random_ruled_international_organization = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | international\_organization |
+| random\_ruler | Iterate through all characters that have ever been rulers in a country, including the dead | ``` random_ruler = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | character |
+| random\_ruling\_countries | Iterate through countries a character rulers | ``` random_ruling_countries = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | country |
+| random\_sound\_toll\_in\_country | Iterate through all Sound Tolls in a country | ``` random_sound_toll_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | location |
+| random\_spouse | Iterate through all spouses of a character | ``` random_spouse = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | character |
+| random\_spy\_network\_built\_in\_us | Iterate through all countries building spy networks | ``` random_spy_network_built_in_us = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_sub\_continent | Iterate through all existing sub\_continents | ``` random_sub_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | sub\_continent |
+| random\_sub\_continent\_in\_continent | Iterate through all sub-continents in a continent | ``` random_sub_continent_in_continent = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | continent | sub\_continent |
+| random\_sub\_continent\_in\_scripted\_geography | Iterate through all sub-continents in a scripted geography | ``` random_sub_continent_in_scripted_geography = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | continent | scripted\_geography |
+| random\_sub\_unit | Iterate through all subunits in a unit | ``` random_sub_unit = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | unit | sub\_unit |
+| random\_subject | Iterate through all subject countries | ``` random_subject = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_subject\_or\_below | Iterate through all subject countries and their subject countries, and so on | ``` random_subject_or_below = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_tolerated\_culture | Iterate through all Tolerated cultures in a country | ``` random_tolerated_culture = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | culture |
+| random\_town\_rights\_in\_country | Iterate through all Town Rights in a country | ``` random_town_rights_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | town\_rights |
+| random\_town\_rights\_in\_location | Iterate through all Town Rights in a location | ``` random_town_rights_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | town\_rights |
+| random\_trade | Iterate through all trades in a Country | ``` random_trade = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | trade |
+| random\_trait | Iterate through all traits of a character | ``` random_trait = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | trait |
+| random\_union\_partner | Iterate through all countries which are in a personal union with the current country scope. | ``` random_union_partner = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | country |
+| random\_unit | Iterate through all units in a country | ``` random_unit = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | unit |
+| random\_unit\_in\_location | Iterate through all units in a location | ``` random_unit_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | unit |
+| random\_valid\_religion\_for\_aspect | Iterate through all religion that an aspect can be for | ``` random_valid_religion_for_aspect = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | religious\_aspect | religion |
+| random\_voter | Iterate through all voters in an active resolution | ``` random_voter = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | active\_resolution | country |
+| random\_war | Iterate through all wars going on globally | ``` random_war = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | war |
+| random\_war\_participant | Iterate through all participants of a war | ``` random_war_participant = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | war | country |
+| random\_weather\_system\_in\_location | Iterate through all weather systems in a location | ``` random_weather_system_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | weather\_system |
+| random\_west\_of\_province\_definition | Iterate through all province-definitions west of a province-definition | ``` random_west_of_province_definition = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | province\_definition | province\_definition |
+| random\_work\_of\_art | Iterate through all WorkOfArts in the world | ``` random_work_of_art = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | none | work\_of\_art |
+| random\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` random_work_of_art_by_creator = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | work\_of\_art |
+| random\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` random_work_of_art_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | work\_of\_art |
+| random\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` random_work_of_art_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | work\_of\_art |
+
+Effect iterators begin with `every_`, `ordered_`, and `random_`. `every_` iterators apply their effects to all returned scopes, `ordered_` iterators order their returned scopes by a value comparison and apply their effects to the first in the ordering, and `random_` iterators apply their effects to a single random returned scope.
+
+All three can use the parameter `limit` to apply triggers that limit which scopes are returned. If the limit triggers are specific enough, such that they return only a single scope, all three types of iterator are effectively identical.
+
+`ordered_` iterators can return a scope besides the first by using the parameter `position = int` which is 0-indexed. Additionally, the parameters `min = int` and `max = value` can be used to limit how many and which scopes are returned in the ordering. `min` sets the "top" position, using the same 0-indexing as `position`, while `max` determines the number of scopes to return, from the floored value given. If not specified, `min = 0` and `max = 1`. Setting `min` without setting `max` considers `max` as equal to the iterator's list size. Use `check_range_bounds = no` to prevent error logging when using min or max, otherwise using a min or max higher than the list size gives and error.
+
+`random_` iterators can weight the returned scopes so that certain scopes are more likely to be selected. This uses `weight = { <mtth blocks> }`. Without a modified weighting, all returned scopes are equally weighted.
+
+#### Multiple random scopes
+
+Often it is useful to return multiple random or semi-random scopes. This can be implemented in a few different ways. The most straightforward is multiple uses of a `random_` iterator. To ensure that the same scope is not returned twice, set a variable on each scope as part of its effects and check that the variable has not been set in order to return the next scope.
+
+```
+random_country = {
+    limit = {
+        NOT = { has_variable = blocker_var }
+        <other limit triggers>
+    }
+    set_variable = blocker_var
+    <effects>
+}
+<repeat above as desired>
+```
+
+This style can be made more succinct by using a [scripted effect](/Macro "Macro") or a [while](/Effect#while "Effect") loop, so that the actual effect only needs to be defined once.
+
+An alternative approach uses a single `ordered_` iterator with a semi-random ordering. This ensures each returned scope is unique without having to check for variables, as well as keeping the amount of script used to a minimum. It makes use of the [script value](/Script_value "Script value") function `modulo` to give a semi-random ordering.
+
+```
+ordered_country = {
+    limit = { } # if desired
+    order_by = {
+        value = total_population
+        modulo = { 1 10 }
+    }
+    max = 10
+    <effects>
+}
+```
+
+This example returns 10 countries which are ordered by a randomized modulo of total population. The `modulo` range can be set to any values desired and can also used `fixed_range` or `integer_range` in order to make use of other scripted values, and other values can be used as the basis, such as gold, prestige, or any reasonably unique value set.
+
+## Event targets
+
+*Main article: [Event target](/Event_target "Event target")*
+
+List of contextual scope links
+
+| Scope link | Description | From scope | To scope |
+| --- | --- | --- | --- |
+| active\_mission | Unknown, add something in code registration | country | mission |
+| advance\_age | Unknown, add something in code registration | advance\_type | age |
+| attacker\_leader | Unknown, add something in code registration | war | country |
+| autocephalous\_patriarchate | Unknown, add something in code registration | country | international\_organization |
+| birth\_location | Unknown, add something in code registration | character | location |
+| borrower | Unknown, add something in code registration | loan | country |
+| building\_base\_cost\_in\_gold | The Building base price in gold | building\_type | value |
+| cabinet\_member | Unknown, add something in code registration | cabinet | character |
+| capacity\_market | Unknown, add something in code registration | trade | market |
+| capital | Unknown, add something in code registration | area, country, dynasty, province | location |
+| cardinal | Unknown, add something in code registration | location | cardinal |
+| civil\_war | Unknown, add something in code registration | country | war |
+| civil\_war\_opponent | Unknown, add something in code registration | country | country |
+| combat | Unknown, add something in code registration | combat\_side, location, unit | combat |
+| combat\_attacker | Unknown, add something in code registration | combat | combat\_side |
+| combat\_defender | Unknown, add something in code registration | combat | combat\_side |
+| commander | Unknown, add something in code registration | combat\_side | country |
+| commanding\_country | Unknown, add something in code registration | combat\_side | country |
+| compare\_date | A comparison trigger that will return its date in the context it is used eg: root.gold | none | date |
+| compare\_value | A comparison trigger that will return its value in the context it is used eg: root.gold | none | value |
+| consort | Unknown, add something in code registration | country | character |
+| controller | Unknown, add something in code registration | location, sub\_unit | country |
+| country\_color | Unknown, add something in code registration | country | color |
+| country\_stance | Unknown, add something in code registration | country | military\_stance |
+| court\_dialect | Unknown, add something in code registration | country | dialect |
+| court\_language | Unknown, add something in code registration | country | language |
+| creator | Unknown, add something in code registration | work\_of\_art | character |
+| current\_mission\_task | Unknown, add something in code registration | country | mission\_task |
+| customer | Unknown, add something in code registration | mercenary | country |
+| defender\_leader | Unknown, add something in code registration | war | country |
+| dominant\_country | Unknown, add something in code registration | culture | country |
+| dominant\_culture | Unknown, add something in code registration | country, location, province | culture |
+| dominant\_dialect | Unknown, add something in code registration | country, location | dialect |
+| dominant\_language | Unknown, add something in code registration | country, location | language |
+| dominant\_religion | Unknown, add something in code registration | country, location, province | religion |
+| dominant\_upper\_class\_culture | Unknown, add something in code registration | country | culture |
+| dynasty\_head | Unknown, add something in code registration | dynasty | character |
+| dynasty\_home | Unknown, add something in code registration | dynasty | location |
+| employer | Employer of the character | character | country |
+| enemy\_side | Unknown, add something in code registration | combat\_side | combat\_side |
+| exploration | Unknown, add something in code registration | character | exploration |
+| father | Unknown, add something in code registration | character | character |
+| first\_spouse | Unknown, add something in code registration | character | character |
+| from\_market | Unknown, add something in code registration | trade | market |
+| group | Unknown, add something in code registration | religion | group |
+| heir | Unknown, add something in code registration | country | character |
+| holy\_site | Unknown, add something in code registration | avatar, god | holy\_site |
+| international\_organization\_target | Unknown, add something in code registration | international\_organization | country |
+| largest\_army | The largest army controlled by the country | country | unit |
+| largest\_navy | The largest navy controlled by the country | country | unit |
+| last\_dynasty\_in\_location | Unknown, add something in code registration | location | dynasty |
+| last\_leader\_country | Unknown, add something in code registration | international\_organization | country |
+| last\_valid\_ruler | Unknown, add something in code registration | country | character |
+| leader | Unknown, add something in code registration | exploration, unit | character |
+| leader\_country | Unknown, add something in code registration | international\_organization | country |
+| leadership\_election\_resolution | Unknown, add something in code registration | international\_organization | resolution |
+| leading\_unit | Unknown, add something in code registration | combat\_side | unit |
+| linked\_pop | Unknown, add something in code registration | building | pop |
+| liturgical\_dialect | Unknown, add something in code registration | country | dialect |
+| liturgical\_language | Unknown, add something in code registration | country | language |
+| low\_control\_best\_tax\_base | get the best low control tax base | country | province |
+| market | Unknown, add something in code registration | location | market |
+| marriage\_union | Unknown, add something in code registration | country | international\_organization |
+| max\_great\_powers | Unknown, add something in code registration | none | value |
+| mercenary\_home | Unknown, add something in code registration | mercenary | location |
+| most\_powerful\_merchant | Unknown, add something in code registration | market | country |
+| mother | Unknown, add something in code registration | character | character |
+| movement\_type | Unknown, add something in code registration | movement | movement\_definition |
+| name\_culture | Unknown, add something in code registration | sub\_unit | culture |
+| named\_script\_value | A script value that will calculate and returns its value in the context it is used | none | color, value |
+| origin | Unknown, add something in code registration | disease, disease\_outbreak, institution, work\_of\_art | location |
+| original\_attacker\_leader | Unknown, add something in code registration | war | country |
+| original\_capital | Unknown, add something in code registration | country | location |
+| original\_defender\_leader | Returns the country which was the original defender. In cases where the war is started against a subject country, defender\_leader would return the overlord while original\_defender\_leader would return the subject country. Returns the current defender war leader as fallback. | war | country |
+| original\_outbreak | Unknown, add something in code registration | disease | disease\_outbreak |
+| overlord | Unknown, add something in code registration | country | country |
+| owner | Unknown, add something in code registration | building, cabinet, cardinal, character, colonial\_charter, disaster, estate, exploration, loan, location, market, mercenary, pop, privateer, province, rebels, sub\_unit, trade, unit, work\_of\_art | country |
+| owning\_unit | Unknown, add something in code registration | sub\_unit | unit |
+| parliament\_seat | Unknown, add something in code registration | country, international\_organization | location |
+| prev | The previous scope | none | varies |
+| previous\_owner | Unknown, add something in code registration | location | country |
+| previous\_ruler | Unknown, add something in code registration | country | character |
+| produced\_goods | Unknown, add something in code registration | production\_method | goods |
+| province\_capital | Unknown, add something in code registration | province | location |
+| raw\_material | Unknown, add something in code registration | location | goods |
+| raw\_material\_location | Unknown, add something in code registration | location | goods |
+| rebel | Unknown, add something in code registration | character, pop | rebels |
+| regent | Unknown, add something in code registration | country | character |
+| religious\_head | Unknown, add something in code registration | religion | country |
+| resolution\_proposer | Unknown, add something in code registration | active\_resolution | country |
+| revolutionary\_target | Unknown, add something in code registration | none | country |
+| root | The head of the current top scope eg: reciever of an event, taker of a decision | none | varies |
+| ruler | Unknown, add something in code registration | country | character |
+| ruler\_or\_heir\_if\_regent | Unknown, add something in code registration | country | character |
+| ruler\_or\_regent | Unknown, add something in code registration | country | character |
+| sea\_zone | Unknown, add something in code registration | location | location |
+| second\_best\_market | Unknown, add something in code registration | location | market |
+| secondary\_culture | Unknown, add something in code registration | location | culture |
+| secondary\_otherwise\_primary\_culture | Unknown, add something in code registration | location | culture |
+| siege | Unknown, add something in code registration | location, unit | siege |
+| siege\_defender | the siege defender country | siege | country |
+| siege\_main\_attacker | the siege main attacker country | siege | country |
+| subunit\_home | Unknown, add something in code registration | sub\_unit | location |
+| succession\_law | Unknown, add something in code registration | country | heir\_selection |
+| this | The current scope | none | varies |
+| to\_market | Unknown, add something in code registration | trade | market |
+| top\_overlord | Unknown, add something in code registration | country | country |
+| top\_overlord\_or\_this | Unknown, add something in code registration | country | country |
+| top\_owner | Unknown, add something in code registration | location | country |
+| traded\_goods | Unknown, add something in code registration | trade | goods |
+| union | Unknown, add something in code registration | country | international\_organization |
+| unit | Unknown, add something in code registration | character | unit |
+| unit\_destination | Unknown, add something in code registration | unit | location |
+| unit\_location | Unknown, add something in code registration | unit | location |
+| unit\_next\_location | Unknown, add something in code registration | unit | location |
+| upgrade\_demand | Unknown, add something in code registration | production\_method | demand |
+| war\_goal\_province | Links to the war goal of the war. If no war goal is set or is unrelated to locations (such as superiority) the link returns the capital of the defender war leader | war | province |
+
+List of specified scope links
+
+| Scope link | Description | From scope | To scope |
+| --- | --- | --- | --- |
+| active\_outbreak | gets the active outbreak for a disease in a location or subunit - usage active\_outbreak(<disease>) | location, sub\_unit | disease\_outbreak |
+| active\_resolution | gets the active resolution of the type specified in the scope international organization or situation - usage active\_resolution(<resolution>) | international\_organization, situation | active\_resolution |
+| advance\_type | Unknown, add something in code registration | none | advance\_type |
+| age | Unknown, add something in code registration | none | age |
+| ai\_personality | Unknown, add something in code registration | country, none | ai\_personality |
+| area | Unknown, add something in code registration | exploration, location, none, privateer, province, province\_definition | area |
+| area\_exploration | Links to an exploration in the scope area for the suppled country. Usage: area\_exploration:<country> or area\_exploration(<country>) | area | exploration |
+| array\_define | Reference the value of a numeric value in an array define: array\_define:Namespace|Name|Index. Index is 0-based. | none | value |
+| artist\_type | Unknown, add something in code registration | none | artist\_type |
+| avatar | Unknown, add something in code registration | holy\_site, none | avatar |
+| bias\_value | Unknown, add something in code registration | none | value |
+| building | Unknown, add something in code registration | location | building |
+| building\_type | Unknown, add something in code registration | building, none | building\_type |
+| bureaucracy\_type | Unknown, add something in code registration | bureaucracy, none | bureaucracy\_type |
+| c | Scope to the specified country TAG | none | country |
+| cabinet\_action | The cabinet action a character is performing | cabinet, character, none | cabinet\_action |
+| cast\_vote\_in\_active\_resolution | gets the cast vote in a resolution, returns nothing if the vote isn't explicit - usage cast\_vote\_in\_resolution(<country>) | active\_resolution | vote |
+| casus\_belli | Unknown, add something in code registration | none, war | casus\_belli |
+| character | Unknown, add something in code registration | none | character |
+| character\_interaction | Unknown, add something in code registration | none | character\_interaction |
+| child\_education | Unknown, add something in code registration | none | child\_education |
+| climate | Unknown, add something in code registration | none | climate |
+| compare\_complex\_value | A comparison trigger that needs a parsable string parameter that will return its value in the context it is used eg: scope:root.number\_of(armies) | none | value |
+| continent | Unknown, add something in code registration | area, location, none, province, province\_definition, region, sub\_continent | continent |
+| country\_government\_reform\_fully\_implemented\_date | Unknown, add something in code registration | country | date |
+| country\_government\_reform\_implementation\_date | Unknown, add something in code registration | country | date |
+| country\_interaction | Unknown, add something in code registration | none | country\_interaction |
+| country\_rank | Unknown, add something in code registration | country, none | country\_rank |
+| country\_rank\_on\_date | Unknown, add something in code registration | country | country\_rank |
+| culture | Unknown, add something in code registration | character, country, dynasty, mercenary, none, pop, rebels, sub\_unit | culture |
+| culture\_group | Unknown, add something in code registration | none | culture\_group |
+| default\_price | The default price for a goods | none | value |
+| define | Reference the value of a numeric or color define: define:Namespace|Name | none | color, date, value |
+| demand | Unknown, add something in code registration | none | demand |
+| dialect | Unknown, add something in code registration | character, culture, dynasty, market, none, pop, religion | dialect |
+| disaster\_type | Unknown, add something in code registration | disaster, none | disaster\_type |
+| disease | Unknown, add something in code registration | disease\_outbreak, none | disease |
+| dynasty | Unknown, add something in code registration | character, none | dynasty |
+| employment\_system | Unknown, add something in code registration | none | employment\_system |
+| estate | Links to a particular estate. Usage: estate:<estate\_type\_link> or estate(<estate\_type\_link>) | country | estate |
+| estate\_power | The power of an estate | country | value |
+| estate\_privilege | Unknown, add something in code registration | none | estate\_privilege |
+| estate\_satisfaction | The satisfaction of an estate | country | value |
+| estate\_target\_satisfaction | The target satisfaction of an estate | country | value |
+| estate\_tax\_base | The base tax of an estate | country, estate | value |
+| estate\_tax\_percentage | The tax percentage levied on an estate | country | value |
+| estate\_type | Unknown, add something in code registration | building, character, estate, estate\_privilege, none, parliament\_issue, pop, rebels | estate\_type |
+| ethnicity | Unknown, add something in code registration | character, none | ethnicity |
+| flag | Flag literals eg: flag:the\_boss | none | flag |
+| formable\_country | Unknown, add something in code registration | none | formable\_country |
+| generic\_action | Unknown, add something in code registration | none | generic\_action |
+| gfx\_culture | The graphical culture from a culture scope | culture, none | graphical\_culture |
+| global\_var | Reference a previous set global variable via its name eg: global\_var:important\_thing | none | varies |
+| global\_variable\_map | Reference a previous set variable via its name eg: "global\_variable\_map(average\_relation\_map|c:FRA)" | none | varies |
+| god | Unknown, add something in code registration | avatar, holy\_site, none, omen | god |
+| goods | Unknown, add something in code registration | none | goods |
+| government\_reform | Unknown, add something in code registration | none | government\_reform |
+| government\_type | Unknown, add something in code registration | country, none | government |
+| hegemony | Unknown, add something in code registration | none | hegemony |
+| heir\_selection | Unknown, add something in code registration | none | heir\_selection |
+| holy\_site\_definition | Unknown, add something in code registration | none | holy\_site\_definition |
+| holy\_site\_type | Unknown, add something in code registration | none | holy\_site\_type |
+| implementation\_price | Unknown, add something in code registration | bureaucracy, bureaucracy\_type | price |
+| institution | Unknown, add something in code registration | none | institution |
+| institution\_progress | The progress towards an institution of a location | location | value |
+| interaction\_target | Unknown, add something in code registration | cabinet | varies |
+| international\_organization | Unknown, add something in code registration | none | international\_organization |
+| international\_organization\_type | Unknown, add something in code registration | international\_organization, none | international\_organization\_type |
+| known\_in\_country | The amount of goods known to a speficic Country | country | value |
+| land\_ownership\_rule | Unknown, add something in code registration | international\_organization, none | land\_ownership\_rule |
+| language | Unknown, add something in code registration | character, country, culture, dialect, dynasty, market, none, religion, sub\_unit | language |
+| language\_family | Unknown, add something in code registration | language, none | language\_family |
+| law | Unknown, add something in code registration | none, policy | law |
+| law\_policy | gets the policy chosen for a particular law in the scope international organization or country - usage law\_policy(<law>) | country, international\_organization | policy |
+| leader\_at\_index | Scopes to the leader characters of the IO which are defined in leader = {}. In case of countries instead, their ruler, heir or regent (in that order) gets returned instead. Usage: leader\_at\_index(<int> | international\_organization | character |
+| levy\_setup | Unknown, add something in code registration | none | levy\_setup |
+| local\_var | Reference a previous set local variable via its name eg: local\_var:person\_of\_interest | none | varies |
+| local\_variable\_map | Reference a previous set variable via its name eg: "local\_variable\_map(rewards\_for\_country|c:FRA)" | none | varies |
+| location | Unknown, add something in code registration | building, cardinal, character, combat, exploration, holy\_site, market, none, pop, siege, town\_rights, work\_of\_art | location |
+| location\_rank | Unknown, add something in code registration | location, none | location\_rank |
+| market\_price | The price a goods has in a market | market | value |
+| mission | Unknown, add something in code registration | none | mission |
+| mission\_task | Unknown, add something in code registration | none | mission\_task |
+| modifier | Scope to the value of the modifier type of specified key belonging to the current object | character, country, dynasty, international\_organization, location, province, religion, unit | boolean, value |
+| movement\_definition | Unknown, add something in code registration | none | movement\_definition |
+| num\_estate\_privileges | The amount of privileges an estate has | country | value |
+| num\_location\_rank | Count the amount of owned locations of a specific rank | country | value |
+| num\_pop\_type | The amount of pops of a specific type at location | location | value |
+| num\_pop\_type\_in\_country | The amount of pops of a specific type in a country | country | value |
+| num\_pop\_type\_in\_province | The amount of pops of a specific type at Province | province | value |
+| num\_possible\_estate\_privileges | The amount of possible privileges an estate can get | country | value |
+| omen | Unknown, add something in code registration | none | omen |
+| parliament\_agenda | Unknown, add something in code registration | none | parliament\_agenda |
+| parliament\_issue | Unknown, add something in code registration | country, international\_organization, none | parliament\_issue |
+| parliament\_type | Unknown, add something in code registration | country, international\_organization, none | parliament\_type |
+| payment | Unknown, add something in code registration | none | payment |
+| peace\_treaty | Unknown, add something in code registration | none | peace\_treaty |
+| percentage\_pop\_type\_in\_country | The percentage of pops of a specific type in a country | country | value |
+| percentage\_pop\_type\_in\_location | The percentage of pops of a specific type in a location | location | value |
+| policy | Unknown, add something in code registration | none | policy |
+| pop\_type | Unknown, add something in code registration | none, pop | pop\_type |
+| price | Unknown, add something in code registration | none, policy | price |
+| produced\_in\_country | The amount of goods produced in a specific Country | country | value |
+| produced\_in\_market | The amount of goods produced in a speficic market | market | value |
+| produced\_in\_world | The amount of goods produced in the world | none | value |
+| production\_method | Unknown, add something in code registration | none | production\_method |
+| province | Unknown, add something in code registration | country, location | province |
+| province\_definition | Unknown, add something in code registration | colonial\_charter, location, none, province | province\_definition |
+| recruitment\_method | Unknown, add something in code registration | none | recruitment\_method |
+| regency\_type | Unknown, add something in code registration | country, none | regency\_type |
+| region | Unknown, add something in code registration | area, location, none, province, province\_definition | region |
+| relation\_type | Unknown, add something in code registration | none | relation\_type |
+| religion | Unknown, add something in code registration | character, country, dynasty, mercenary, none, pop, rebels, sub\_unit | religion |
+| religion\_group | Unknown, add something in code registration | none | group |
+| religious\_aspect | Unknown, add something in code registration | none | religious\_aspect |
+| religious\_faction | Unknown, add something in code registration | none | religious\_faction |
+| religious\_figure | Unknown, add something in code registration | none | religious\_figure |
+| religious\_focus | Unknown, add something in code registration | none | religious\_focus |
+| religious\_school | Unknown, add something in code registration | character, country, none | religious\_school |
+| removal\_price | Unknown, add something in code registration | bureaucracy, bureaucracy\_type | price |
+| resolution | Unknown, add something in code registration | active\_resolution, none | resolution |
+| resolution\_target | Links to the named parameter (from the select\_triggers) in the scope active resolution | active\_resolution | varies |
+| resolution\_vote | gets vote that a country is voting for on a particular resolution in an international organization - usage resolution\_vote(<country>|<international organization>|<resolution>) | none | vote |
+| road\_type | Unknown, add something in code registration | none | road\_type |
+| rule\_end\_date | Unknown, add something in code registration | character | date |
+| scope | Reference a previously saved scope via its name eg: scope:target | none | varies |
+| scriptable\_hint\_definition | Unknown, add something in code registration | none | scriptable\_hint\_definition |
+| scripted\_geography | Unknown, add something in code registration | none | scripted\_geography |
+| situation | Unknown, add something in code registration | none | situation |
+| societal\_value | The value of a societal value of a country | country | value |
+| societal\_value\_type | Unknown, add something in code registration | none | societal\_value\_type |
+| special\_status | Unknown, add something in code registration | none, parliament\_issue | special\_status |
+| stockpile\_in\_market | The amount of goods stockpiled in a specific market | market | value |
+| sub\_continent | Unknown, add something in code registration | area, location, none, province, province\_definition, region | sub\_continent |
+| sub\_unit\_category | Unknown, add something in code registration | none, sub\_unit | sub\_unit\_category |
+| sub\_unit\_count | Checks the amount of a subunit-type inside a unit (in regiments) | unit | value |
+| sub\_unit\_fraction | Checks the fraction of a subunit-type inside a unit (in regiments) | unit | value |
+| sub\_unit\_strength | Checks the strength of a subunit-type inside a unit (in regiments) | unit | value |
+| subject\_military\_stance | Unknown, add something in code registration | none | military\_stance |
+| subject\_type | Unknown, add something in code registration | country, none | subject\_type |
+| target\_price | The target price a goods has in a market | market | value |
+| topography | Unknown, add something in code registration | none | topography |
+| total\_building\_levels\_including\_construction | The amount of total building levels including construction in a speficic Country | country | value |
+| total\_effective\_building\_levels | The amount of total effective building levels in a speficic Country | country | value |
+| total\_sub\_unit\_category\_in\_unit | Checks the total strength of a subunit-category for a unit | unit | value |
+| total\_sub\_unit\_count | Checks the amount of a subunit-category that a country has (in regiments/ships) | country | value |
+| total\_sub\_unit\_strength | Checks the total strength of a subunit-category for a unit | country | value |
+| total\_sub\_unit\_type\_count | Checks the amount of a subunit-type that a country has (in regiments/ships) | country | value |
+| total\_sub\_unit\_type\_strength | Checks the total strength of a subunit-type for a country | unit | value |
+| town\_rights\_type | Unknown, add something in code registration | none, town\_rights | town\_rights\_type |
+| traded\_in\_market | The amount of goods traded in a specific market | market | value |
+| trait | Unknown, add something in code registration | none | trait |
+| unit\_ability | Unknown, add something in code registration | none | unit\_ability |
+| unit\_formation\_preference | Unknown, add something in code registration | none | unit\_formation\_preference |
+| unit\_type | Unknown, add something in code registration | none | unit\_type |
+| var | Reference a previous set variable via its name eg: var:mortal\_enemy | none | varies |
+| variable\_map | Reference a variable set under a specified scope in a named container on this scope: "variable\_map(our\_relations\_with|c:FRA)" | none | varies |
+| vegetation | Unknown, add something in code registration | none | vegetation |
+| vote\_in\_active\_resolution | gets the active resolution of the type specified in the scope active resolution - usage vote\_in\_active\_resolution(<country>) | active\_resolution | vote |
+| war\_with\_country | Gets the current war of the country scope against the specified target country - usage war\_with\_country(<country>) | country | war |
+| work\_of\_art | Unknown, add something in code registration | none | work\_of\_art |
+| work\_of\_art\_type | Unknown, add something in code registration | none, work\_of\_art | work\_of\_art\_type |
+
+**Event targets** are scope identifiers that return a specific scope from context or specification. Event targets can be used to set the scope or as the target of an effect or trigger. When setting the scope, event targets can be used either for triggers or for effects, unlike iterators which are specified only for triggers or effects, but not both.
+
+Scope event targets come in two types, contextual or specified. Contextual event targets almost always must be used in a relevant scope, as they refer to scopes relevant to the current scope, such as the capital state or ruler of a country. Specified event targets are often scopeless as they refer to a specific object. Some specified event targets still require a certain scope as they refer to an instance of a type, rather than a unique object.
+
+Specified scope event targets typically use a colon `:` followed by a script key, such as a building type, country tag, or area. Some use parentheses instead.
+
+### Scope stacking
+
+Scope stacking, also known as dot chaining, is a method of quickly going from one scope to another without having to insert multiple event target blocks. This allows for quickly changing through scopes without having to create a new block for each scope level. They follow the format of `<preceding event_target>.<next_event_target>`.
+
+While scope stacking seems to produce a technically equivalent result, there is one caveat - the previous scope (`PREV`) is set to the scope before the chain.
+For example, to check if any country has a capital in a certain region, either of the following methods return the same result,
+
+Without scope stacking
+
+```
+any_country = {
+    capital = {
+        region = region:<region_name>
+    }
+}
+```
+
+With scope stacking
+
+```
+any_country = {
+    capital.region = region:<region_name>
+}
+```
+
+Here is an example showcasing how `PREV` works:
+Without scope stacking
+
+```
+any_country = {
+	ruler = {
+		birth_location = {
+			owner = PREV		#PREV is ruler here. The ruler will not own the location!
+		}
+	}
+}
+```
+
+With scope stacking
+
+```
+any_country = {
+	ruler.birth_location = {
+		owner = PREV			#PREV is country here. The country may own the location!
+	}
+}
+```
+
+### Scope existence checks and ?= operator
+
+Trying to fire effects or check triggers on scopes that do not exist will lead to results and unintended behavior, so it is critical to have certainty that the object behind the scope exists.
+This can be done using some regular triggers like [has\_capital](/Trigger#has_capital "Trigger"), or, more generally, **[exists](/Trigger#exists "Trigger")**.
+
+The `?=` existence operator can be combined with [Event targets](/Event_target "Event target") to ease this process.
+
+In triggers, `?=` means that the scope must exist and must fulfill the requirements:
+
+```
+scope:target ?= {
+	gold >= 100
+}
+```
+
+is equivalent to:
+
+```
+AND = {
+	exists = scope:target
+	scope:target = {
+		gold >= 100
+	}
+}
+```
+
+It must be specified that in comparison contexts, `?=` only checks for the left-hand side:
+
+```
+ruler ?= scope:target
+```
+
+If ruler does not exist, the block will evaluate to false, if scope:target does not exist, an error will be printed and the check might have unexpected behavior.
+Alternative ways to do the two-sided existance check:
+
+```
+ruler ?= {
+	scope:target ?= this
+}
+
+AND = {
+	exists = scope:target
+	ruler ?= scope:target
+}
+```
+
+In effects, `?=` evaluates to a check that makes the effects inside fire only if the scope exists.
+
+```
+scope:target ?= {
+	add_gold = 100
+}
+```
+
+is equivalent to:
+
+```
+if = {
+	limit = {
+		exists = scope:target
+	}
+	scope:target = {
+		add_gold = 100
+	}
+}
+```
+
+### Value triggers
+
+Some triggers can be used in value comparison triggers - those triggers can also be used as scope links that return `value` scope and can therefore be used at the end of scope stacking.
+Such triggers will usually have the following line in their documentation:
+`Traits: <, <=, =, !=, >, >=`
+
+## Common scope examples
+
+WIP
+
+## Scope types
+
+Here are all recognizable scope types in the game. [Effects](/Effect "Effect"), [triggers](/Trigger "Trigger"), and [scope links](/Scope_link "Scope link") listed on this wiki note which scopes they can be used in.
+
+* active\_resolution
+* advance\_type
+* age
+* any/none
+* area
+* artist\_type
+* audio\_culture
+* avatar
+* bool
+* building
+* building\_type
+* cabinet
+* cabinet\_action
+* cardinal
+* casus\_belli
+* character
+* character\_interaction
+* child\_education
+* climate
+* colonial\_charter
+* color
+* combat
+* combat\_side
+* continent
+* country
+* country\_interaction
+* country\_rank
+* culture
+* culture\_group
+* date
+* dialect
+* disaster
+* disaster\_type
+* disease
+* disease\_outbreak
+* dynasty
+* employment\_system
+* estate
+* estate\_privilege
+* estate\_type
+* ethnicity
+* exploration
+* formable\_country
+* generic\_action
+* god
+* goods
+* goods\_demand
+* government\_reform
+* government\_type
+* graphical\_culture
+* hegemony
+* heir\_selection
+* holy\_site
+* holy\_site\_definition
+* holy\_site\_type
+* institution
+* integer\_flag
+* international\_organization
+* international\_organization\_type
+* land\_ownerhip\_rule
+* language
+* language\_family
+* law
+* levy\_setup
+* loan
+* location
+* location\_rank
+* market
+* mercenary
+* military\_stance
+* mission
+* mission\_task
+* parliament\_agenda
+* parliament\_issue
+* parliament\_type
+* payment
+* peace\_treaty
+* policy
+* pop
+* pop\_type
+* price
+* privateer
+* production\_method
+* province
+* province\_definition
+* rebel
+* recruitment\_method
+* regency\_type
+* region
+* relation\_type
+* religion
+* religion\_group
+* religious\_aspect
+* religious\_faction
+* religious\_figure
+* religious\_focus
+* religious\_school
+* resolution
+* road\_type
+* scriptable\_hint\_definition
+* siege
+* situation
+* societal\_value\_type
+* special\_status
+* sub\_continent
+* sub\_unit\_category
+* subject\_type
+* subunit
+* topography
+* trade
+* trait
+* unit
+* unit\_ability
+* unit\_type
+* value
+* vegetation
+* war
+* weather\_system
+* work\_of\_art
+* work\_of\_art\_type
+
+### Scopes with variables
+
+Some game objects can hold variables and variable lists on them. Here is the list of such scopes:
+
+* cabinet
+* character
+* colonial\_charter
+* country
+* culture
+* disaster
+* dynasty
+* international\_organization
+* location
+* province
+* rebel
+* religion
+* active\_situation
+* unit
+* war
+
+## References
+
+[Modding](/Modding "Modding")[Return to top](#top)
+
+|  |  |
+| --- | --- |
+| Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • Scopes • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
+
+|  |  |
+| --- | --- |
+| Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
+
+|  |  |
+| --- | --- |
+| Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
+
+|  |  |
+| --- | --- |
+| Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
+
+|  |  |
+| --- | --- |
+| Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
+
+|  |  |
+| --- | --- |
+| Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
+
+|  |  |
+| --- | --- |
+| Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
+
+|  |  |
+| --- | --- |
+| Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
+
+|  |  |
+| --- | --- |
+| Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

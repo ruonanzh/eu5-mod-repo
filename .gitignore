@@ -1,0 +1,6 @@
+# Python 编译缓存
+__pycache__/
+*.pyc
+
+# wiki 全站快照（整改后进 repo，范围待定，见 docs-organization.md D-wiki-1）
+docs/eu5-wiki/

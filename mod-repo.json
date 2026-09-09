@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "modType": "pdx-script",
+  "game": {
+    "name": "Europa Universalis V",
+    "steamAppId": 3450310,
+    "platforms": ["windows"],
+    "installDirHint": {
+      "windows": [
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Europa Universalis V",
+        "E:\\SteamLibrary\\steamapps\\common\\Europa Universalis V",
+        "D:\\SteamLibrary\\steamapps\\common\\Europa Universalis V"
+      ]
+    }
+  },
+  "modInstall": {
+    "relativeTo": "userDocuments",
+    "path": "Paradox Interactive/Europa Universalis V/mod"
+  },
+  "compile": null
+}

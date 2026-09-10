@@ -1,79 +1,164 @@
 ---
 name: mod-authoring
-description: Fake Game 的 JSON mod 制作、修改、可行性/制作方法解释与校验排错。任务涉及 manifest.json、content.json、物品字段或 validate_mod 时按需读取；仅咨询不要求创建文件，实际写入取决于 session 权限。
+description: Authoring, modifying, and Q&A for EU5 (pdx-script) mods: metadata.json fields, localization YAML (UTF-8 BOM, _l_<language> filename, l_<lang>: header, key format), PDXScript/GUI syntax, INJECT:/REPLACE: overrides, load order, and validate_mod troubleshooting. Read when a task touches any of these. Q&A/consultation is read-only (no file writes); actual writes depend on session role and binding.
 ---
 
-# 做 mod（Fake Game）
+# Authoring EU5 mods (pdx-script)
 
-在 `your_mods/<mod名>/` 下做一个 mod，用 `validate_mod` 工具校验。
+An EU5 mod is a directory of **pure PDXScript text files** (`.txt` / `.gui` / `.gfx` / `.asset` /
+`.yml`) — no compilation, no runtime SDK. Author under `your_mods/<ModName>/`, then check with the
+`validate_mod` tool. The game is **Windows-only**.
 
-## 使用方式与条件分支
+All paths below are relative to the workspace root (not the skill directory).
 
-本技能提供领域方法，不授予权限；Game Helper 可用于解释/校验已有 mod，不能因此创建目录或修改源码。以下路径均相对 workspace 根目录（不是技能目录）。
+## Usage modes (two roles)
 
-- **咨询/可行性**：先确定玩家要的效果，检索 `docs/` 与 `specs/`。不因为读取本技能就创建文件或检查运行时。
-- **实际制作/修改**：复用 `reference/example_mod/` 的结构。写入仅限当前 session 绑定目录；无绑定且准备写入时才调 `create_mod_folder`，选择符合规范的 `lower_snake_case` 名字。已有绑定继续使用，缺失目录先说明阻塞，不另建第二个绑定。
-- **格式不明**：按需读 `specs/mod-spec.md` 和 `docs/items.md`，再实现 `manifest.json`/`content.json`。合理默认小细节，只有影响主要效果的歧义才询问。
-- **运行时**：此 JSON 类型没有额外运行时依赖；正常制作无需机械调用 `check_runtime`/`install_runtime`。玩家明确询问环境时可使用工具核实。
-- **验证**：产物完成或相关内容变化后调用 `validate_mod`。依据错误修复；重复失败先查根因，缺外部信息则报告阻塞，不无限重试。
+The same repo serves two roles; which one applies is set by the session role, not chosen here:
 
-## manifest.json
+- **Q&A / consultation (read-only):** answer game-mechanics or mod-API questions by reading the
+  knowledge layer. Start from [`docs/game.md`](docs/game.md) to locate the right source
+  (mod-wiki for concepts, `script_docs/`/`data_types/` for exact names, `eu5-modding-conventions.md`
+  for authoring rules). Do **not** create files or check the runtime unless the player explicitly
+  asks about their environment.
+- **Authoring / modifying (writes):** produce or change a mod under `your_mods/<ModName>/`. Reuse
+  the structure of `reference/example_mod/`. Writes are limited to the mod directory bound to the
+  current session; with no binding, call `create_mod_folder` with a `lower_snake_case` name. Do not
+  create a second binding if one already exists.
+
+## Mod artifact structure
+
+```
+<ModName>/
+├── .metadata/
+│   ├── metadata.json        # required; the game errors without it
+│   └── thumbnail.png        # launcher/workshop image (optional; may live only locally)
+├── in_game/                 # in-game content (common/ events/ gui/ localization/ …)
+├── main_menu/               # main-menu content (localization/ gui/ …)
+└── loading_screen/          # (optional)
+```
+
+## metadata.json
+
+`.metadata/metadata.json` — valid JSON object. Standard fields:
+
+| Field | Rule |
+|---|---|
+| `name` | non-empty string (human-readable mod title) |
+| `id` | non-empty string, `lower_snake_case` (matches dir name) |
+| `version` | `x.x` or `x.x.x` (two- or three-part semver) |
+| `supported_game_version` | `1.*` form |
+| `short_description` | one-line summary — the field is **`short_description`**, not `description` |
+| `tags` | array of strings |
+| `picture` | `"thumbnail.png"`, placed **after `tags`** |
+| `relationships` | `[]` (optional) |
+| `game_custom_data` | `{}` (optional) |
 
 ```json
 {
-  "name": "<mod名>",
-  "version": "0.1.0",
-  "description": "<描述>",
-  "author": "<作者>"
+  "name": "Elite Education Cost Tweak",
+  "id": "elite_education_cost_tweak",
+  "version": "1.0",
+  "supported_game_version": "1.*",
+  "short_description": "Adjusts expensive child education costs.",
+  "tags": ["Gameplay", "Balance"],
+  "picture": "thumbnail.png",
+  "relationships": [],
+  "game_custom_data": {}
 }
 ```
 
-- `name`：必填，`lower_snake_case`，且与目录名**完全一致**。
-- `version`：必填，semver `x.y.z`。
-- `description`、`author`：必填，非空。
+## Localization YAML
 
-## content.json
+`**/localization/**/*.yml` (under `in_game/` and `main_menu/`):
 
-```json
-{
-  "items": [
-    {
-      "id": "fire_sword",
-      "name": "火焰剑",
-      "type": "weapon",
-      "description": "一把燃烧的剑",
-      "stats": { "attack": 10 }
-    }
-  ]
+- **Encoding must be UTF-8 with BOM** (`EF BB BF`). Without a BOM the game silently ignores the
+  file — fatal, not cosmetic.
+- Filename must end with `_l_<language>`, matching the language folder.
+- First content line is `l_<lang>:` and must match the folder.
+- Entry format: `  key: "value"` or `  key:0 "value"` (explicit version). Values double-quoted,
+  quotes balanced, `[`/`]` placeholders balanced.
+- No duplicate keys within one file.
+- To override vanilla loc keys, use a `replace/` subfolder:
+  `<lang>/replace/overwriting_l_<lang>.yml` — keys there overwrite identical keys elsewhere.
+
+## PDXScript / GUI
+
+`.txt` / `.gui` / `.gfx` / `.asset` under `in_game/` and `main_menu/`:
+
+- UTF-8 encoding; `{`/`}` balanced; `"` balanced (`#` is a line comment outside strings, literal
+  inside; GUI strings may span multiple lines).
+- `INJECT:`/`REPLACE:` family keywords only in **top-level blocks**, formatted `KEYWORD:key = {`.
+
+## Overriding vanilla
+
+Three mechanisms (the *why* and edge cases are in
+[`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md)):
+
+1. **Direct file overwrite** — same path+filename replaces the vanilla file entirely (brittle).
+2. **Implicit replace** — in non-keyword folders, a later top-level object with the same name wins.
+3. **`INJECT:`/`REPLACE:` keywords** — required in keyword folders (most `common/` subfolders) to
+   modify an existing object; implicit replace does not work there.
+
+| Keyword | Effect |
+|---|---|
+| `INJECT:` / `REPLACE:` | append / replace; errors if the object does not exist |
+| `TRY_INJECT:` / `TRY_REPLACE:` | same, no error if absent |
+| `INJECT_OR_CREATE:` / `REPLACE_OR_CREATE:` | same, create if absent |
+
+```txt
+REPLACE:expensive_in_depth_education = {
+    # replaces the vanilla block instead of duplicating the key
 }
 ```
 
-- `items` 必须是非空数组。每个元素字段见 `docs/items.md`。
-- 物品 `id`：`lower_snake_case`，同一 mod 内全局唯一。
+**Rule of thumb:** prefer additive new objects; use `INJECT:`/`REPLACE:` for surgical changes in
+keyword folders; reserve full-file overwrite for when you must change most of a file.
 
-## 命名约定
+## Load order & naming
 
-- mod 名 / 目录名：`lower_snake_case`（`^[a-z][a-z0-9_]*$`）。
-- 物品 `id`：`lower_snake_case`，全局唯一。
+- Files load in **ASCII order**: `00_foo.txt` before `01_bar.txt`; files in a subfolder load after
+  files in the parent folder.
+- Prefix idioms: `00_` forces early (foundation); `zz_`/`98_`/`99_` forces late (so overrides win).
+- **GUI exception:** `type`/`template` clashes across mods resolve by **mod load order** (playlist
+  position), not filename.
+- Mod dir name: `lower_snake_case`. Do not leave scratch files (`temp_*`, `_tmp_*`, editor backups)
+  in the mod directory.
 
-## validate_mod 工具用法
+## validate_mod tool
 
-调 `validate_mod` 工具，参数 `modDir = your_mods/<mod名>/`。
+Call `validate_mod` with `modDir = your_mods/<ModName>/`.
 
-- 返回 `PASS: <名> is valid`：本工具的 JSON 静态检查通过，不代表在游戏内运行过。
-- 返回 `FAIL: <原因>`（逐条，英文）：失败，直接指向缺失/不合法的字段；结合 `nextAction` 定位，不修改其他 mod。
-- `details.ok` 为 false 时表示校验未通过；最终说明生成内容与实际检查结果，未做的验证明确保留。
+- `PASS: <name> is valid` — the static syntax/convention check passed; this does not mean it ran in
+  the game.
+- `FAIL: <reason>` (one per line, English) — points at the offending file/field; use the `NEXT:`
+  line to locate it. Fix each ERROR; do not modify other mods.
+- The tool is a **syntax/convention linter**, not a semantic validator — it cannot catch a
+  misspelled effect/trigger/modifier or a wrong scope. Always say what was generated vs what was
+  actually checked.
 
-## 常见错误（对照修正）
+## Common errors (validate_mod FAIL → fix)
 
-- `FAIL: manifest.name (...) does not match dir name (...)` → name 与目录名不一致，改成一致。
-- `FAIL: ... is not lower_snake_case` → name/id 用了大写、连字符或空格，改成 `lower_snake_case`。
-- `FAIL: manifest.version is not semver x.y.z` → version 不是三段数字，补全成 `x.y.z`。
-- `FAIL: content.items must be a non-empty array` → items 为空，至少一个物品。
-- `FAIL: items[i].type must be one of [...]` → type 只允许 `weapon/armor/consumable`。
-- `FAIL: items[i].id is duplicated` → id 重复，换个唯一的。
+- `FAIL: .metadata/metadata.json not found` → create it with the standard fields above.
+- `FAIL: metadata.json is not valid JSON` / `not an object` → fix the JSON.
+- `FAIL: metadata.version is not semver` → use `x.x` or `x.x.x`.
+- `FAIL: localization file is not UTF-8 with BOM` → save as UTF-8 **with BOM** (`EF BB BF`).
+- `FAIL: filename must end with _l_<language>` → rename to `…_l_<language>.yml`.
+- `FAIL: missing/incorrect l_<lang>: header` → first content line must be `l_<lang>:`.
+- `FAIL: key line not in 'key: "value"' form` → `  key: "value"` (double quotes, balanced).
+- `FAIL: unbalanced { } / unbalanced "` → fix the brace/quote balance.
+- `FAIL: INJECT:/REPLACE: must be in a top-level block` → move the keyword to the top level.
 
-## 参考
+## Semantic lookup path
 
-- 完整可过校验的样例：`reference/example_mod/`。
-- 字段定义：`docs/items.md`；规范原文：`specs/mod-spec.md`。
+For "does effect/trigger/modifier X exist, and in which scope?", in this order:
+
+1. **Exact names (authoritative):** `docs/script_docs/` + `docs/data_types/` — game-generated
+   dumps matching the installed version. Prefer over guessing.
+2. **Concepts / how-to:** `docs/mod-wiki/` (curated wiki snapshot; see `docs/mod-wiki/INDEX.md`).
+3. **Authoring rules & why:** `docs/eu5-modding-conventions.md`.
+
+## Reference
+
+- Runnable sample: `reference/example_mod/`.
+- Game overview + knowledge-layer map: `docs/game.md`.
+- Authoring rules (single source of truth): `docs/eu5-modding-conventions.md`.

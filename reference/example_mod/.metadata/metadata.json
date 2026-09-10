@@ -1,0 +1,11 @@
+{
+  "name": "Example Mod",
+  "id": "example_mod",
+  "version": "1.0",
+  "supported_game_version": "1.*",
+  "short_description": "Minimal example mod that passes validate_mod.",
+  "tags": ["Example"],
+  "picture": "thumbnail.png",
+  "relationships": [],
+  "game_custom_data": {}
+}

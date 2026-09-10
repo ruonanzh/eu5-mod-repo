@@ -1,5 +1,9 @@
-# Fake Game Mod 工作区
+# EU5 mod workspace
 
-Fake Game 的 modding 环境。玩家（和 AI agent）在这个环境里就能直接做 mod：读 `docs/` + `specs/` 了解格式，在 `your_mods/<mod名>/` 下产出 mod，用 `validate_mod` 工具校验。
+Modding environment for **Europa Universalis V** (Paradox, `pdx-script` mod type). Players (and AI
+agents) can both **ask about the game** and **make mods** here: read `docs/` for mechanics and
+authoring rules, produce mods under `your_mods/<ModName>/`, and check them with the `validate_mod`
+tool.
 
-结构说明见 `AGENTS.md`；做 mod 的详细操作手册见 `.pi/skills/mod-authoring/SKILL.md`。
+Structure and roles: see [`AGENTS.md`](AGENTS.md). Hands-on authoring/Q&A playbook: see
+[`.pi/skills/mod-authoring/SKILL.md`](.pi/skills/mod-authoring/SKILL.md).

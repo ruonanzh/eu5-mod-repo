@@ -431,7 +431,7 @@ export default function (pi: ExtensionAPI) {
     name: "validate_mod",
     label: "Validate Mod",
     description:
-      "Validate a PDX-script EU5 mod against specs/mod-spec.md: metadata.json, localization YAML (UTF-8 BOM/header/filename/keys), and PDXScript/GUI brace+quote balance and INJECT/REPLACE top-level rules. Syntax/convention only; not a scope/type semantic validator.",
+      "Validate a PDX-script EU5 mod (under your_mods/): metadata.json fields, localization YAML (UTF-8 BOM/header/filename/keys), and PDXScript/GUI brace+quote balance and INJECT/REPLACE top-level rules. Syntax/convention only; not a scope/type semantic validator.",
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
       "Use validate_mod after writing a mod to check it passes the spec.",

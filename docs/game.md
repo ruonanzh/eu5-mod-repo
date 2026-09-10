@@ -9,8 +9,9 @@ the game is **Windows-only**.
 - A mod is a directory placed under the Paradox user-documents directory
   `%USERPROFILE%\Documents\Paradox Interactive\Europa Universalis V\mod\<name>\`, loaded by the
   Paradox launcher.
-- Directory structure (see [`../specs/mod-spec.md`](../specs/mod-spec.md)): `.metadata/metadata.json`
-  (required) + `in_game/` (in-game content) + `main_menu/` (main-menu) + optional `loading_screen/`.
+- Directory structure: `.metadata/metadata.json` (required) + `in_game/` (in-game content) +
+  `main_menu/` (main-menu) + optional `loading_screen/` (full shape in
+  [`../.pi/skills/mod-authoring/SKILL.md`](../.pi/skills/mod-authoring/SKILL.md)).
 - At load time, mod files are layered on top of the base game: same-name files overwrite, same-name
   top-level objects override per the folder's keyword rules (`INJECT:`/`REPLACE:` family), and load
   order is ASCII by filename + subfolders after parents.
@@ -23,7 +24,6 @@ the game is **Windows-only**.
 | Concepts / how-to (mod API mechanics) | [`mod-wiki/`](mod-wiki/) (curated wiki snapshot, 118 pages) |
 | Exact effect/trigger/modifier names and scopes | [`script_docs/`](script_docs/) (game-generated, authoritative) |
 | GUI/script datatype promotes and function signatures | [`data_types/`](data_types/) (game-generated, authoritative; no wiki equivalent) |
-| The executable artifact spec | [`../specs/mod-spec.md`](../specs/mod-spec.md) |
 | The hands-on authoring playbook | [`../.pi/skills/mod-authoring/SKILL.md`](../.pi/skills/mod-authoring/SKILL.md) |
 
 ## Key reminders

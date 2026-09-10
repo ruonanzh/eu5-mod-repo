@@ -1,0 +1,10 @@
+# Minimal example: REPLACE a vanilla child education to tweak its effect.
+# REPLACE: is required in keyword folders (common/child_educations/) to modify an
+# existing vanilla object instead of duplicating its key. The tweak below is
+# authored from scratch — it does not copy the vanilla block.
+
+REPLACE:expensive_in_depth_education = {
+	modifier = {
+		character_child_education = 0.75
+	}
+}

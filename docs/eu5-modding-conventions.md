@@ -6,7 +6,11 @@ on its own. This is the **knowledge layer**: read it for guidance; it does not r
 anything.
 
 - Enforcement lives in `.pi/extensions/mod-lint.ts` (the `validate_mod` tool).
-- Boundaries and the mandatory validate step live in [`AGENTS.md`](../AGENTS.md).
+- This document is the **single source of truth** for authoring language rules — `AGENTS.md` and
+  `.pi/skills/mod-authoring/SKILL.md` reference it rather than repeating the rules.
+- Boundaries and the mandatory validate step live in [`AGENTS.md`](../AGENTS.md); the hands-on
+  playbook (product shapes, validate_mod usage) is in
+  [`../.pi/skills/mod-authoring/SKILL.md`](../.pi/skills/mod-authoring/SKILL.md).
 - Exact semantic names (effects/triggers/modifiers/scope-links/datatypes) are authoritative in the
   game-generated dumps: [`script_docs/`](script_docs/) and [`data_types/`](data_types/).
 
@@ -111,7 +115,8 @@ Authored under `your_mods/<name>/<top_folder>/localization/<lang>/...` (per `Loc
 
 Per `Mod_structure` "Metadata": each mod **requires** a `metadata.json` inside a `.metadata` folder,
 "otherwise the game will error." The documented standard structure is valid JSON with:
-`name`, `id`, `version` (`x.x` / `x.x.x`), `supported_game_version` (e.g. `1.0.*`), and `tags`
+`name`, `id`, `version` (`x.x` / `x.x.x`), `supported_game_version` (e.g. `1.0.*`),
+`short_description` (the summary field is `short_description`, not `description`), and `tags`
 (plus optional `relationships`, `game_custom_data`). Because individual missing fields are not
 documented as load-fatal, the linter treats a missing file / invalid JSON as an ERROR but a missing
 standard field as a WARN.
@@ -123,7 +128,7 @@ so the linter only warns about a missing picture file when other images *are* ve
 
 ## 6. Housekeeping
 
-- Edit only under `your_mods/<name>/`. Treat `specs/`, `docs/`, `.pi/`, `reference/` as read-only.
+- Edit only under `your_mods/<name>/`. Treat `docs/`, `.pi/`, `reference/` as read-only.
   The game directory lives on the player's machine (discovered by `check_runtime` as `gameDir`) and
   is read-only reference.
 - Do not leave scratch/backup files (`temp_*`, `_tmp_*`, editor backups) under `your_mods/<name>/`.

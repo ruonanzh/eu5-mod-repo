@@ -8,7 +8,7 @@
 ```
 eu5-mod-repo/
 ├── mod-repo.json                  # ✅ pdx-script 声明
-├── AGENTS.md / README.md          # ⚠️ 仍是 Fake Game 占位（M5 待做）
+├── AGENTS.md / README.md          # ✅ 英文（两角色边界 + author-time checklist）
 ├── lefthook.yml                   # ⚠️ json 占位
 ├── .gitignore                     # ✅ ignore: __pycache__/ + .gamer-agent.local.json + game-scripts/
 ├── .pi/
@@ -18,7 +18,7 @@ eu5-mod-repo/
 │   │   ├── runtime-install.ts     # ✅ install_runtime（无依赖，永远 PASS）
 │   │   ├── sync-game-scripts.ts   # ✅ sync_game_scripts（vanilla 脚本镜像，增量）
 │   │   └── mod-install.ts         # ⚠️ install_mod 仍 json 占位
-│   └── skills/mod-authoring/SKILL.md  # ⚠️ Fake Game 占位
+│   └── skills/mod-authoring/SKILL.md  # ✅ 英文（问答/写 mod 两分支 + 产物指导）
 ├── docs/
 │   ├── INDEX.md                   # ✅ docs 地图（⚠️ 未纳入 mod-wiki）
 │   ├── game.md                    # ✅ EU5 概览（英文）
@@ -27,10 +27,10 @@ eu5-mod-repo/
 │   ├── script_docs/               # ✅ 语义 dumps 1.9M（同上）
 │   └── mod-wiki/                  # ✅ 118 页 mod API/机制（9.2M，进 repo）
 ├── game-scripts/                  # ✅ vanilla 脚本镜像（git-ignore，428M，玩家端生成）
-├── reference/example_mod/         # ⚠️ 仍是 json 占位
+├── reference/example_mod/         # ✅ EU5 样例（metadata+REPLACE+localization 双语，过 validate_mod）
 ├── scripts/
-│   └── crawl_eu5_wiki.py          # ✅ 全站抓取（⚠️ 范围未限制，见待办 1）
-└── specs/mod-spec.md              # ✅ 英文，与 validate_mod 一致
+│   └── crawl_eu5_wiki.py          # ✅ 全站抓取 + clean_markdown 清洗 + KEEP_TOPICS 范围限制
+（specs/ 已删：产物指导入 SKILL、硬约束在 mod-lint.ts、语言行规则只在 eu5-modding-conventions.md）
 ```
 
 ## 2. 知识层决策（已定）
@@ -64,9 +64,9 @@ eu5-mod-repo/
 |---|---|---|
 | 1 | ✅ crawler 范围限制 | 已改：默认只 sync `KEEP_TOPICS`（9 分类 118 页），`--all-content` 才全站；`.revisions.json`/`categories.json` 已清理到 118 页 |
 | 2 | **mod-install.ts** | install_mod 工具：复制 `your_mods/<name>/` → `modInstallDir`（幂等覆盖，目标未发现 → FAIL + NEXT: check_runtime） |
-| 3 | **M5 提示词** | AGENTS.md（短地图）+ README + SKILL.md（操作手册，说明 check_runtime/sync_game_scripts/validate_mod 用法）+ reference/example_mod 样例（英文） |
-| 4 | **INDEX.md 更新** | 纳入 mod-wiki 导航 + 三层职责（精选层 / dumps / mod-wiki）说明 |
-| 5 | **全 repo 英文一致性** | AGENTS/README/SKILL/reference 仍 Fake Game 中文占位 |
+| 3 | ✅ **M5 提示词** | AGENTS.md（两角色+checklist）+ README + SKILL.md（问答/写 mod 两分支）+ reference/example_mod 样例，全英文 |
+| 4 | ✅ **INDEX.md 更新** | 已纳入 mod-wiki 导航 + dumps/mod-wiki 三层职责说明 |
+| 5 | ✅ **全 repo 英文一致性** | AGENTS/README/SKILL/reference 已英文重写 |
 
 ## 4. crawler 抓取过程中已修的问题（记录）
 

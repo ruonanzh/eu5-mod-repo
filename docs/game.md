@@ -15,14 +15,10 @@ the game is **Windows-only**.
   top-level objects override per the folder's keyword rules (`INJECT:`/`REPLACE:` family), and load
   order is ASCII by filename + subfolders after parents.
 
-## Knowledge layer map
+## Where to look things up
 
-| Want to know… | Go to |
-|---|---|
-| The "why" behind override/load/localization/metadata mechanics | [`eu5-modding-conventions.md`](eu5-modding-conventions.md) |
-| Concepts / how-to (mod API mechanics) | [`mod-wiki/`](mod-wiki/) (curated wiki snapshot, 118 pages) |
-| Exact effect/trigger/modifier names and scopes | [`script_docs/`](script_docs/) (game-generated, authoritative) |
-| GUI/script datatype promotes and function signatures | [`data_types/`](data_types/) (game-generated, authoritative; no wiki equivalent) |
+For the full knowledge-layer navigation (which dump/wiki page to load when), see
+[`INDEX.md`](INDEX.md). This page only describes game mechanics.
 
 ## Key reminders
 

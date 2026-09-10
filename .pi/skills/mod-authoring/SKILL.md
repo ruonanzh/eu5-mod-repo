@@ -16,7 +16,7 @@ All paths below are relative to the workspace root (not the skill directory).
 The same repo serves two roles; which one applies is set by the session role, not chosen here:
 
 - **Q&A / consultation (read-only):** answer game-mechanics or mod-API questions by reading the
-  knowledge layer. Start from [`docs/game.md`](docs/game.md) to locate the right source
+  knowledge layer. Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source
   (mod-wiki for concepts, `script_docs/`/`data_types/` for exact names, `eu5-modding-conventions.md`
   for authoring rules). Do **not** create files or check the runtime unless the player explicitly
   asks about their environment.
@@ -160,5 +160,6 @@ For "does effect/trigger/modifier X exist, and in which scope?", in this order:
 ## Reference
 
 - Runnable sample: `reference/example_mod/`.
-- Game overview + knowledge-layer map: `docs/game.md`.
+- Knowledge-layer navigation (what to load when): `docs/INDEX.md`.
+- Game overview (mechanics): `docs/game.md`.
 - Authoring rules (single source of truth): `docs/eu5-modding-conventions.md`.

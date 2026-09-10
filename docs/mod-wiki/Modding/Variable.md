@@ -1,59 +1,36 @@
 <!-- source: https://eu5.paradoxwikis.com/Variable revid: 34696 fetched: 2026-09-09 -->
 # Variable
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.0.
-
 **Variables** are special [scope links](/Scope_link "Scope link") that can hold values or scopes. Variables are set, removed, and modified by [effects](/Effect "Effect"). They can be checked with [triggers](/Trigger "Trigger") and also used as [scopes](/Scope "Scope").
-
 ## Variable types
-
 There are three types of variables: "regular", global, and local.
-
 | Variable type | Scoped | Persistent | Event target |
-| --- | --- | --- | --- |
-| "regular" | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | `var:` |
-| global | ![No](/thumb.php?f=No.png&width=24 "No") | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | `global_var:` |
-| local | ![No](/thumb.php?f=No.png&width=24 "No") | ![No](/thumb.php?f=No.png&width=24 "No") | `local_var:` |
-
+| "regular" |  |  | `var:` |
+| global |  |  | `global_var:` |
+| local |  |  | `local_var:` |
 ### Variable usage
-
 Once a variable has been set, its value can be used in many effects and triggers. Any script where a [scope](/Scope "Scope") or [script value](/Script_value "Script value") can be used can generally accept a variable as well.
-
 Variables can hold a numerical or boolean value, a game object as a scope, or a localization key. When saving a scope, variables can be used to set scope to that object as well.
-
 Regular variables are saved to a game object and can only be referenced from that object's scope. Global and local variables are saved to no scope and can be referenced anywhere.
-
 Local variables are temporary and are automatically removed at the end of the effect or event chain that created them. Regular and global variables are persistent and are not removed unless specifically scripted to.
-
 ### Variable values
-
 The typical way to assign a value to a variable is to use the `set_variable` effect.
-
 ```
 set_variable = {
   name = my_variable
   value = 1
 }
 ```
-
 Instead of a literal, the set of values mentioned above can also be used (booleans, scopes, script values, and other variables). Accessing the value of a variable, for comparisons or as a literal, can be done using `var:my_variable`.
-
 In addition to static or script values, variables can also get their value from triggers that return a value. For example, to store the number of advances a country has in a variable, one can use
-
 ```
 set_variable = {
   name = my_variable
   value = num_of_advances_researched
 }
 ```
-
 All triggers that can be used this way are listed below:
-
 List of value triggers
-
 | Trigger | Description | Example | Scopes |
-| --- | --- | --- | --- |
 | add\_estate\_satisfaction\_utility | Utility of adding however much estate satisfaction to the country | ``` add_estate_satisfaction_utility(<estate>|<amount>)  or add_estate_satisfaction_utility = {  type = <estate type>  amount = <amount>  value <operator><threshold> } ``` | country |
 | add\_static\_modifier\_utility | Checks the AI utility of adding a static modifier to the scoped object | ``` add_static_modifier_utility = {  modifier = <modifier_name>  value >= <script_value> } ``` | character, country, location |
 | adm | The adm ability of the character |  | character |
@@ -625,36 +602,24 @@ List of value triggers
 | years\_since\_disaster\_start | Checks if x years have passed since the start of the disaster. Returns -1 if the disaster has never started. |  | disaster |
 | years\_since\_situation\_end | Checks if x years have passed since the end of the situation. Returns -1 if the situation has never ended. |  | situation |
 | years\_since\_situation\_start | Checks if x years have passed since the start of the situation. Returns -1 if the situation has never started. |  | situation |
-
 ### Flag and variables
-
 Variables can hold [localization](/Localization "Localization") keys by setting the value with `flag:loc_key`. This is useful for [interface modding](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") and localization as the function `GetFlagName` returns the key's localized string.
-
 The following script snippets illustrate how flag variables work. Given a localization key and string and variable set to that key.
-
 ```
  foo: "bar"
 ```
-
 ```
 set_variable = {
   name = test
   value = flag:foo
 }
 ```
-
 The data function `[Var('test').GetFlagName]` returns the string "bar".
-
 Variables can also be compared for equality against flags, so that `var:test = flag:foo` would return true in the above example.
-
 The variable itself does not contain the localized string, just the key.
-
 ### Scopes with variables
-
 *See also: [Scope](/Scope "Scope")*
-
 Some game objects can hold variables and variable lists on them. Here is the list of such scopes:
-
 * cabinet
 * character
 * colonial\_charter
@@ -670,108 +635,75 @@ Some game objects can hold variables and variable lists on them. Here is the lis
 * active\_situation
 * unit
 * war
-
 Other scopes cannot hold variables, but they can be saved to a variable. [Variable maps](#Variable_map_properties) can work around this limitation by using the scope as a key.
-
 ## Lists
-
 **Lists** are temporary collections of [scopes](/Scope "Scope") built during effect execution.
-
 There are two variants, following the same pattern as `save_scope_as` and `save_temporary_scope_as`:
-
 * `add_to_list` — the list persists for the entire top-level effect execution (i.e. across an event's `immediate` and `option` blocks).[[1]](#cite_note-dynastic-1)
 * `add_to_temporary_list` — the list only persists within the current block and its children.[[2]](#cite_note-flavor-boh-2)
-
 ### List usage
-
 Lists are built by adding scopes during effect execution and used by iterating over them.
-
 ```
 # Build a list of neighboring countries at war
 every_neighbor_country = {
 	limit = { is_at_war = yes }
 	add_to_list = warring_neighbors
 }
-
 # Later, iterate the list
 every_in_list = {
 	list = warring_neighbors
 	# this = each neighboring country at war
 }
 ```
-
 ### List effects
-
 List of list effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_to\_list | Adds the current scope to an arbitrarily-named list (or creates the list if not already present) to be referenced later in the (unbroken) event chain | ``` add_to_list = <name_of_list> add_to_list = {  name = <name_of_list>  value = <script_value> } NOTE, if adding a permanent target to a temporary list, the whole list becomes permanent ``` | none |  |
 | add\_to\_temporary\_list | Adds the current scope to an arbitrarily-named list (or creates the list if not already present) to be referenced later in the same effect | ``` add_to_temporary_list = <name_of_list> add_to_temporary_list = {  name = <name_of_list>  value = <script_value> } NOTE, if adding a temporary target to a permanent list, the list will stay permanent ``` | none |  |
 | every\_in\_list | Iterate through all items in list. | ``` every_in_list = {  limit = { <triggers> }  list = name or variable = name  <effects> } ``` | none |  |
 | ordered\_in\_list | Iterate through all items in list. | ``` ordered_in_list = {  list = name or variable = name  limit = { <triggers> }  order_by = script_value  position = int  min = int  max = script_value  check_range_bounds = no # If you don't want an error logged if the list is smaller than the min/max  <effects> } ``` | none |  |
 | random\_in\_list | Iterate through all items in list. | ``` random_in_list = {  list = name or variable = name  limit = { <triggers> }  (optional) weight = { mtth }  <effects> } ``` | none |  |
 | remove\_from\_list | Removes the current scope from a named list | ``` remove_from_list = <string> ``` | none |  |
-
 ### List triggers
-
 List of list triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_to\_temporary\_list | Saves a temporary target for use during the trigger execution | ``` This is used to build lists in triggers. If used within an any-trigger, placement within the trigger is quite important. The game will iterate through every instance of the any-trigger  until it finds a single instance that fulfills the requirements, and then it will stop. In order to add every instance of a scope that fulfills certain conditions,  use "count = all" while also placing this "effect" at the very end of the any-trigger  (so that every condition is evaluated for every iteration). ``` | none |  |
 | any\_in\_list | Iterate through all items in list. | ``` any_in_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
 | is\_in\_list | Checks if a target in in a list |  | none |  |
 | list\_size | Checks the size of a list | ``` list_size = {  name = <list_name>  value >= <script_value> } ``` | none | value |
-
 ## Variable lists
-
 **Variable lists** are persistent, ordered collections of [scopes](/Scope "Scope") stored as named lists. Unlike temporary [lists](#Lists), variable lists persist across effect executions and can be modified.[[3]](#cite_note-treasure-expedition-3)[[4]](#cite_note-wokou-4)
-
 ### Variable list types
-
 Variable lists follow the same three-type pattern as variables:
-
 | Type | Scoped | Persistent | Effect prefix | Trigger prefix |
-| --- | --- | --- | --- | --- |
-| "regular" | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | `add_to_variable_list` | `is_target_in_variable_list` |
-| global | ![No](/thumb.php?f=No.png&width=24 "No") | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | `add_to_global_variable_list` | `is_target_in_global_variable_list` |
-| local | ![No](/thumb.php?f=No.png&width=24 "No") | ![No](/thumb.php?f=No.png&width=24 "No") | `add_to_local_variable_list` | `is_target_in_local_variable_list` |
-
+| "regular" |  |  | `add_to_variable_list` | `is_target_in_variable_list` |
+| global |  |  | `add_to_global_variable_list` | `is_target_in_global_variable_list` |
+| local |  |  | `add_to_local_variable_list` | `is_target_in_local_variable_list` |
 ### Variable list usage
-
 Unlike temporary [lists](#Lists), variable lists persist across effect executions. They are commonly used to track collections of scopes over time, such as which countries have joined a coalition or which provinces have been affected by a disaster.
-
 ```
 # Track provinces affected by a plague
 add_to_variable_list = {
 	name = plague_provinces
 	target = location:roma
 }
-
 # Check if a province is already tracked
 is_target_in_variable_list = {
 	name = plague_provinces
 	target = location:roma     # returns yes if already in the list
 }
-
 # Iterate all tracked provinces
 every_in_list = {
 	variable = plague_provinces
 	# this = each province
 }
 ```
-
 ### Variable list iterators
-
 Variable lists are iterated using the same iterator effects and triggers as temporary lists, but using the `variable` parameter instead of `list`. For global and local variable lists, the iterator name includes the scope prefix.
-
 | Type | Effect iterators | Trigger iterator |
-| --- | --- | --- |
 | "regular" | `every_in_list`, `random_in_list`, `ordered_in_list` | `any_in_list` |
 | global | `every_in_global_list`, `random_in_global_list`, `ordered_in_global_list` | `any_in_global_list` |
 | local | `every_in_local_list`, `random_in_local_list`, `ordered_in_local_list` | `any_in_local_list` |
-
 ```
 every_in_list = {
 	variable = my_list
@@ -792,13 +724,9 @@ any_in_global_list = {       # trigger
 	# triggers checked against each item, i.e. is_at_war = yes
 }
 ```
-
 ### Variable list effects
-
 List of variable list effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_to\_global\_variable\_list | Adds the event target to a global variable list for the given duration | ``` add_to_global_variable_list = {  name = <variable_name>  target = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_local\_variable\_list | Adds the event target to a local variable list for the given duration | ``` add_to_local_variable_list = {  name = <variable_name>  target = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_variable\_list | Adds the event target to a variable list for the given duration | ``` add_to_variable_list = {  name = <variable_name>  target = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
@@ -820,13 +748,9 @@ List of variable list effects
 | sort\_global\_variable\_list | Sorts a global\_variable list | ``` sort_global_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
 | sort\_local\_variable\_list | Sorts a local variable list | ``` sort_local_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
 | sort\_variable\_list | Sorts a variable list | ``` sort_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
-
 ### Variable list triggers
-
 List of variable list triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | any\_in\_global\_list | Iterate through all items in global list. | ``` any_in_global_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
 | any\_in\_list | Iterate through all items in list. | ``` any_in_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
 | any\_in\_local\_list | Iterate through all items in local list. | ``` any_in_local_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
@@ -840,29 +764,23 @@ List of variable list triggers
 | is\_target\_in\_variable\_list | Checks if a target is in a variable list | ``` is_target_in_variable_list = {  name = <variable_name>  target = <event_target> } ``` | none |  |
 | local\_variable\_list\_size | Checks the size of a local variable list | ``` local_variable_list_size = {  name = <variable_name>  value >= <script_value> } ``` | none |  |
 | variable\_list\_size | Checks the size of a variable list | ``` variable_list_size = {  name = <variable_name>  value >= <script_value> } ``` | none |  |
-
 ### Variable list GUI usage
-
 To show all the elements of a list in GUI, use datamodel and datacontext :
-
 ```
 vbox = {
 	layoutpolicy_horizontal = expanding
 	ignoreinvisible = yes
 	spacing = 4
 	datamodel = "[Player.MakeScope.GetList('my_goods_list')]"
-
 	item = {
 		widget = {
 			layoutpolicy_horizontal = expanding
 			minimumsize = { 0 68 }
-
 			hbox = {
 				layoutpolicy_horizontal = expanding
 				margin = { 8 6 }
 				spacing = 10
 				datacontext = "[Scope.GetGoods]"
-
 				text_single = {
 					raw_text = "[Goods.GetName]"
 				}
@@ -871,28 +789,16 @@ vbox = {
 	}
 }
 ```
-
 ## Variable maps
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.1.
-
 **Variable maps** are associative arrays that map relationships between two [scopes](/Scope "Scope"), where one scope (the key) links to another (the value). [[5]](#cite_note-tinto-talks-5)
-
 ### Variable map types
-
 Variable maps follow the same three-type pattern as variables and variable lists:
-
 | Type | Scoped | Persistent | Effect prefix | Scope link |
-| --- | --- | --- | --- | --- |
-| "regular" | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | `add_to_variable_map` | `"variable_map(name|key)"` |
-| global | ![No](/thumb.php?f=No.png&width=24 "No") | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | `add_to_global_variable_map` | `"global_variable_map(name|key)"` |
-| local | ![No](/thumb.php?f=No.png&width=24 "No") | ![No](/thumb.php?f=No.png&width=24 "No") | `add_to_local_variable_map` | `"local_variable_map(name|key)"` |
-
+| "regular" |  |  | `add_to_variable_map` | `"variable_map(name|key)"` |
+| global |  |  | `add_to_global_variable_map` | `"global_variable_map(name|key)"` |
+| local |  |  | `add_to_local_variable_map` | `"local_variable_map(name|key)"` |
 ### Variable map usage
-
 To add an entry, use `add_to_variable_map` with a name, key, and value:
-
 ```
 add_to_variable_map = {
 	name = rival_map         # the map name, a string identifier
@@ -900,9 +806,7 @@ add_to_variable_map = {
 	value = c:ENG            # any scope or number — what the key maps to
 }
 ```
-
 To look up a value by its key, use the [variable map scope link](#Variable_map_scope_link):
-
 ```
 # Scopes to the value associated with c:FRA in rival_map
 "variable_map(rival_map|c:FRA)" = {
@@ -910,9 +814,7 @@ To look up a value by its key, use the [variable map scope link](#Variable_map_s
 	add_prestige = -10
 }
 ```
-
 **Adding a key that already exists does not overwrite the existing entry.** The `add_to_variable_map` effect silently does nothing if the key is already present. To update an entry, the old key must be removed first, then re-added with the new value:
-
 ```
 # This does NOT update — the existing c:ENG value is kept
 add_to_variable_map = {
@@ -920,7 +822,6 @@ add_to_variable_map = {
 	key = c:FRA              # key already exists in the map
 	value = c:SPA            # ignored — the existing value (c:ENG) remains
 }
-
 # Correct: remove the key first, then re-add with the new value
 remove_from_variable_map = {
 	name = rival_map
@@ -932,19 +833,13 @@ add_to_variable_map = {
 	value = c:SPA            # now correctly set to c:SPA
 }
 ```
-
 ### Variable map iterators
-
 Variable maps can be iterated over their keys using `every_key_in_variable_map` and `ordered_key_in_variable_map` as [effects](/Effect "Effect"), and `any_key_in_variable_map` as a [trigger](/Trigger "Trigger"). Inside the iterator, `this` refers to the current key, and the corresponding value can be accessed using the variable map scope link with `this` as the key argument.
-
 `ordered_key_in_variable_map` defaults to selecting only **one** key (the first by sort order). Use the `max` parameter to iterate over multiple keys.
-
 | Type | Effect iterators | Trigger iterator |
-| --- | --- | --- |
 | "regular" | `every_key_in_variable_map`, `ordered_key_in_variable_map` | `any_key_in_variable_map` |
 | global | `every_key_in_global_variable_map`, `ordered_key_in_global_variable_map` | `any_key_in_global_variable_map` |
 | local | `every_key_in_local_variable_map`, `ordered_key_in_local_variable_map` | `any_key_in_local_variable_map` |
-
 ```
 every_key_in_global_variable_map = {
 	variable = my_map
@@ -952,7 +847,6 @@ every_key_in_global_variable_map = {
 		# this = the value; prev = the key
 	}
 }
-
 # ordered defaults to 1 key — use max to iterate more
 ordered_key_in_global_variable_map = {
 	variable = my_map
@@ -963,29 +857,22 @@ ordered_key_in_global_variable_map = {
 	}
 }
 ```
-
 ### Variable map scope link
-
 The value associated with a key in a variable map can be accessed using the `variable_map` scope link. The syntax takes the map name as the first argument and an event target expression for the key as the second argument, separated by `|`. Because of this special syntax, the entire expression must be enclosed in quotation marks.
-
 ```
 # scopes to the value for the given key
 "global_variable_map(my_map|c:ENG)" = {
 	# effects run on the value scope, i.e. add_gold = 25
 }
-
 # retrieves a numerical value stored in the map i.e.
 add_gold = {
 	value = "variable_map(my_map|location:krakow)"
 }
 ```
-
 Because the expression is enclosed in quotation marks, scripted effect and scripted trigger arguments (`$arg$`) are not resolved inside it. To pass a dynamic key, save the argument to a local variable first:
-
 ```
 # Does NOT work — $key$ is not resolved inside quotes
 "global_variable_map(my_map|$key$)" = { ... }
-
 # Workaround: save the argument to a local variable
 set_local_variable = {
 	name = temp_key
@@ -993,21 +880,15 @@ set_local_variable = {
 }
 "global_variable_map(my_map|local_var:temp_key)" = { ... }
 ```
-
 This workaround only applies to the key (second argument). The map name (first argument) is a identifier, not a scope, so it cannot be parameterized through variables or arguments:
-
 ```
 # Neither of these work
 "global_variable_map($my_map$|c:ENG)" = { ... }
 "global_variable_map(local_var:map_name|c:ENG)" = { ... }
 ```
-
 ### Variable map effects
-
 List of variable map effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_to\_global\_variable\_map | Adds the event target to a global variable map for the given duration | ``` add_to_global_variable_map = {  name = <variable_name>  key = <event_target>  value = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_local\_variable\_map | Adds the event target to a local variable map for the given duration | ``` add_to_local_variable_map = {  name = <variable_name>  key = <event_target>  value = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_variable\_map | Adds the event target to a variable map for the given duration | ``` add_to_variable_map = {  name = <variable_name>  key = <event_target>  value = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
@@ -1026,13 +907,9 @@ List of variable map effects
 | remove\_from\_global\_variable\_map | Removes the target key and its value from a global variable map | ``` remove_from_global_variable_map = {  name = X  key = Y } ``` | none |  |
 | remove\_from\_local\_variable\_map | Removes the target key and its value from a local variable map | ``` remove_from_local_variable_map = {  name = X  key = Y } ``` | none |  |
 | remove\_from\_variable\_map | Removes the target key and its value from a variable map | ``` remove_from_variable_map = {  name = X  key = Y } ``` | none |  |
-
 ### Variable map triggers
-
 List of variable map triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | any\_key\_in\_global\_variable\_map | Iterate through all items in global variable map. | ``` any_key_in_global_variable_map = {  variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } ``` | none |  |
 | any\_key\_in\_local\_variable\_map | Iterate through all items in local variable map. | ``` any_key_in_local_variable_map = {  variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } ``` | none |  |
 | any\_key\_in\_variable\_map | Iterate through all items in variable map. | ``` any_key_in_variable_map = {  variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } ``` | none |  |
@@ -1048,28 +925,20 @@ List of variable map triggers
 | is\_value\_in\_variable\_map | Checks if a target is a value in a variable map | ``` is_value_in_variable_map = {  name = <variable_map>  target = <value to check> } ``` | none |  |
 | local\_variable\_map\_size | Checks the size of a local variable map | ``` local_variable_map_size = {  name = <variable_name>  value >= <script_value> } ``` | none |  |
 | variable\_map\_size | Checks the size of a variable map | ``` variable_map_size = {  name = <variable_name>  value >= <script_value> } ``` | none |  |
-
 ### Variable map GUI functions
-
 Variable maps can be accessed in [GUI](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") files using the following data functions:
-
 | Function | Description |
-| --- | --- |
 | `Scope.GetMapKeys('<name>')` | Returns a datamodel of all keys in the map stored on a scope. |
 | `GetGlobalMapKeys('<name>')` | Returns a datamodel of all keys in a global map. |
 | `Scope.GetVariableFromVariableMap('<name>', Scope)` | Returns the value for a given key in the map. The second argument is the key, provided as a scope (use `.MakeScope` if needed). |
 | `GetVariableFromGlobalVariableMap('<name>', Scope)` | Returns the value for a given key in a global map. |
-
 ### Variable map properties
-
 Variable maps have several properties that distinguish them from other data structures:
-
 * **Scope substitution:** Some scopes in the game do not accept variables to be stored on them. Global variable maps can work around this by using the scope as a key and storing associated data as the value.
 * **Performance at scale:** Accessing a value by key and checking whether a key exists are relatively fast operations. These benefits become more significant as the data structure grows larger. For systems that operate on many scopes (e.g. a large proportion of countries, locations, or pops), variable maps may offer performance improvements over variable lists.
 * **Unordered:** Variable maps are unordered. Regardless of insertion order, iterating through a map produces a fixed, internal order. Sorting is still possible using `ordered_key_in_variable_map`.
 * **Any scope as key or value:** Besides game objects (countries, characters, locations, etc.), variable maps can use numerical values, boolean values, and other expressions the game considers scopes as both keys and values.
 * **Usable as arrays:** Since integer values can be used as map keys, variable maps can serve as indexed arrays where the key is the position.
-
 ```
 # Save the top 10 great powers indexed by rank
 clear_global_variable_map = great_powers_by_score
@@ -1090,21 +959,15 @@ ordered_great_power = {
 		add = 1
 	}
 }
-
 # Access the 3rd great power by score
 "global_variable_map(great_powers_by_score|3)" = {
 	add_prestige = 25
 }
 ```
-
 ## Variable effects
-
 *See also: [Effect](/Effect "Effect")*
-
 List of effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_to\_global\_variable\_list | Adds the event target to a global variable list for the given duration | ``` add_to_global_variable_list = {  name = <variable_name>  target = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_global\_variable\_map | Adds the event target to a global variable map for the given duration | ``` add_to_global_variable_map = {  name = <variable_name>  key = <event_target>  value = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_local\_variable\_list | Adds the event target to a local variable list for the given duration | ``` add_to_local_variable_list = {  name = <variable_name>  target = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
@@ -1160,15 +1023,10 @@ List of effects
 | sort\_global\_variable\_list | Sorts a global\_variable list | ``` sort_global_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
 | sort\_local\_variable\_list | Sorts a local variable list | ``` sort_local_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
 | sort\_variable\_list | Sorts a variable list | ``` sort_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
-
 ## Variable triggers
-
 *See also: [Trigger](/Trigger "Trigger")*
-
 List of triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | any\_in\_global\_list | Iterate through all items in global list. | ``` any_in_global_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
 | any\_in\_list | Iterate through all items in list. | ``` any_in_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
 | any\_in\_local\_list | Iterate through all items in local list. | ``` any_in_local_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` | none |  |
@@ -1199,49 +1057,19 @@ List of triggers
 | local\_variable\_map\_size | Checks the size of a local variable map | ``` local_variable_map_size = {  name = <variable_name>  value >= <script_value> } ``` | none |  |
 | variable\_list\_size | Checks the size of a variable list | ``` variable_list_size = {  name = <variable_name>  value >= <script_value> } ``` | none |  |
 | variable\_map\_size | Checks the size of a variable map | ``` variable_map_size = {  name = <variable_name>  value >= <script_value> } ``` | none |  |
-
 ## References
-
 1. [↑](#cite_ref-dynastic_1-0) `game/in_game/events/character/dynastic.txt` (v1.1.10) — uses `add_to_list` in `immediate` and iterates in `option`, thus cross-block list persistence.
 2. [↑](#cite_ref-flavor-boh_2-0) `game/in_game/events/DHE/flavor_BOH.txt` (v1.1.10) — uses `add_to_temporary_list` to build and consume a list within a single `option` block. This is the only game file use of it, so the difference is assumed to be the same as save\_scope\_as vs save\_temporary\_scope\_as
 3. [↑](#cite_ref-treasure-expedition_3-0) `game/in_game/events/DHE/flavor_chi_treasure_expedition.txt` (v1.1.10) — extensive variable list usage.
 4. [↑](#cite_ref-wokou_4-0) `game/in_game/events/wokou_events.txt` (v1.1.10) — global variable list usage.
 5. [↑](#cite_ref-tinto-talks_5-0) [Tinto Talks Extra: Modding in 1.1 "Rossbach"](https://forum.paradoxplaza.com/forum/index.php?threads/1899358 "forum:1899358") — developer diary introducing variable maps.
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • Variables  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

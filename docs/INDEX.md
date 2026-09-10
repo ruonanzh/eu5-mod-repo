@@ -12,8 +12,10 @@ into context.
   [game-generated reference dumps](#game-generated-reference-dumps-authoritative) are the
   **authoritative** source: they are exported from the running game, so they match the installed
   game version. Prefer them over the wiki, which is a periodically-updated copy and can lag.
-- **Concepts / how-to → the official wiki.** eu5.paradoxwikis.com explains *how* systems work and
-  gives worked examples. Use it to understand a mechanic; use the dumps to confirm the exact keyword.
+- **Concepts / how-to → [`mod-wiki/`](mod-wiki/) (curated wiki snapshot).** Explains *how* systems
+  work and the mod API concepts, in 118 pages under 9 topic directories — see
+  [`mod-wiki/INDEX.md`](mod-wiki/INDEX.md). The live wiki (eu5.paradoxwikis.com) has the latest
+  version; re-sync with `scripts/crawl_eu5_wiki.py` when it drifts.
 
 > The linter (`validate_mod`) only checks syntax/conventions. These docs are the reference for
 > *semantics* (which scopes/effects/triggers/types actually exist) — always the source of truth over
@@ -38,6 +40,18 @@ them as the source of truth for exact keywords.
 > `data_types/` has **no** wiki counterpart, so it is the only reference for GUI/script promotes
 > and functions. Files are split by area: `_gui`, `_script`, `_common`, `_internalclausewitzgui`,
 > and a large `_uncategorized`.
+
+## mod-wiki (mod API reference)
+
+A curated snapshot of the EU5 wiki — 118 pages covering the mod API and core mechanics, under 9
+topic directories. See [`mod-wiki/INDEX.md`](mod-wiki/INDEX.md) for the directory map.
+
+| Directory | Pages | Covers |
+|---|---|---:|
+| `Modding/` | 53 | `*_modding` + Defines/Scope/Trigger/Effect/Localization/… |
+| `Game_concepts/` | 29 | `$game_concept_*$` references |
+| `Estates/` `Economy/` `Laws/` `Ages/` `Government/` `Interface/` | 8+7+6+6+4+2 | core mechanic domains |
+| `Modding_tools/` | 3 | PDX official tools |
 
 ## Other pages in `docs/`
 

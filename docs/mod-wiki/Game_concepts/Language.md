@@ -1,59 +1,33 @@
 <!-- source: https://eu5.paradoxwikis.com/Language revid: 36791 fetched: 2026-09-09 -->
 # Language
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") pre-release.
-
-Each country uses up to three different [![Language.png](/thumb.php?f=Language.png&width=24)](/Language "Language") languages; *Common*, *Court*, and *Liturgical*. In addition, each [market](/Market "Market") has a [![Market language.png](/thumb.php?f=Market_language.png&width=24)](/Market_language "Market language") Market language.
-
-A language may have [![Dialect.png](/thumb.php?f=Dialect.png&width=24)](/Dialect "Dialect") dialects, which affect the names of [![Character.png](/thumb.php?f=Character.png&width=24)](/Character "Character") [characters](/Character "Character") and [![Location.png](/thumb.php?f=Location.png&width=24)](/Location "Location") [locations](/Location "Location"). Many languages belong to a [![Language family.png](/thumb.php?f=Language_family.png&width=24)](/Language_family "Language family") language family, whereas others do not and are called isolated languages.
-
-A country can change its [![Court language.png](/thumb.php?f=Court_language.png&width=24)](/Court_language "Court language") Court language or [![Liturgical language.png](/thumb.php?f=Liturgical_language.png&width=24)](/Liturgical_language "Liturgical language") Liturgical language for the cost of 20 [![Stability.png](/thumb.php?f=Stability.png&width=24)](/Stability "Stability") Stability.
-
+Each country uses up to three different  languages; *Common*, *Court*, and *Liturgical*. In addition, each [market](/Market "Market") has a  Market language.
+A language may have  dialects, which affect the names of  [characters](/Character "Character") and  [locations](/Location "Location"). Many languages belong to a  language family, whereas others do not and are called isolated languages.
+A country can change its  Court language or  Liturgical language for the cost of 20  Stability.
 ## Language categories
-
-The [![Common language.png](/thumb.php?f=Common_language.png&width=24)](/Common_language "Common language") Common language is the language of the country's [![Primary culture.png](/thumb.php?f=Primary_culture.png&width=24)](/Primary_culture "Primary culture") [primary culture](/index.php?title=Primary_culture&action=edit&redlink=1 "Primary culture (page does not exist)") and cannot be changed except by changing primary culture.
-
-The [![Court language.png](/thumb.php?f=Court_language.png&width=24)](/Court_language "Court language") Court language is the language of the government. It can be changed to the Common language, the Liturgical language, the overlord's language, or the language of a [![Great power.png](/thumb.php?f=Great_power.png&width=24)](/Great_power "Great power") great power whose primary religion is part of the same [![Religion group.png](/thumb.php?f=Religion_group.png&width=24)](/Religion_group "Religion group") religion group.
-
-A country gains certain modifiers if the [![Court language.png](/thumb.php?f=Court_language.png&width=24)](/Court_language "Court language") Court language matches another language in the country:
-
-* [![Common language.png](/thumb.php?f=Common_language.png&width=24)](/Common_language "Common language") Common language: ![Cultural Influence %](/thumb.php?f=Cultural_influence.png&width=24 "Cultural Influence %") +10% Cultural Influence %, ![Peasant Estate Satisfaction Equilibrium](/thumb.php?f=Peasants_estate_target_satisfaction.png&width=24 "Peasant Estate Satisfaction Equilibrium") +5% Peasant Estate Satisfaction Equilibrium.
-* [![Liturgical language.png](/thumb.php?f=Liturgical_language.png&width=24)](/Liturgical_language "Liturgical language") Liturgical language: ![Clergy Estate Satisfaction Equilibrium](/thumb.php?f=Clergy_estate_target_satisfaction.png&width=24 "Clergy Estate Satisfaction Equilibrium") +5% Clergy Estate Satisfaction Equilibrium, ![Institution Growth](/thumb.php?f=Institution_growth.png&width=24 "Institution Growth") +5% Institution Growth.
-* [![Market language.png](/thumb.php?f=Market_language.png&width=24)](/Market_language "Market language") Market language: ![Selling Efficiency](/thumb.php?f=Trade_efficiency.png&width=24 "Selling Efficiency") +2.5% Selling Efficiency.
-* Not the Common or Liturgical language: ![Estates Satisfaction Equilibrium](/thumb.php?f=Global_estate_target_satisfaction.png&width=24 "Estates Satisfaction Equilibrium") −5% Estates Satisfaction Equilibrium.
-
-These modifiers can overlap if the same language is used for multiple categories. If the court language is not the common language, the [![Language of pleading.png](/thumb.php?f=Language_of_pleading.png&width=24)](/Language_of_pleading "Language of pleading") Language of pleading law becomes available.
-
-The [![Liturgical language.png](/thumb.php?f=Liturgical_language.png&width=24)](/Liturgical_language "Liturgical language") Liturgical language is the language of the state religion. Some [![Religion.png](/thumb.php?f=Religion.png&width=24)](/Religion "Religion") [religions](/Religion "Religion") allow the country to change its Liturgical language to the language of a [![Great power.png](/thumb.php?f=Great_power.png&width=24)](/Great_power "Great power") great power, but others do not. The liturgical languages gives ![Stability Investment Efficiency](/thumb.php?f=Stability_cost.png&width=24 "Stability Investment Efficiency") +20% Stability Investment Efficiency, scaled by the percentage of pops that speak it in the country.
-
-Each [![Market.png](/thumb.php?f=Market.png&width=24)](/Market "Market") market has a [![Market language.png](/thumb.php?f=Market_language.png&width=24)](/Market_language "Market language") Market language, which is the language of the largest [![Culture.png](/thumb.php?f=Culture.png&width=24)](/Culture "Culture") culture among [![Pop burghers.png](/thumb.php?f=Pop_burghers.png&width=24)](/Burghers_%28pop%29 "Burghers (pop)") Burghers in the market center. Each country considers the market language of its capital as its market language.
-
+The  Common language is the language of the country's  [primary culture](/index.php?title=Primary_culture&action=edit&redlink=1 "Primary culture (page does not exist)") and cannot be changed except by changing primary culture.
+The  Court language is the language of the government. It can be changed to the Common language, the Liturgical language, the overlord's language, or the language of a  great power whose primary religion is part of the same  religion group.
+A country gains certain modifiers if the  Court language matches another language in the country:
+*  Common language:  +10% Cultural Influence %,  +5% Peasant Estate Satisfaction Equilibrium.
+*  Liturgical language:  +5% Clergy Estate Satisfaction Equilibrium,  +5% Institution Growth.
+*  Market language:  +2.5% Selling Efficiency.
+* Not the Common or Liturgical language:  −5% Estates Satisfaction Equilibrium.
+These modifiers can overlap if the same language is used for multiple categories. If the court language is not the common language, the  Language of pleading law becomes available.
+The  Liturgical language is the language of the state religion. Some  [religions](/Religion "Religion") allow the country to change its Liturgical language to the language of a  great power, but others do not. The liturgical languages gives  +20% Stability Investment Efficiency, scaled by the percentage of pops that speak it in the country.
+Each  market has a  Market language, which is the language of the largest  culture among ") Burghers in the market center. Each country considers the market language of its capital as its market language.
 ## Language power
-
-[![Language power.png](/thumb.php?f=Language_power.png&width=24)](/Language_power "Language power") Language power represents the reach, influence, and prestige of a language. It is expressed as a percentage relative to the most powerful language in the world, which in 1337 is Mandarin. Language power is increased by the following:
-
-* The number of pops belonging to the [![Estate clergy.png](/thumb.php?f=Estate_clergy.png&width=24)](/Clergy "Clergy") clergy and the primary religion in all countries where the language is the [![Liturgical language.png](/thumb.php?f=Liturgical_language.png&width=24)](/Liturgical_language "Liturgical language") Liturgical language.
-* The political power of pops with the [![Primary culture.png](/thumb.php?f=Primary_culture.png&width=24)](/Primary_culture "Primary culture") primary culture, scaled by [![Country rank.png](/thumb.php?f=Country_rank.png&width=24)](/Country_rank "Country rank") country rank, in all countries where the language is the [![Court language.png](/thumb.php?f=Court_language.png&width=24)](/Court_language "Court language") Court language.
-* The [![Trade capacity.png](/thumb.php?f=Trade_capacity.png&width=24)](/Trade_capacity "Trade capacity") trade capacity in all countries where the language is the [![Common language.png](/thumb.php?f=Common_language.png&width=24)](/Common_language "Common language") Common language.
-* The [![Trade advantage.png](/thumb.php?f=Merchant_power_from_maritime.png&width=24)](/Trade_advantage "Trade advantage") trade advantage of all markets where the language is the [![Market language.png](/thumb.php?f=Market_language.png&width=24)](/Market_language "Market language") Market language.
-* The [![Cultural influence.png](/thumb.php?f=Cultural_influence.png&width=24)](/Cultural_influence "Cultural influence") cultural influence of cultures using the language.
-
+ Language power represents the reach, influence, and prestige of a language. It is expressed as a percentage relative to the most powerful language in the world, which in 1337 is Mandarin. Language power is increased by the following:
+* The number of pops belonging to the  clergy and the primary religion in all countries where the language is the  Liturgical language.
+* The political power of pops with the  primary culture, scaled by  country rank, in all countries where the language is the  Court language.
+* The  trade capacity in all countries where the language is the  Common language.
+* The  trade advantage of all markets where the language is the  Market language.
+* The  cultural influence of cultures using the language.
 Language power can apply certain modifiers:
-
-* If [![Court language.png](/thumb.php?f=Court_language.png&width=24)](/Court_language "Court language") Court language has 50% or more Language power, the country gains ![Noble Estate Satisfaction Equilibrium](/thumb.php?f=Nobles_estate_target_satisfaction.png&width=24 "Noble Estate Satisfaction Equilibrium") +5% Noble Estate Satisfaction Equilibrium.
-* The [![Liturgical language.png](/thumb.php?f=Liturgical_language.png&width=24)](/Liturgical_language "Liturgical language") Liturgical language gives ![Monthly Research Progress](/thumb.php?f=Research_speed.png&width=24 "Monthly Research Progress") +0.2 Monthly Research Progress, scaled by its language power.
-
-Having a [![Liturgical language.png](/thumb.php?f=Liturgical_language.png&width=24)](/Liturgical_language "Liturgical language") Liturgical language with high language power increases [![Research speed.png](/thumb.php?f=Research_speed.png&width=24)](/Research_speed "Research speed") Research speed, and having a [![Court language.png](/thumb.php?f=Court_language.png&width=24)](/Court_language "Court language") Court language with high [![Language power.png](/thumb.php?f=Language_power.png&width=24)](/Language_power "Language power") language power increases the [![Nobles estate target satisfaction.png](/thumb.php?f=Nobles_estate_target_satisfaction.png&width=24)](/Nobles_estate_target_satisfaction "Nobles estate target satisfaction") satisfaction of the Nobility estate.
-
+* If  Court language has 50% or more Language power, the country gains  +5% Noble Estate Satisfaction Equilibrium.
+* The  Liturgical language gives  +0.2 Monthly Research Progress, scaled by its language power.
+Having a  Liturgical language with high language power increases  Research speed, and having a  Court language with high  language power increases the  satisfaction of the Nobility estate.
 ## List of languages
-
-|  |  |
-| --- | --- |
-| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/Talk%3ALanguage "Talk:Language")**. |
-
+|  | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/Talk%3ALanguage "Talk:Language")**. |
 | Family | Language | Dialect |
-| --- | --- | --- |
 | Celtic | Brythonic | Welsh |
 | Breton |
 | Gaelic | Irish |
@@ -656,25 +630,10 @@ Having a [![Liturgical language.png](/thumb.php?f=Liturgical_language.png&width=
 | Waqha |
 | Dogon |
 | Ijaw |
-
 ## References
-
 [Return to top](#top)
-
 Mechanics
-
-|  |  |
-| --- | --- |
 | Realm | [Country](/Country "Country") • [Government](/Government "Government") • [Parliament](/Parliament "Parliament") • [Estate](/Estate "Estate") • [Reforms](/Reforms "Reforms") • [Laws](/Laws "Laws") • [Characters](/Characters "Characters") • [Chivalric order](/Chivalric_order "Chivalric order") • [Missions](/Missions "Missions") |
-
-|  |  |
-| --- | --- |
 | Economy & Research | [Economy](/Economy "Economy") • [Goods](/Goods "Goods") • [R.G.O.](/R.G.O. "R.G.O.") • [Market](/Market "Market") • [Building](/Building "Building") • [Population](/Population "Population") • [Age](/Age "Age") |
-
-|  |  |
-| --- | --- |
 | Diplomacy & Warfare | [Diplomacy](/Diplomacy "Diplomacy") • [Subjects](/Subjects "Subjects") • [International organization](/International_organization "International organization") • [Warfare](/Warfare "Warfare") • [Combat](/Combat "Combat") • [Military](/Military "Military") |
-
-|  |  |
-| --- | --- |
 | The world | [Location](/Location "Location") • [Culture](/Culture "Culture") • [Religion](/Religion "Religion") • Language • [Exploration](/Exploration "Exploration") • [Situations](/Situations "Situations") • [Disasters](/Disasters "Disasters") • [Diseases](/Diseases "Diseases") |

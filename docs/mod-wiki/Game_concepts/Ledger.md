@@ -1,28 +1,13 @@
 <!-- source: https://eu5.paradoxwikis.com/Ledger revid: 36691 fetched: 2026-09-09 -->
 # Ledger
-
 This article is [timeless](/Category%3ATimeless "Category:Timeless") and should be accurate for any version of the game.
-
-![Curly top.png](/thumb.php?f=Curly_top.png&width=288)
-
 Europa Universalis 5
-
 [User interface](/User_interface "User interface")
-
 [Ingame screen](/Ingame_screen "Ingame screen")
-
 [Country interface](/index.php?title=Country_interface&action=edit&redlink=1 "Country interface (page does not exist)")
-
 [Location interface](/index.php?title=Location_interface&action=edit&redlink=1 "Location interface (page does not exist)")
-
 Ledger
-
-|  |  |
-| --- | --- |
-| ![Wiki letter w.png](https://central.paradoxwikis.com/images/6/6a/Wiki_letter_w.png) | Please help improve this article or section by [**expanding it**](https://eu5.paradoxwikis.com/index.php?title=Ledger&action=edit) with:  * A picture of the ledger. |
-
 The ledger allows a player to browse various information and statistics about their country or the rest of the world. Only information from locations and countries that have been discovered will be displayed in the ledger.
-
 * The **Population** tab shows the population of both the player's country and their subjects. It will display total population, pie charts for culture, religion, and social class, and a breakdown of population and all its stats by location.
 * The **Countries** tab displays and allows sorting countries by name, country type, population, income, primary religion, primary culture, works of art, prestige, and great power score.
 * The **Score** tab displays and allows sorting countries by name, score rank, administrative ability rating, diplomatic ability rating, military ability rating, score that cannot be lost, and score including victory cards.

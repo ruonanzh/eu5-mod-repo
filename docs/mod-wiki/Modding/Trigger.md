@@ -1,48 +1,27 @@
 <!-- source: https://eu5.paradoxwikis.com/Trigger revid: 34854 fetched: 2026-09-09 -->
 # Trigger
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.1.
-
 *See also: [Effect](/Effect "Effect"), [Scope link](/Scope_link "Scope link")*
-
 **Triggers** are conditions that read the current game state – such as the ideology of a character, the ownership of a state, and much else – and determine whether an event can occur, an action is available, or if an [effect](/Effect "Effect") can be done, among more.
-
 Triggers come in two basic types, *inline* and *block*. Inline triggers take a simple target, such as a [scope link](/Scope_link "Scope link"), [script value](/Script_value "Script value"), or defined game object key. Block triggers are more complex and often take multiple targets, such as a scope link *and* a script value.
-
 All triggers require a certain [scope](/Scope "Scope"). Some triggers can be used in any scope (noted as "none" in the following tables), others only function when in the correct scope. Some triggers change the current scope.
-
 The tables below are generated from the script documentation (*script\_docs* [console command](/Console_commands "Console commands")).
-
 ## Comparison triggers
-
 Comparisons are a common type of trigger, comparing two numerical values or game objects. Many triggers in the tables below are a comparison trigger (indicated with target `value`), but comparisons can also be made directly between values or objects using [script values](/Script_value "Script value"), [variables](/Variable "Variable"), and [scope links](/Scope_link "Scope link").
-
 Comparisons use one of the comparison operators:
-
 | Operator | Meaning | Inverted meaning | Use |
-| --- | --- | --- | --- |
 | `<` | (Strict) less than | Greater than or equals | Left side is strictly less than right side |
 | `<=` | Less than or equals | (Strict) greater than | Left side is less than or equal to right side |
 | `=` | (Strict) equals | Not equals | Left side is exactly equal to the right side (usable with non-numerical values) |
 | `!=` | Not equals | (Strict) equals | Left side is not equal to the right side (usable with non-numerical values) |
 | `>` | (Strict) greater than | Less than or equals | Left side if strictly greater than the right side |
 | `>=` | Greater than or equals | (Strict) less than | Left side is greater than or equal to the right side. |
-
 If a comparison is used inside a negative block (e.g. `NOT = { }`), it uses its inverted meaning.
-
 Note that `=` is also used as the operator for non-comparison triggers, as well as effects and blocks. In these cases, the `=` represents an assignment or simple syntactic requirement rather than a comparison.
-
 ### Scope links as triggers
-
 *Main article: [Scope link](/Scope_link "Scope link")*
-
 Scope links can be used as either the left or right side of a comparison trigger. For example, `army_size > c:FRA.army_size` returns true if the army size of the current scope is larger than the army size of France. For scope links that return a scope, only equality can be checked, while scope links that return a value can be used with inequality comparisons, too.
-
 List of value scope links
-
 | Scope link | Description | From scope |
-| --- | --- | --- |
 | array\_define | Reference the value of a numeric value in an array define: array\_define:Namespace|Name|Index. Index is 0-based. | none |
 | bias\_value | Unknown, add something in code registration | none |
 | building\_base\_cost\_in\_gold | The Building base price in gold | building\_type |
@@ -87,15 +66,10 @@ List of value scope links
 | total\_sub\_unit\_type\_strength | Checks the total strength of a subunit-type for a country | unit |
 | traded\_in\_market | The amount of goods traded in a specific market | market |
 | value | A numeric literal value eg: 1, 5.2, -6 | none |
-
 ## Iterator triggers
-
 Iterators examine all relevant scopes and output one or more. By default, iterators examine only one of the relevant scopes, but can be forced to examine more with the `count` or `percent` parameters
-
 List of triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | any\_accepted\_culture | Iterate through all accepted cultures in a country | ``` any_accepted_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | culture |
 | any\_active\_disaster | Iterate through all active disasters for a country | ``` any_active_disaster = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | disaster |
 | any\_active\_estate | Iterate through all active estates (non-crown) | ``` any_active_estate = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | estate\_type |
@@ -373,15 +347,10 @@ List of triggers
 | any\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` any_work_of_art_by_creator = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | work\_of\_art |
 | any\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` any_work_of_art_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | work\_of\_art |
 | any\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` any_work_of_art_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | work\_of\_art |
-
 ## Flow triggers
-
 Flow triggers control how other triggers are used. This includes conditionals and loops as well as tooltips. They can always be used in any scope
-
 List of triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | all\_false | true if all children are false (equivalent to NOR) |  | none |  |
 | and | all inside trigger must be true |  | none |  |
 | any\_false | true if any child is false (equivalent to NAND) |  | none |  |
@@ -398,15 +367,10 @@ List of triggers
 | trigger\_else\_if | Evaluates the enclosed display\_triggers if the triggers of the preceding `trigger\_if` or `trigger\_else\_if` is not met and its own trigger of the limit is met | ``` trigger_if = {  limit = { <triggers> }  <display_triggers> } trigger_else_if = {  limit = { <triggers> }  <display_triggers> } ``` | none |  |
 | trigger\_if | Evaluates the display\_triggers if the triggers of the limit are met | ``` trigger_if = {  limit = { <triggers> }  <display_triggers> } ``` | none |  |
 | weighted\_calc\_true\_if | Returns true if the sum of weights of fulfilled sub-triggers amount to the specified sum | ``` weighted_calc_true_if = {  amount = 10  5 = { <trigger> }  15 = { <trigger> }  7 = { <trigger> } } ``` | none |  |
-
 ## Variable triggers
-
 Variable triggers check a [variable](/Variable "Variable"). They can always be used in any scope, but may require a certain scope to read the correct variable.
-
 List of triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | any\_in\_global\_list | Iterate through all items in global list. | ``` any_in_global_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` |  |
 | any\_in\_list | Iterate through all items in list. | ``` any_in_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` |  |
 | any\_in\_local\_list | Iterate through all items in local list. | ``` any_in_local_list = {  list = name / variable = name  <count=num/all> / <percent=fixed_point>  <triggers> } Use "list" for lists created by add_to_(temporary)_list Use "variable" for lists created by add_to_(global/local)_variable_list ``` |  |
@@ -437,17 +401,11 @@ List of triggers
 | local\_variable\_map\_size | Checks the size of a local variable map | ``` local_variable_map_size = {  name = <variable_name>  value >= <script_value> } ``` |  |
 | variable\_list\_size | Checks the size of a variable list | ``` variable_list_size = {  name = <variable_name>  value >= <script_value> } ``` |  |
 | variable\_map\_size | Checks the size of a variable map | ``` variable_map_size = {  name = <variable_name>  value >= <script_value> } ``` |  |
-
 ## Triggers by scope
-
 The following tables list triggers by their required scope. Some triggers are repeated as they can be used in multiple scopes. All `any_` triggers are listed under [Iterator triggers](#Iterator_triggers).
-
 ### None/any scope
-
 List of none triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_to\_temporary\_list | Saves a temporary target for use during the trigger execution | ``` This is used to build lists in triggers. If used within an any-trigger, placement within the trigger is quite important. The game will iterate through every instance of the any-trigger  until it finds a single instance that fulfills the requirements, and then it will stop. In order to add every instance of a scope that fulfills certain conditions,  use "count = all" while also placing this "effect" at the very end of the any-trigger  (so that every condition is evaluated for every iteration). ``` |  |
 | ai\_issue\_voting\_bias | gets the AI evaluation score for voting bias from the international organization |  | value |
 | ai\_will\_do | gets the AI evaluation score of the supplied generic action ofr the supplied country |  | value |
@@ -537,13 +495,9 @@ List of none triggers
 | world\_religion\_group\_population | Gets the absolute number of the population that follow a particular religion group in the world | ``` world_religion_group_population = {  religion_group = <religion_group>  value <operator> <script_value> } ``` | value |
 | world\_religion\_percentage | Gets the percentage of the population that follow a particular religion in the world | ``` world_religion_percentage = {  religion = <religion>  value <operator> <script_value> } ``` | value |
 | world\_religion\_population | Gets the absolute number of the population that follow a particular religion in the world | ``` world_religion_population = {  religion = <religion>  value <operator> <script_value> } ``` | value |
-
 ### Building scope
-
 List of building triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | building\_can\_be\_destroyed\_by | Check if the target country scope is capable of destroying the current building scope |  | country |
 | building\_can\_be\_upgraded\_by | Checks if a building can be upgraded by the target country |  | country |
 | building\_category | Checks if a building is linked to a certain category |  |  |
@@ -569,13 +523,9 @@ List of building triggers
 | is\_profitable | Checks if a building is profitable |  | boolean |
 | is\_special\_building | Checks if a building is special |  | boolean |
 | is\_subsidized | Checks if a building is subsidized |  | boolean |
-
 ### Character scope
-
 List of character triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_static\_modifier\_utility | Checks the AI utility of adding a static modifier to the scoped object | ``` add_static_modifier_utility = {  modifier = <modifier_name>  value >= <script_value> } ``` | value |
 | adm | The adm ability of the character |  | value |
 | age\_in\_days | How old is a character??? |  | value |
@@ -676,13 +626,9 @@ List of character triggers
 | years\_of\_service\_as\_admiral | Check how many years the character has served as an admiral. |  | value |
 | years\_of\_service\_as\_general | Check how many years the character has served as a general. |  | value |
 | years\_of\_service\_in\_cabinet | Check how many years the character has served in a cabinet. |  | value |
-
 ### Country scope
-
 List of country triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | active\_religious\_focus | Checks if a country is researching a certain religious focus |  |  |
 | add\_estate\_satisfaction\_utility | Utility of adding however much estate satisfaction to the country | ``` add_estate_satisfaction_utility(<estate>|<amount>)  or add_estate_satisfaction_utility = {  type = <estate type>  amount = <amount>  value <operator><threshold> } ``` | value |
 | add\_static\_modifier\_utility | Checks the AI utility of adding a static modifier to the scoped object | ``` add_static_modifier_utility = {  modifier = <modifier_name>  value >= <script_value> } ``` | value |
@@ -1202,13 +1148,9 @@ List of country triggers
 | yearly\_manpower | How many Manpower does the country get per year? |  | value |
 | yearly\_sailors | How many Sailors does the country get per year? |  | value |
 | years\_in\_international\_organization | Checks if the country has been in the current international organization scope for x years. | ``` years_in_international_organization = {  country = <country scope>  value = <years> }  or years_in_international_organization(country) ``` | value |
-
 ### Culture scope
-
 List of culture triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | cultural\_influence | How much influence does the culture have? |  | value |
 | cultural\_tradition | How much tradition does the culture have? |  | value |
 | cultural\_view | does the culture have the specified opinion of the target? | ``` cultural_view = {  target = <target culture>  value <operator> <script_value> } ``` |  |
@@ -1226,13 +1168,9 @@ List of culture triggers
 | is\_primary\_or\_accepted\_in | If a culture is a primary culture or accepted in the target country? |  | country |
 | is\_tolerated\_in | If a culture is tolerated in the target country? |  | country |
 | reverse\_cultural\_view | does the target have the specified opinion of the culture? | ``` reverse_cultural_view = {  target = <target culture>  value <operator> <script_value> } ``` |  |
-
 ### Goods scope
-
 List of goods triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | food\_value | Check the food value of the goods scope. |  | value |
 | goods\_category | tests the goods category - raw\_material or produced |  |  |
 | goods\_method | tests the goods method - mining/farming/hunting/gathering |  |  |
@@ -1251,22 +1189,14 @@ List of goods triggers
 | is\_used\_by\_production\_method | Returns true if the trade good is used by the specified production method. |  | production\_method |
 | price\_in\_market | Gets the price of the scoped goods in the supplied market | ``` price_in_market = {  market = <market_name>  value >= <script_value> } ``` | value |
 | raw\_material\_occurrence | Check how many locations world wide produce this raw material |  | value |
-
 ### Institution scope
-
 List of institution triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | has\_spawned | Has the institution spawned anywhere? |  | boolean |
 | is\_embraced\_for | Is the institution embraced by the target country? |  | country |
-
 ### International organization scope
-
 List of international organization triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | army\_tradition | How much army tradition does the country/IO have? |  | value |
 | army\_tradition\_percentage | How high the percentage of the current army tradition compared to the maximum does the country/IO have? |  | value |
 | average\_special\_status\_power | Get the average political power of the target special status. | ``` average_special_status_power = {  type = <special status>  value <operator> <float> }  or average_special_status_power(<special status>) ``` | value |
@@ -1401,13 +1331,9 @@ List of international organization triggers
 | war\_exhaustion\_percentage | How high the percentage of the current WarExhaustion compared to the maximum does the country/IO have? |  | value |
 | yanantin | How much yanantin does the country/IO have? |  | value |
 | yanantin\_percentage | How high the percentage of the current yanantin compared to the maximum does the country/IO have? |  | value |
-
 ### Area scope
-
 List of area triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | adjacent\_to\_owned\_by | is the area/location adjacent to an area with a country's presence in it? |  | country |
 | adjacent\_to\_owned\_or\_owned\_by\_subject | is the area/location adjacent to an area with a country's or one of its subjects' presence in it? |  | country |
 | area\_average\_control | Checks the average\_control of an area |  | value |
@@ -1443,13 +1369,9 @@ List of area triggers
 | religion\_population | Gets the absolute number of the population that follow a particular religion in the location/province/province\_defintion/area / region/subcontinent/continent/scripted\_geography | ``` religion_population = {  religion = <religion>  value <operator> <script_value> } ``` | value |
 | within\_colonial\_range\_of | Is the location within Colonial range of the target country? |  | country |
 | within\_naval\_range\_of | Is the location within naval range of the target country? |  | country |
-
 ### Province scope
-
 List of province triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | culture\_group\_percentage | Gets the percentage of the population that follow a particular culture group in the location/province/province\_defintion/area / region/subcontinent/continent/scripted\_geography | ``` culture_group_population_percentage = {  culture_group = <culture group>  value <operator> <script_value> } ``` | value |
 | culture\_group\_population | Gets the absolute number of the population that follow a particular religion in the location/province/province\_defintion/area / region/subcontinent/continent/scripted\_geography | ``` culture_group_population = {  culture_group = <culture group>  value <operator> <script_value> } ``` | value |
 | culture\_percentage | Gets the percentage of the population that follow a particular culture in the location/province/province\_defintion/area / region/subcontinent/continent/scripted\_geography | ``` culture_population_percentage = {  culture = <culture>  value <operator> <script_value> } ``` | value |
@@ -1489,13 +1411,9 @@ List of province triggers
 | religion\_population | Gets the absolute number of the population that follow a particular religion in the location/province/province\_defintion/area / region/subcontinent/continent/scripted\_geography | ``` religion_population = {  religion = <religion>  value <operator> <script_value> } ``` | value |
 | within\_colonial\_range\_of | Is the location within Colonial range of the target country? |  | country |
 | within\_naval\_range\_of | Is the location within naval range of the target country? |  | country |
-
 ### Location scope
-
 List of location triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_static\_modifier\_utility | Checks the AI utility of adding a static modifier to the scoped object | ``` add_static_modifier_utility = {  modifier = <modifier_name>  value >= <script_value> } ``` | value |
 | adjacent\_to\_owned\_by | is the area/location adjacent to an area with a country's presence in it? |  | country |
 | adjacent\_to\_owned\_or\_owned\_by\_subject | is the area/location adjacent to an area with a country's or one of its subjects' presence in it? |  | country |
@@ -1653,13 +1571,9 @@ List of location triggers
 | winter\_power |  |  | value |
 | within\_colonial\_range\_of | Is the location within Colonial range of the target country? |  | country |
 | within\_naval\_range\_of | Is the location within naval range of the target country? |  | country |
-
 ### Market scope
-
 List of market triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | available\_merchant\_capacity | gets the market available merchant capacity for a country in the scope market |  | value |
 | demands\_goods | Check if the market scope has a demand for the target goods. |  | goods |
 | demands\_goods\_by\_pops | Check if the market has any pop demand for the target goods. |  | goods |
@@ -1692,13 +1606,9 @@ List of market triggers
 | total\_goods\_value\_traded | Check the total value of goods that went through this market last month |  | value |
 | total\_merchant\_power | Check the level of this Building? |  | value |
 | used\_merchant\_capacity | gets the market used merchant capacity for a country in the scope market |  | value |
-
 ### Pop scope
-
 List of pop triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | gfx\_culture\_applicable | Checks if a culture gfx applies to the scope object |  |  |
 | has\_rebel | Check if a pop has allegiance to a rebel |  | boolean |
 | is\_linked\_to\_foreign\_building | Check if a pop is linked to a foreign building |  | boolean |
@@ -1708,13 +1618,9 @@ List of pop triggers
 | pop\_literacy | How literate is this pop? |  | value |
 | pop\_satisfaction | How satisfied is this pop? |  | value |
 | pop\_size | How big is this pop? |  | value |
-
 ### War scope
-
 List of war triggers
-
 | Trigger | Description | Example | Targets |
-| --- | --- | --- | --- |
 | can\_join\_as\_attacker | Can the target country join the war in scope as attacker ? |  | country |
 | can\_join\_as\_defender | Can the target country join the war in scope as defender ? |  | country |
 | has\_casus\_belli | Checks if that war has a CB specified at all |  | boolean |
@@ -1733,15 +1639,10 @@ List of war triggers
 | war\_score\_of\_country\_side | Check how much war score the war side of the target country has in the current war. | ``` war_score_of_country_side = {  country = <country>  value <operator> <real> }  or war_score_of_country_side(<country>) ``` | value |
 | war\_stalling\_length | Checks how many months with no action have passed in the current war. |  | value |
 | war\_stalling\_length\_in\_years | Checks how many years with no action have passed in the current war. |  | value |
-
 ## All triggers
-
 Use this table to search for all triggers.
-
 List of all triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | active\_religious\_focus | Checks if a country is researching a certain religious focus |  | country |  |
 | add\_estate\_satisfaction\_utility | Utility of adding however much estate satisfaction to the country | ``` add_estate_satisfaction_utility(<estate>|<amount>)  or add_estate_satisfaction_utility = {  type = <estate type>  amount = <amount>  value <operator><threshold> } ``` | country | value |
 | add\_static\_modifier\_utility | Checks the AI utility of adding a static modifier to the scoped object | ``` add_static_modifier_utility = {  modifier = <modifier_name>  value >= <script_value> } ``` | character, country, location | value |
@@ -3351,47 +3252,16 @@ List of all triggers
 | years\_since\_disaster\_start | Checks if x years have passed since the start of the disaster. Returns -1 if the disaster has never started. |  | disaster | value |
 | years\_since\_situation\_end | Checks if x years have passed since the end of the situation. Returns -1 if the situation has never ended. |  | situation | value |
 | years\_since\_situation\_start | Checks if x years have passed since the start of the situation. Returns -1 if the situation has never started. |  | situation | value |
-
 ## References
-
 ---
-
 * To update these tables, see [Module:Script docs/Triggers/Updates](/Module%3AScript_docs/Triggers/Updates "Module:Script docs/Triggers/Updates")
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • Triggers  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

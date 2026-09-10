@@ -1,62 +1,34 @@
 <!-- source: https://eu5.paradoxwikis.com/Culture revid: 37006 fetched: 2026-09-10 -->
 # Culture
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") pre-release.
-
-[![](/thumb.php?f=UI_culture.png&width=330)](/File%3AUI_culture.png)
-
 A country with a large number of cultures
-
 A Culture is a group of people who share a sense of kinship. Each Culture possesses a [Language](/Language "Language"), which it may share with other cultures.
-
-Many cultures belong to one or more culture groups. Countries whose primary culture is part of the same group will gave a small [![Opinion.png](/thumb.php?f=Opinion.png&width=24)](/Opinion "Opinion") Opinion bonus to each other but this does not stack if they share multiple culture groups. Empires that have the most pops in the world with the same culture as their primary culture can unify all cultures from one of their primary culture's culture groups via the Unify Culture Group [cabinet](/Government#Cabinet "Government") action.
-
+Many cultures belong to one or more culture groups. Countries whose primary culture is part of the same group will gave a small  Opinion bonus to each other but this does not stack if they share multiple culture groups. Empires that have the most pops in the world with the same culture as their primary culture can unify all cultures from one of their primary culture's culture groups via the Unify Culture Group [cabinet](/Government#Cabinet "Government") action.
 Pops of other cultures will assimilate over time into the primary culture. The assimilation speed depends on the culture war power. Each country also has an assimilation rate, which can increase or decrease assimilation speed.
-
 ## Culture war
-
-There are two values at each culture that should be tracked: [![Cultural tradition.png](/thumb.php?f=Cultural_tradition.png&width=24)](/File%3ACultural_tradition.png) Cultural Tradition and [![Cultural influence.png](/thumb.php?f=Cultural_influence.png&width=24)](/File%3ACultural_influence.png) Cultural Influence. Processes like assimilation, integration, spy networks, diplomacy and siege will pit the attacking culture's [![Cultural influence.png](/thumb.php?f=Cultural_influence.png&width=24)](/File%3ACultural_influence.png) Cultural Influence against the defending culture's [![Cultural tradition.png](/thumb.php?f=Cultural_tradition.png&width=24)](/File%3ACultural_tradition.png) Cultural Tradition. Both [![Cultural tradition.png](/thumb.php?f=Cultural_tradition.png&width=24)](/File%3ACultural_tradition.png) Cultural Tradition and [![Cultural influence.png](/thumb.php?f=Cultural_influence.png&width=24)](/File%3ACultural_influence.png) Cultural Influence decay by 5% each month.
-
+There are two values at each culture that should be tracked:  Cultural Tradition and  Cultural Influence. Processes like assimilation, integration, spy networks, diplomacy and siege will pit the attacking culture's  Cultural Influence against the defending culture's  Cultural Tradition. Both  Cultural Tradition and  Cultural Influence decay by 5% each month.
 ## Culture status
-
 Within each country, all cultures have one of four degrees of acceptance. Downgrading a culture will make it a non-accepted culture and cause all pops of that culture within the country to lose **−50%** Satisfaction.
-
 | Status | Satisfaction | Can be recruited as levies | Base upgrade cost | Base downgrade cost | Upgrade requirements |
-| --- | --- | --- | --- | --- | --- |
-| [![Primary culture.png](/thumb.php?f=Primary_culture.png&width=30)](/File%3APrimary_culture.png) Primary | **+25%** | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | Cannot be upgraded or downgraded | |  |
-| [![Accepted culture.png](/thumb.php?f=Accepted_culture.png&width=30)](/File%3AAccepted_culture.png) Accepted | **+10%** | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | [![Resource legitimacy.png](/thumb.php?f=Legitimacy.png&width=24)](/File%3ALegitimacy.png) 50 Government power Based on government type:  * [![Resource legitimacy.png](/thumb.php?f=Legitimacy.png&width=24)](/File%3ALegitimacy.png) Legitimacy if Monarchy * [![Republic.png](/thumb.php?f=Republic.png&width=24)](/File%3ARepublic.png) Republican Tradition if Republic * [![Theocracy.png](/thumb.php?f=Theocracy.png&width=24)](/File%3ATheocracy.png) Devotion if Theocracy * [![Steppe horde.png](/thumb.php?f=Steppe_horde.png&width=24)](/File%3ASteppe_horde.png) Horde Unity if Steppe Horde * [![Tribe.png](/thumb.php?f=Tribe.png&width=24)](/File%3ATribe.png) Tribal Cohesion if Tribe | [![Resource stability.png](/thumb.php?f=Stability.png&width=24)](/Stability "Stability") 20 Stability | Depends on the Culture Conversions game rule |
-| [![Tolerated culture.png](/thumb.php?f=Tolerated_culture.png&width=30)](/File%3ATolerated_culture.png) Tolerated | **+5%** | Requires special laws | [![Resource prestige.png](/thumb.php?f=Prestige.png&width=24)](/Prestige "Prestige") 5 Prestige | [![Resource stability.png](/thumb.php?f=Stability.png&width=24)](/Stability "Stability") 10 Stability | 1M population or 2.5% of population |
-| [![Discriminated culture.png](/thumb.php?f=Discriminated_culture.png&width=30)](/File%3ADiscriminated_culture.png) Discriminated | **0** | Requires special laws | [![Resource prestige.png](/thumb.php?f=Prestige.png&width=24)](/Prestige "Prestige") 5 Prestige |  | 1M population or 1% of population |
-
+|  Primary | **+25%** |  | Cannot be upgraded or downgraded | |  |
+|  Accepted | **+10%** |  |  50 Government power Based on government type:  *  Legitimacy if Monarchy *  Republican Tradition if Republic *  Devotion if Theocracy *  Horde Unity if Steppe Horde *  Tribal Cohesion if Tribe |  20 Stability | Depends on the Culture Conversions game rule |
+|  Tolerated | **+5%** | Requires special laws |  5 Prestige |  10 Stability | 1M population or 2.5% of population |
+|  Discriminated | **0** | Requires special laws |  5 Prestige |  | 1M population or 1% of population |
 Each country has a culture capacity, which determines the number of accepted and tolerated cultures that it can have without penalties. How much capacity each culture consumes depends on their cultural opinion of the primary culture as well as the size of that culture in relation to the primary culture. Accepted cultures take up 3 times more culture capacity than tolerated cultures. Each point of culture capacity over the limit gives the following penalties:
-
-* ![Efficiency of Our Cabinet](/thumb.php?f=Country_cabinet_efficiency.png&width=24 "Efficiency of Our Cabinet") −10% Efficiency of Our Cabinet
-* ![Cultural Influence %](/thumb.php?f=Cultural_influence.png&width=24 "Cultural Influence %") −25% Cultural Influence %
-* ![Cultural Tradition %](/thumb.php?f=Cultural_tradition.png&width=24 "Cultural Tradition %") −25% Cultural Tradition %
-
+*  −10% Efficiency of Our Cabinet
+*  −25% Cultural Influence %
+*  −25% Cultural Tradition %
 ## Culture opinion
-
 Different cultures have changing cultural opinions of each other, which affects how countries view each other based on their primary culture as well as the satisfaction of pops belonging to other cultures within the country.
-
 The only way to improve cultural opinion is to perform the "Improve Cultural Opinion" diplomatic action on the highest pop country of that primary culture. If no such country exists, you are unable to improve cultural opinion.
-
-| Culture opinion | [![Opinion](/thumb.php?f=Opinion.png&width=24)](/Diplomacy#Opinion "Opinion") Country opinion | [![Satisfaction.png](/thumb.php?f=Satisfaction.png&width=24)](/File%3ASatisfaction.png) Different culture pop satisfaction | Can increase culture status | Capacity cost |
-| --- | --- | --- | --- | --- |
-| **Kindred** | **+30** | **+15%** | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | **-75%** |
-| **Positive** | **+10** | **+5%** | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | **-25%** |
-| **Neutral** | **0** | **0** | ![Yes](/thumb.php?f=Yes.png&width=24 "Yes") | **+0%** |
-| **Negative** | **−10** | **−5%** | ![No](/thumb.php?f=No.png&width=24 "No") | **+50%** |
-| **Enemy** | **−30** | **−15%** | ![No](/thumb.php?f=No.png&width=24 "No") | **+?%** |
-
+| Culture opinion |  Country opinion |  Different culture pop satisfaction | Can increase culture status | Capacity cost |
+| **Kindred** | **+30** | **+15%** |  | **-75%** |
+| **Positive** | **+10** | **+5%** |  | **-25%** |
+| **Neutral** | **0** | **0** |  | **+0%** |
+| **Negative** | **−10** | **−5%** |  | **+50%** |
+| **Enemy** | **−30** | **−15%** |  | **+?%** |
 ## List of cultures
-
-|  |  |
-| --- | --- |
-| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/Talk%3ACulture "Talk:Culture")**. |
-
+|  | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/Talk%3ACulture "Talk:Culture")**. |
 | Culture | Language | Appearance | Culture groups | Opinion of other cultures |
-| --- | --- | --- | --- | --- |
 | Abazin | Circassian |  | Caucasian |  |
 | Abitibi | Anishinabe |  | Anishinabe |  |
 | Abkhazian | Circassian |  | Caucasian |  |
@@ -608,25 +580,10 @@ The only way to improve cultural opinion is to perform the "Improve Cultural Opi
 | Xīnxiāng | Xiāng |  | Chinese, Confucian-Influenced |  |
 | Yemeni | Arabic (Peninsular Arabic Dialect) |  | Arabian, Arabic |  |
 | Yerle Qalıq | Kipchak |  | Turkic |  |
-
 ## References
-
 [Return to top](#top)
-
 Mechanics
-
-|  |  |
-| --- | --- |
 | Realm | [Country](/Country "Country") • [Government](/Government "Government") • [Parliament](/Parliament "Parliament") • [Estate](/Estate "Estate") • [Reforms](/Reforms "Reforms") • [Laws](/Laws "Laws") • [Characters](/Characters "Characters") • [Chivalric order](/Chivalric_order "Chivalric order") • [Missions](/Missions "Missions") |
-
-|  |  |
-| --- | --- |
 | Economy & Research | [Economy](/Economy "Economy") • [Goods](/Goods "Goods") • [R.G.O.](/R.G.O. "R.G.O.") • [Market](/Market "Market") • [Building](/Building "Building") • [Population](/Population "Population") • [Age](/Age "Age") |
-
-|  |  |
-| --- | --- |
 | Diplomacy & Warfare | [Diplomacy](/Diplomacy "Diplomacy") • [Subjects](/Subjects "Subjects") • [International organization](/International_organization "International organization") • [Warfare](/Warfare "Warfare") • [Combat](/Combat "Combat") • [Military](/Military "Military") |
-
-|  |  |
-| --- | --- |
 | The world | [Location](/Location "Location") • Culture • [Religion](/Religion "Religion") • [Language](/Language "Language") • [Exploration](/Exploration "Exploration") • [Situations](/Situations "Situations") • [Disasters](/Disasters "Disasters") • [Diseases](/Diseases "Diseases") |

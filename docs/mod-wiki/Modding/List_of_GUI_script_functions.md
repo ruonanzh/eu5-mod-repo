@@ -1,16 +1,10 @@
 <!-- source: https://eu5.paradoxwikis.com/List_of_GUI_script_functions revid: 36989 fetched: 2026-09-10 -->
 # List of GUI script functions
-
 *Main article: [GUI script](/GUI_script "GUI script")*
-
 This page lists all of the GUI script functions, as the list is too large to directly include on the GUI script main page.
-
 To update any of these tables, use [Module:GUI script/Functions/Global](/Module%3AGUI_script/Functions/Global "Module:GUI script/Functions/Global") or the per-section modules (e.g. [Module:GUI script/Functions/A-D](/Module%3AGUI_script/Functions/A-D "Module:GUI script/Functions/A-D")).
-
 List of global functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | Abs\_CFixedPoint | 1. unknown | CFixedPoint |  |
 | Abs\_float | 1. unknown | float |  |
 | Abs\_int32 | 1. unknown | int32 |  |
@@ -1399,13 +1393,9 @@ List of global functions
 | Vector3iToColor | 1. unknown | CVector4f |  |
 | Vector4iToColor | 1. unknown | CVector4f |  |
 | VersionInfoOnClick |  | void |  |
-
 ### Lists of all scoped functions
-
 List of all A-D GUI functions/a-d
-
 | Type | Functions/A- | Arguments | Output | Description |
-| --- | --- | --- | --- | --- |
 | AISettingsMenu | AccessSelf |  | AISettingsMenu |  |
 | AISettingsMenu | Close |  | void |  |
 | AISettingsMenu | GetItems |  | unknown |  |
@@ -5275,11 +5265,8 @@ List of all A-D GUI functions/a-d
 | bool | Self |  | bool |  |
 | double | AccessSelf |  | double |  |
 | double | Self |  | double |  |
-
 List of all E-L GUI functions/e-l
-
 | Type | Functions/E- | Arguments | Output | Description |
-| --- | --- | --- | --- | --- |
 | EconomicSupportWindow | AccessSelf |  | EconomicSupportWindow |  |
 | EconomicSupportWindow | GetDesc |  | CString |  |
 | EconomicSupportWindow | GetMax |  | float |  |
@@ -9090,11 +9077,8 @@ List of all E-L GUI functions/e-l
 | int8 | AccessSelf |  | int8 |  |
 | int8 | GetInt |  | unknown |  |
 | int8 | Self |  | int8 |  |
-
 List of all M-Re GUI functions/m-re
-
 | Type | Functions/M-R | Arguments | Output | Description |
-| --- | --- | --- | --- | --- |
 | MPChatMessage | AccessSelf |  | MPChatMessage |  |
 | MPChatMessage | GetMessage |  | CString |  |
 | MPChatMessage | IsWhisper |  | bool |  |
@@ -12565,11 +12549,8 @@ List of all M-Re GUI functions/m-re
 | ResolutionGlue | IsProposerForCountry | 1. unknown | bool |  |
 | ResolutionGlue | RepealResolutionIsActive |  | bool |  |
 | ResolutionGlue | Self |  | ResolutionGlue |  |
-
 List of all Ri-W GUI functions/ri-w
-
 | Type | Functions/Ri- | Arguments | Output | Description |
-| --- | --- | --- | --- | --- |
 | RiverDirectionWrap | AccessSelf |  | RiverDirectionWrap |  |
 | RiverDirectionWrap | GetName |  | CString |  |
 | RiverDirectionWrap | GetTooltip |  | CString |  |

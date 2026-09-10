@@ -1,47 +1,29 @@
 <!-- source: https://eu5.paradoxwikis.com/Modifier_modding revid: 30376 fetched: 2026-09-09 -->
 # Modifier modding
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.0.
-
 **Modifier modding** involves techniques that allow for application of [modifier types](/Modifier_types "Modifier types") to countries and other entities. These modifiers then help to define what the nation can do and with what efficiency.
-
 Modifiers is ubiquitous and many game objects can hold modifier types; this article focuses on two types of modifier blocks – static modifiers and auto modifiers.
-
 ## Static modifiers
-
 Static modifiers are the backbone mechanism for adding dynamic modifiers during gameplay. They are easily added and removed via [effects](/Effect "Effect") and provide utility in terms of AI and UI support.
-
 ### Technical details
-
 Static modifiers are located in `common/static_modifiers`, usually in the `main_menu` [top folder](/Mod_structure#Top_folders "Mod structure").
-
 For example:
-
 common/static\_modifiers/example\_file.txt
-
 ### Making modifiers
-
 A basic static modifier is comprised of a set of modifiers and the values assigned to them:
-
 ```
 my_modifier = {
 	country_cabinet_efficiency = 0.1
 	auto_conquer_at_war = yes
 }
 ```
-
 The values on the right side should match what the [modifier type](/Modifier_types "Modifier types") on the left expects, a number or a boolean. The value can also be a static [scripted value](/Scripted_value "Scripted value"); that is, it must evaluate to a number or boolean directly – it cannot be dynamically calculated. For example:
-
 ```
 my_modifier = {
 	modifier_type_1 = test_value_1   # 0.2 underneath
 	modifier_type_2 = test_value_2   # will NOT work, a dynamic value is underneath.
 }
 ```
-
 With the following script value definitions:
-
 ```
 test_value_1 = 0.2  		# will work
 test_value_2 = { 		# will NOT work - no calculations on the fly
@@ -49,16 +31,11 @@ test_value_2 = { 		# will NOT work - no calculations on the fly
 	multiply = war_exhaustion
 }
 ```
-
 Besides modifier types, a static modifier also accepts a `game_data` field.
-
 ### Game data
-
 Game data contains two fields; the required `category` and the optional `decaying`.
-
 `category` is used to determine the scope of the modifier. If it is set to `country`, then the modifier is applied on countries using `add_country_modifier`.
 Here are the following available categories:
-
 * `character`
 * `country`
 * `international_organization`
@@ -68,12 +45,9 @@ Here are the following available categories:
 * `rebel`
 * `religion`
 * `unit`
-
 `decaying` is an optional attribute which, when set to `yes`, reduces the effects of the modifiers based on remaining time in a linear fashion.
 If a modifier is 50% towards its expiration, it has 50% of the strength.
-
 Example:
-
 ```
 test_modifier = {
 	game_data = {
@@ -83,11 +57,8 @@ test_modifier = {
 	...
 }
 ```
-
 ### Applying and removing modifiers during the game
-
 Modifiers can be applied during the course of the game by using `add_<type>_modifier = { }` effects, which all follow the same general syntax:
-
 ```
 add_<type>_modifier = {
 	mode = add_and_replace
@@ -96,15 +67,10 @@ add_<type>_modifier = {
 	# and others... See Add modifier parameters
 }
 ```
-
 Modifiers can be removed using `remove_<type>_modifier` effects, for instance [remove\_country\_modifier](/Effect#remove_country_modifier "Effect").
-
 Here is the full list of modifier effects:
-
 List of add modifier effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_character\_modifier | add a modifier to a character | ``` add_character_modifier = {  modifier = <static_modifier_name>  days/months/years=<script_value/int> #negative values are permanent duration  (mode = add/extend/replace/add_and_extend/set_to_largest/set_to_largest_and_extend)  (size = <script_value/int>) # multiplies the effect of the modifier  (desc = <localization_key>) # desc replaces the description of how long the modifier lasts  (recalculate_immediately = yes) #forces game to update effects immediately } ``` | character |  |
 | add\_country\_modifier | add a modifier to a country | ``` add_country_modifier = {  modifier = <static_modifier_name>  days/months/years=<script_value/int> #negative values are permanent duration  (mode = add/extend/replace/add_and_extend/set_to_largest/set_to_largest_and_extend)  (size = <script_value/int>) # multiplies the effect of the modifier  (desc = <localization_key>) # desc replaces the description of how long the modifier lasts  (recalculate_immediately = yes) #forces game to update effects immediately } ``` | country |  |
 | add\_international\_organization\_modifier | add a modifier to an international organization | ``` add_international_organization_modifier = {  modifier = <static_modifier_name>  days/months/years=<script_value/int> #negative values are permanent duration  (mode = add/extend/replace/add_and_extend/set_to_largest/set_to_largest_and_extend)  (size = <script_value/int>) # multiplies the effect of the modifier  (desc = <localization_key>) # desc replaces the description of how long the modifier lasts  (recalculate_immediately = yes) #forces game to update effects immediately } ``` | international\_organization |  |
@@ -125,11 +91,8 @@ List of add modifier effects
 | change\_rebel\_modifier\_size | Change the strength of a modifier applied to the scope rebel | ``` change_rebel_modifier_size = {  modifier = <modifier>  value = <script math>  [recalculate_immediately = yes] } ``` | rebels |  |
 | change\_religion\_modifier\_size | Change the strength of a modifier applied to the scope religion | ``` change_religion_modifier_size = {  modifier = <modifier>  value = <script math>  [recalculate_immediately = yes] } ``` | religion |  |
 | change\_unit\_modifier\_size | Change the strength of a modifier applied to the scope unit | ``` change_unit_modifier_size = {  modifier = <modifier>  value = <script math>  [recalculate_immediately = yes] } ``` | unit |  |
-
 List of remove modifier effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | change\_character\_modifier\_size | Change the strength of a modifier applied to the scope character | ``` change_character_modifier_size = {  modifier = <modifier>  value = <script math>  [recalculate_immediately = yes] } ``` | character |  |
 | change\_country\_modifier\_size | Change the strength of a modifier applied to the scope country | ``` change_country_modifier_size = {  modifier = <modifier>  value = <script math>  [recalculate_immediately = yes] } ``` | country |  |
 | change\_dynasty\_modifier\_size | Change the strength of a modifier applied to the scope dynasty | ``` change_dynasty_modifier_size = {  modifier = <modifier>  value = <script math>  [recalculate_immediately = yes] } ``` | dynasty |  |
@@ -150,29 +113,20 @@ List of remove modifier effects
 | remove\_rebel\_modifier | Remove a modifier from a rebel | ``` remove_rebel_modifier = name ``` | rebels |  |
 | remove\_religion\_modifier | Remove a modifier from a religion | ``` remove_religion_modifier = name ``` | religion |  |
 | remove\_unit\_modifier | Remove a modifier from a unit | ``` remove_unit_modifier = name ``` | unit |  |
-
 #### Add modifier parameters
-
 The most important aspect of any modifier addition is the `modifier` which determines which modifier gets added. Modifier addition also needs to have a duration set by either `years`, `months`, `weeks` or `days`, which all accept scripted values evaluated based on the current scope and saved scopes.
 If the duration evaluates to -1, the modifier will be permanent.
-
 The `mode` is an important part of defining how the modifier addition will function, and accepts the following:
-
 | Mode type | Behavior |
-| --- | --- |
 | **replace** | Removes the modifier and reapplies it for the whole duration provided. |
 | **add** | Duration will not be changed and the modifiers will be added onto existing modifier. |
 | **extend** | Duration of an existing modifier will be extended by the provided duration. |
 | **add\_and\_extend** | Stacks the modifiers together and extends the length by the duration. |
 | **set\_to\_largest** | If the modifier strength (`size`) is stronger than the current modifier applied, set it to new size. |
 | **set\_to\_largest\_and\_extend** | If the modifier strength (`size`) is stronger than the current modifier applied, set it to new size. Additionally, extend the duration. |
-
 The default is `extend`.
-
 The strength of the modifier added can also be dynamically calculated using the `size` parameter, which accepts a script value, calculated similarly to how the duration value is calculated.
-
 If one wishes to override the text that is shown in the modifier addition text, one may use `desc` to set a [localizable description](/Localization "Localization"):
-
 ```
 add_country_modifier = {
 	modifier = $estate$_head_of_cabinet_influence
@@ -181,47 +135,28 @@ add_country_modifier = {
 	desc = head_of_cabinet_influence_desc
 }
 ```
-
 This results in text like "We gain <modifier> for <head\_of\_cabinet\_influence\_desc>"
-
 Lastly, `recalculate_immediately = yes` can be used to force the game to recalculate all modifiers after the effect. This will make the game recognize new changes immediately.
-
 ### Applying modifiers in startup
-
 *Main article: [Setup modding#Timed modifiers](/Setup_modding#Timed_modifiers "Setup modding")*
-
 Static modifiers can also be applied to various game objects during startup using `timed_modifiers`.
-
 ### Localisation
-
 *Main article: [Localization](/Localization "Localization")*
-
 To localize a static modifier, `STATIC_MODIFIER_NAME_<key>` must be localized. `STATIC_MODIFIER_DESC_<key>` is also supported to represent the description, but can be left empty (set as "").
-
 Defined modifiers can be retrieved for [localization and GUI](/GUI_script "GUI script") using `ShowModifier( 'modifier_name' )` and `ShowModifierWithNoTooltip( 'modifier_name' )`.
-
 ### Triggers
-
 There are two types of triggers related to modifiers: one that allows for checking their presence, for instance [has\_country\_modifier](/Trigger#has_country_modifier "Trigger") and its equivalents for other types.
-
 The other, [add\_static\_modifier\_utility](/Trigger#add_static_modifier_utility "Trigger") is a complex trigger that returns a numerical value representing the AI's perceived value of the adding the static modifier provided. It accepts `country`, `character` and `character` scopes:
-
 ```
 value = "add_static_modifier_utility(joined_order_of_the_band)"
 ```
-
 Additionally, a second numerical argument can be provided to indicate the size parameter of the modifier to be evaluated:
-
 ```
 value = "add_static_modifier_utility(joined_order_of_the_band|0.5)"
 ```
-
 [remove\_static\_modifier\_utility](/Trigger#remove_static_modifier_utility "Trigger") is opposite version of the above, utilizing the same syntax but calculating the value of removing the static modifier instead.
-
 List of modifier triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_static\_modifier\_utility | Checks the AI utility of adding a static modifier to the scoped object | ``` add_static_modifier_utility = {  modifier = <modifier_name>  value >= <script_value> } ``` | character, country, location | value |
 | has\_character\_modifier | Does the scoped character have a given modifier | ``` has_character_modifier = name ``` | character |  |
 | has\_country\_modifier | Does the scoped country have a given modifier | ``` has_country_modifier = name ``` | country |  |
@@ -232,13 +167,9 @@ List of modifier triggers
 | has\_religion\_modifier | Does the scoped religion have a given modifier | ``` has_religion_modifier = name ``` | religion |  |
 | has\_unit\_modifier | Does the scoped unit have a given modifier | ``` has_unit_modifier = name ``` | unit |  |
 | remove\_static\_modifier\_utility | Checks the AI utility of removing a static modifier from the scoped object | ``` remove_static_modifier_utility = {  modifier = <modifier_name>  value >= <script_value> } ``` | character, country, location | value |
-
 ### Hardcoded static modifiers
-
 Many static modifiers double as an hook into internal game modifiers and can therefore be used to modify hardcoded systems. Those modifiers are used by the code of the game and should not be removed:
-
 | Static Modifier Name | Modifier Category |
-| --- | --- |
 | is\_exiled | unit |
 | army\_leaderless | unit |
 | navy\_leaderless | unit |
@@ -406,38 +337,25 @@ Many static modifiers double as an hook into internal game modifiers and can the
 | difficulty\_ai\_normal | country |
 | difficulty\_ai\_hard | country |
 | difficulty\_ai\_very\_hard | country |
-
 ## Auto modifiers
-
 Auto modifiers are automatically applied to countries or international organizations when certain criteria are met and can be scaled at will. They need not be explicitly added to every country, as they are automatically applied if possible.
-
 Because of this, they need to be used sparingly as they can have serious performance consequences if misused.
-
 ### Technical details
-
 Auto modifiers are located in `common/auto_modifiers`, usually in the `in_game` [top folder](/Mod_structure#Top_folders "Mod structure").
-
 ### Auto modifier example
-
 Here is an example of an auto modifier:
-
 ```
 war_exhaustion_impact = {
 	scales_with = war_exhaustion
-
 	land_morale_modifier = -0.02
 	naval_morale_modifier = -0.02
-
 	global_production_efficiency = scaled_production_efficiency_penalty
 	trade_efficiency = scaled_trade_efficiency_penalty
 	global_population_growth = -0.0003
 }
 ```
-
 ### Auto modifier category and scope
-
 By default, all auto modifiers are country modifiers based on country scope. The modifier category and scope type can be adjusted using `category` and `type` respectively:
-
 ```
 auto_modifier_example = {
 	type = international_organization
@@ -445,81 +363,35 @@ auto_modifier_example = {
 	...
 }
 ```
-
 Currently, the only other supported type is `international_organization`.
-
 ### Additional parameters
-
 `requires_real = no` is used to apply the country auto modifier on "non-real" countries like the Pirate, Rebel or Mercenary tags.
-
 `hide_effects = yes` can be used to make this modifier hidden.
-
 ### Triggers and scaling
-
 To check whether an auto\_modifier should appear, use `potential_trigger` and `limit`. Both conditions must evaluate to true for the auto\_modifier to apply; it will be removed when either becomes false.
-
 Based on empirical testing, the auto\_modifier `limit` field only supports basic inequality checks (<, >, <=, >=) and is likely more efficient for evaluating these conditions. Some examples of what do not work within the limit field are `=`, `AND`, `OR`, and `NOT`. Thus, `limit = { legitimacy >= 50 }` will work correctly, while `limit = { NOT = { legitimacy > 50 } }` will not, with the result always defaulting to true. The `potential_trigger` does not have this limitation and can accept all standard triggers and comparisons.
-
 The strength of the auto modifier is calculated dynamically using `scales_with` script value.
-
 ### Localisation and datacontext
-
 Auto modifiers can be localized similarly to static modifiers under the following strings:
-
 * `AUTO_MODIFIER_NAME_<key>` for the title
 * `AUTO_MODIFIER_DESC_<key>` for the desc
-
 Auto modifiers can also be used in datacontext with the following:
-
 * `StaticAutoModifier` Type
 * `ShowAutoModifierEffect( 'auto_modifier' )` Function
 * `ShowAutoModifierEffectForCountry( 'auto_modifier' )` Function
 * `ShowAutoModifierEffectForLocation( 'auto_modifier' )` Function
-
 ## New modifier types
-
 *Main article: [Modifier types](/Modifier_types "Modifier types")*
-
 Unlike in Europa Universalis IV modding, new modifier types can be added in `common/modifier_type_definitions`. They are best placed in the `main_menu` [top folder](/Mod_structure#Top_folders "Mod structure").
-
 Their values can then be used in multiple ways, but are most commonly referenced using `modifier:` [datalink](/Event_target "Event target").
-
 ## References
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • Modifiers • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

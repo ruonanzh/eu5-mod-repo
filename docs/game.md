@@ -20,6 +20,7 @@ the game is **Windows-only**.
 | Want to know… | Go to |
 |---|---|
 | The "why" behind override/load/localization/metadata mechanics | [`eu5-modding-conventions.md`](eu5-modding-conventions.md) |
+| Concepts / how-to (mod API mechanics) | [`mod-wiki/`](mod-wiki/) (curated wiki snapshot, 118 pages) |
 | Exact effect/trigger/modifier names and scopes | [`script_docs/`](script_docs/) (game-generated, authoritative) |
 | GUI/script datatype promotes and function signatures | [`data_types/`](data_types/) (game-generated, authoritative; no wiki equivalent) |
 | The executable artifact spec | [`../specs/mod-spec.md`](../specs/mod-spec.md) |

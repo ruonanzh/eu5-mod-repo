@@ -1,57 +1,36 @@
 <!-- source: https://eu5.paradoxwikis.com/Console_commands revid: 35513 fetched: 2026-09-09 -->
 # Console commands
-
 This article has been verified for the current [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") (1.3) of the game.
-
 Europa Universalis V offers a debug mode **(disabled by default)** that allows the inputting of console commands. This page lists the codes that may be input into the Console Window, a special debugging window that may be accessed in non-ironman games while in debug mode by pressing Shift+2, ALT+2+1, Shift+3, `§`, `~`, `^`, `°`, `²`, or `` ` `` (key varies based upon keyboard layout). For QWERTY keyboards, the key is `` ` ``. Otherwise, Alt + C or Shift + Alt + C may work if the prior combinations did not. Press the up or down arrow keys to traverse through previously executed commands. Press `⇆Tab` after entering the beginning of a command to autocomplete it or display which commands contain the entered sequence. Many codes can be turned off by repeating the command, but sometimes reloading the save or exiting the game is necessary.
-
 ## Debug mode
-
 Debug mode is a set of game tools that allows the modification of game behavior outside normal means. It includes:
-
 * Console Window (accepts console commands)
 * Debug Menus (including the GUI Editor, Script explorer and others)
 * [Debug Info](#Debug_info)
 * Ctrl + clicking on a country on the map takes control of the country
 * Ctrl + alt + clicking on a state on the map takes the state
 * File watcher that automatically reloads changed files (including mods) into memory
-
 ### Enabling debug mode
-
 Debug mode can be enabled before launching the game and/or toggled in the game using mods. It can be disabled from the console, but can't be re-enabled after it's closed (unless with mods).
-
 How to enable it:
-
 #### Steam
-
 On Steam:
-
 1. Right-click the game, open Properties
 2. Add `-debug_mode` to the Launch Options at the bottom
 3. Start the game
-
 #### Windows
-
 Without Steam, on Windows:
-
 1. Go to your Europa Universalis V directory, "binaries" folder
 2. Right-click eu5.exe and create a shortcut
 3. Right-click the shortcut, open Properties
 4. In the Target field, add `-debug_mode` at the end (so it looks like this `"...\eu5.exe" -debug_mode`)
 5. Launch the game using the shortcut
-
 ### Disabling debug mode
-
 To activate achievements again, disable all active mods and remove -debug\_mode from launch options. After launching the game, make sure you have the [correct checksum](/Patches "Patches"). It can be found in the right corner in the Main Menu.
-
 ### Debug info
-
 When debug mode is activated, some tooltips (especially on the map) will show debug info, which is normally hidden during normal gameplay.
-
 ## List
-
 | Command | Aliases | Parameters | Effect |
-| --- | --- | --- | --- |
 | oos\_prompt |  | [<local/dummy>] | * Shows the oos\_prompt window |
 | oos\_dump |  |  | * Dumps OOS info |
 | print\_randomlog |  |  | * Prints the current randomlog |
@@ -509,43 +488,14 @@ When debug mode is activated, some tooltips (especially on the map) will show de
 | clear | clr |  | * Clear console. |
 | Camera.Goto | goto | [<location>] | * Moves the camera to a location |
 | copy\_dna |  | [<id>] | * Copy/shows adn of a character |
-
 ## References
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • Console commands • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

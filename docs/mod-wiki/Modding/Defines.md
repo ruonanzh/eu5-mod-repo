@@ -1,49 +1,29 @@
 <!-- source: https://eu5.paradoxwikis.com/Defines revid: 35665 fetched: 2026-09-09 -->
 # Defines
-
 This article has been verified for the current [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") (1.3) of the game.
-
 **Defines** are variables used by the engine. They regulate basic game behaviors and settings that are not opened to scripting (estate thresholds, camera field-of-view, etc.).
-
 Defines are static and global: they apply to the whole game and cannot be changed dynamically.
-
 Base game values are configured in the folder /Europa Universalis V/game/loading\_screen/common/defines/, primarily in `00_defines.txt`.
-
 Each of the lists on this represents a section of the defines; in the defines files, these sections are all prefixed with `N`, for example `NCountry`.
-
-|  |
-| --- |
 | **Contents**0 |
 | * [1Define modding](#Define_modding) * [2List of defines](#List_of_defines)   * In `00_defines.txt`   + [2.1AI](#AI)   + [2.3AlertAudio](#AlertAudio)   + [2.6Character](#Character)   + [2.10Colony](#Colony)   + [2.11Combat](#Combat)   + [2.13Country](#Country)   + [2.14Culture](#Culture)   + [2.15Diplomacy](#Diplomacy)   + [2.16Disease](#Disease)   + [2.17Dynasty](#Dynasty)   + [2.18Economy](#Economy)   + [2.19Estate](#Estate)   + [2.21Game](#Game)   + [2.28GUI](#GUI)   + [2.30ImperialCircle](#ImperialCircle)   + [2.31InternationalOrganization](#InternationalOrganization)   + [2.38Location](#Location)   + [2.47Market](#Market)   + [2.48Mercenary](#Mercenary)   + [2.51Pop](#Pop)   + [2.52Portrait](#Portrait)   + [2.53Religion](#Religion)   + [2.58Spreadable](#Spreadable)   + [2.60Text](#Text)   + [2.66Unit](#Unit)   + [2.69War](#War)   + [2.72WorkOfArt](#WorkOfArt)  * In `00_graphics.txt`   + [2.4BlockadeGraphics](#BlockadeGraphics)   + [2.5Border](#Border)   + [2.7Cities](#Cities)   + [2.9CityGraphics](#CityGraphics)   + [2.12CombatPrediction](#CombatPrediction)   + [2.22GameCityLocators](#GameCityLocators)   + [2.23GameIcons](#GameIcons)   + [2.24GameIllustrations](#GameIllustrations)   + [2.25GameLocators](#GameLocators)   + [2.26Graphics](#Graphics)   + [2.27GraphicsTest](#GraphicsTest)   + [2.29Gui](#Gui)   + [2.32JominiEars](#JominiEars)   + [2.33JominiGraphics](#JominiGraphics)   + [2.36JominiMapGraphics](#JominiMapGraphics)   + [2.37LateralView](#LateralView)   + [2.39LocationMapObjects](#LocationMapObjects)   + [2.40MapColors](#MapColors)   + [2.41MapGraphics](#MapGraphics)   + [2.43MapLines](#MapLines)   + [2.44MapMarker](#MapMarker)   + [2.45MapModeSelector](#MapModeSelector)   + [2.46MapName](#MapName)   + [2.49Messages](#Messages)   + [2.50Outliner](#Outliner)   + [2.56SeaCurrents](#SeaCurrents)   + [2.57SiegeEffect](#SiegeEffect)   + [2.59TerraIncognita](#TerraIncognita)   + [2.61TextSettings](#TextSettings)   + [2.63TradeGraphics](#TradeGraphics)   + [2.64TreeTweaks](#TreeTweaks)   + [2.65Trees](#Trees)   + [2.67UnitGraphics](#UnitGraphics)   + [2.68VisibleLocationsGfx](#VisibleLocationsGfx)   + [2.70Water](#Water)  * In `defines/jomini/`   + [2.2Adjacencies](#Adjacencies)   + [2.20FogOfWar](#FogOfWar)   + [2.34JominiIcons](#JominiIcons)   + [2.41MapEditor](#MapEditor)   + [2.54Rivers](#Rivers)   + [2.62Tooltip](#Tooltip)  * In multiple files   + [2.8CityAudio](#CityAudio)   + [2.55Roads](#Roads)   + [2.71Weather](#Weather)   * [3References](#References) |
-
 ## Define modding
-
 *See also: [Mod compatibility](/Mod_compatibility "Mod compatibility")*
-
 Defines can be modified individually or in batches without overwriting an entire defines file. This better preserves compatibility and makes it easier to keep up with changes in future patches.
-
 To modify a define, create a new file in <mod>/loading\_screen/common/defines/ that loads after the base game files such as `01_mod_defines.txt`. In that file, add a block for each set of defines to be modified and include the modified defines in those blocks, for example
-
 ```
 NCountry = {
 	COUNTRIES_GETTING_SCORE = 12	# Base game 8; number of top countries that gain score
 }
-
 NDiplomacy = {
 	CALL_FOR_PEACE_THRESHOLD_MONTHS = 120	# Base game 60
 }
 ```
-
 In the case of multiple mods modifying the same define, the mod with the last loaded filename determines the final value of the define.
-
 ## List of defines
-
 Sections are ordered alphabetically, rather than by their position in the file. Many of these are defined in 00\_defines.txt with most graphic related defines in /graphic/00\_graphics.txt or the files in /jomini/
-
 ### AI
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | USE\_REGULARS\_IN\_WAR\_WEIGHT\_MULT | 10 |  |
 | USE\_LEVIES\_IN\_WAR\_WEIGHT\_MULT | 5 |  |
 | USE\_MERCENARIES\_IN\_WAR\_WEIGHT\_MULT | 1 |  |
@@ -797,11 +777,8 @@ Sections are ordered alphabetically, rather than by their position in the file. 
 | AI\_HIGH\_CONQUER\_DESIRE\_THRESHOLD | 0.5 |  |
 | AI\_DICE\_ROLL\_COMBAT\_WIN\_CHANCE\_FACTOR | 0.1 |  |
 | AI\_ALREADY\_INSULTED\_FACTOR | 0.9 |  |
-
 ### Adjacencies
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | UV\_SCALE | 0.125 |  |
 | SMOOTH\_FADE\_DISTANCE | 5 |  |
 | SMOOTH\_ITERATIONS | 0 |  |
@@ -814,11 +791,8 @@ Sections are ordered alphabetically, rather than by their position in the file. 
 | GROUND\_OFFSET | 1 |  |
 | MIDPOINT\_STRETCH | 0.01 |  |
 | ADJUST\_UNDEFINED | 0.5 |  |
-
 ### AlertAudio
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` Wwise event played when an alert banner of the given priority appears. ``` | | |
 | ALERT\_APPEAR\_BLUE | UI\_alert\_appear\_blue |  |
 | ALERT\_APPEAR\_GREEN | UI\_alert\_appear\_green |  |
@@ -828,21 +802,15 @@ Sections are ordered alphabetically, rather than by their position in the file. 
 | ALERT\_APPEAR\_BLACK | UI\_alert\_appear\_black |  |
 | ALERT\_APPEAR\_PURPLE | UI\_alert\_appear\_purple |  |
 | ALERT\_APPEAR\_DEFAULT | UI\_alert\_appear | fallback when an alert has no specific priority |
-
 ### BlockadeGraphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | SCHEMATIC\_NAME | blockade\_schematic |  |
 | SCALING\_SPEED | 5 |  |
 | FINAL\_SCALE | 0.5 |  |
 | PORT\_DISPLACEMENT | { 0, 0, 2.2 } |  |
 | OPACITY\_ZOOM\_STEP | 5 |  |
-
 ### Border
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` cull borders when zooming out ``` | | |
 | MAX\_ZOOM\_STEP\_LOCATION | 12 | @province\_zoomstep\_max |
 | MAX\_ZOOM\_STEP\_PROVINCE | 16 | @location\_zoomstep\_max |
@@ -856,11 +824,8 @@ Sections are ordered alphabetically, rather than by their position in the file. 
 | MAX\_ZOOM\_STEP\_SEA\_LANE | 22 |  |
 | SPLINE\_TESSELATION\_MAX\_ANGLE | 15 |  |
 | SPLINE\_TESSELATION\_MAX\_DISTANCE | 10 |  |
-
 ### Character
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | BASE\_AMOUNT\_FOR\_COUNTRY | 1.25 | multiply with cabinet size. |
 | MAX\_INFANT\_AGE | 2 |  |
 | MAX\_CHILD\_AGE | 10 |  |
@@ -903,24 +868,17 @@ Sections are ordered alphabetically, rather than by their position in the file. 
 | RANDOM\_CHARACTER\_CHANCE\_TOLERATED\_CULTURE\_MULTIPLIER | 20 | n-times more likely to select an Tolerated Culture Culture pop |
 | RANDOM\_CHARACTER\_CHANCE\_CULTURE\_OPINION\_MULTIPLIER | 1 | multiplies with primary culture's opinion of a pop's culture, e.g. if it was 10, Kindred 3 becomes 30. Same culture is treated as Kindred |
 | RANDOM\_CHARACTER\_CHANCE\_RELIGION\_OPINION\_MULTIPLIER | 1 | multiplies with primary religion's opinion of a pop's religion, e.g. if it was 10, Kindred 3 becomes 30 |
-
 ### Cities
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` Select a province and use the "Cities.DrawDebugLines" for easy tweaking ``` | | |
 | GRID\_TILE\_SIZE | 1.25 | Target size of the tiles in the grid. WARNING: this can be set through the user settings. |
 | GRID\_TILE\_MIN\_RELATIVE\_SIZE | 0.2 | It is quite common for tiles close to water to be very small. All tiles that are smaller than GRID\_TILE\_SIZE \* GRID\_TILE\_MIN\_RELATIVE\_SIZE will be ignored |
 | MESH\_GLOBAL\_SCALE\_FACTOR | 1.1 | A global multiplier on mesh scales. Preferred place to tweak scales is in gfx/map/city\_data |
 | MAX\_ACTIVE\_SOUND\_EFFECTS | 5 |  |
 | CULTURE\_THRESSHOLD | 0.05 | min percentage of the dominant culture that another culture hast to have to start being able to spawn buildings |
-
 ### CityAudio
-
 From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` From loading_screen/defines/00_defines.txt ``` | | |
 | CONSTRUCTION\_AUDIO\_MODE | 2 | 0 = only on click, 1 = only on completion, 2 = both |
 | CONSTRUCTION\_AUDIO\_MIN\_TIER | 1 | tier values below this are clamped up |
@@ -929,11 +887,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | ``` From loading_screen/defines/graphic/00_graphics.txt ``` | | |
 | SCHEMATIC\_NAME | city\_audio |  |
 | MAX\_ZOOM\_STEP | 3 |  |
-
 ### CityGraphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | FLAG\_MESH\_NAME | flag\_mesh | Use "simple\_plane\_A\_flag\_mesh" for better debugging of the flags |
 | FLAG\_LOCATOR\_PREFIX | flag |  |
 | FLAG\_LOOK\_DIRECTION | { 0, -1 } |  |
@@ -971,11 +926,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | WALL\_BEZIER\_POWER | 0.35 |  |
 | CITY\_SAFE\_GRID\_RADIUS | 5 |  |
 | LAKES\_LAYERS | { lake\_layer } |  |
-
 ### Colony
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | BASE\_COST | 1 |  |
 | DISTANCE\_COST\_FACTOR | 0.0005 |  |
 | POPULATION\_COST\_FACTOR | 0.25 |  |
@@ -992,11 +944,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | EXPLORATION\_DISTANCE\_TIME | 9 |  |
 | EXPEL\_TRIBAL\_BENEFIT\_DURATION | 120 |  |
 | MAX\_CHARTERS\_IN\_PROVINCE | 3 |  |
-
 ### Combat
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | NAVAL\_LEVY\_IMPACT | 0.05 |  |
 | RETREAT\_STRENGTH\_DAMAGE | 0.1 |  |
 | GARRISON\_AFTER\_OCCUPATION | 0.01 |  |
@@ -1076,11 +1025,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | ASSAULT\_DEFENDER\_MORALE\_LOSS | 0.3 |  |
 | ASSAULT\_DICE\_MODIFIER | 5 |  |
 | ASSAULT\_WIDTH\_LIMIT | 1 |  |
-
 ### CombatPrediction
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | CLEAR\_VICTORY\_THRESHOLD | 2 |  |
 | PROBABLE\_VICTORY\_THRESHOLD | 1 |  |
 | LEADER\_CONTRIBUTION | 0.01 |  |
@@ -1092,11 +1038,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | QUALITY\_CONTRIBUTION | 4.5 |  |
 | TERRAIN\_CONTRIBUTION | 0.667 |  |
 | UNPREDICTABLE\_SMALL\_BATTLE\_THRESHOLD | 0.1 |  |
-
 ### Country
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MONTHS\_FOR\_REBEL\_UPRISING\_EFFECT | 60 |  |
 | SCRIPTED\_CORE\_DURATION\_YEARS | 100 |  |
 | REBEL\_JOIN\_OTHER\_THRESHOLD | 0.75 |  |
@@ -1217,11 +1160,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | LOW\_CONTROL\_THRESHOLD\_FOR\_BEST\_TAX | 0.95 |  |
 | BUREAUCRACY\_ENTRENCHMENT\_YEARS\_PER\_PHASE | 100 |  |
 | BUREAUCRACY\_ENTRENCHMENT\_QUOTE\_PER\_PHASE | 50 |  |
-
 ### Culture
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ACCEPTED\_CULTURE\_BASE\_COST | 3 |  |
 | TOLERATED\_CULTURE\_BASE\_COST | 1 |  |
 | ACCEPTANCE\_OPINION\_POSITIVE\_FACTOR | -0.25 | Kindred and Positive |
@@ -1266,11 +1206,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | ASSIMILATION\_OWNER\_CULTURE\_OPINION\_OF\_TARGET\_MODIFER | -0.1 | range -3 to +3. negative because the more they like a culture, the less drive to eradicate it |
 | ACCEPTED\_CULTURE\_SETUP\_ERROR\_IF\_ABOVE\_MAX | 2 | If setup country has this many accepted cultures above the max accepted cultures, throw an error |
 | ACCEPTED\_CULTURE\_SETUP\_ERROR\_IF\_BELOW\_MAX | 1 | If setup country has this many accepted cultures below the max accepted cultures (and there are available targets inside the country), throw an error |
-
 ### Diplomacy
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | AUTO\_TIME\_OUT\_MONTHS | 2 |  |
 | SEND\_GIFT\_COOLDOWN | 120 | months |
 | REMOVE\_RIVAL\_COOLDOWN | 60 | months |
@@ -1617,11 +1554,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | INTEL\_THRESHOLD\_LOCATION\_OWNERSHIP | 25 |  |
 | INTEL\_THRESHOLD\_LOCATION\_MOVEMENT\_RESISTANCE | 25 |  |
 | INTEL\_THRESHOLD\_LOCATION\_FOOD\_DECAY | 25 |  |
-
 ### Disease
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MAX\_DISEASE\_PERCENTAGE | 1 |  |
 | PANDEMIC\_LOCATIONS | 1000 |  |
 | SEVERE\_LOCATIONS | 500 |  |
@@ -1631,11 +1565,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | SEVERE\_MIN\_DEATHS | 1000 | 1M |
 | MODERATE\_MIN\_DEATHS | 50 | 50k |
 | MAX\_ACCEPTABLE\_PERCENTAGE\_DIFFERENCE\_TO\_AMALGAMATE\_POPS | 0.05 |  |
-
 ### Dynasty
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | NAME\_TEMPLATE\_KEYS | { SOMEONE\_OF\_SOMEWHERE, SOMEONE\_FROM\_SOMEWHERE, SOMEONE\_THE\_SOMETHING\_OF\_SOMEWHERE\_\_TYPE, SOMEONE\_THE\_SOMEDESC\_SOMETHING\_\_ADJ\_TYPE, SOMEONE\_THE\_SOMELOCALITY\_SOMETHING\_\_TYPE, SOMEONE\_THE\_SOMENATIONALITY\_SOMETHING\_\_TYPE } |  |
 | NAME\_ADJECTIVE\_KEYS | { mighty, courageous, learned, expert } |  |
 | NAME\_NOUN\_KEYS | { scholar, executioner, warrior, knight } |  |
@@ -1647,11 +1578,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | CALC\_DYNASTY\_HEAD\_SCORE\_ESTATE | 100 | if the character's estate type has 'priority\_for\_dynasty\_head = yes' |
 | CALC\_DYNASTY\_HEAD\_SCORE\_SUBJECT | 0.1 | If is subject |
 | DYNASTIC\_POWER\_ONLY\_DYNASTY\_SEAT | 0.05 | multiplier to the dynasty power contribution from a country which has only the dynasty seat |
-
 ### Economy
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ECONOMICAL\_BASE\_FROM\_TAX\_BASE | 0.5 |  |
 | ECONOMICAL\_BASE\_FROM\_POP | 0.015 |  |
 | ECONOMICAL\_BASE\_FROM\_TRADE\_VALUE | 0.2 |  |
@@ -1754,11 +1682,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | LOCATION\_DEPOPULATION\_ALERT\_MONTHS | 60 |  |
 | TRADE\_PATH\_TRAVEL\_COST\_MULT | 10 |  |
 | LOW\_PURITY\_THRESHOLD | 25 |  |
-
 ### Estate
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | PARLIAMENT\_MONTHS\_NOT\_CALLED\_THRESHOLD | 120 |  |
 | UPKEEP\_PER\_BUILDING | -1 |  |
 | MIN\_PEASANT\_ENFRANCHISMENT | 0.1 |  |
@@ -1788,11 +1713,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | ESTATE\_DOMINANCE\_RELIGION\_TOLERANCE\_SCALE | 1 |  |
 | ESTATE\_DOMINANCE\_RELIGION\_MIN\_WEIGHT | 0.1 |  |
 | ESTATE\_DOMINANCE\_OVERRIDE\_THRESHOLD | 1.1 |  |
-
 ### FogOfWar
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` #Jomini defines these are used when generating the FoW alpha mask ``` | | |
 | TEXTURE\_WIDTH | 4096 | noise texture will be baked into this one so the size should be at least as big as the noise texture for best result |
 | TEXTURE\_HEIGHT | 2048 |  |
@@ -1817,11 +1739,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | IMPASSABLE\_ALPHA | 0.5 |  |
 | COLOR\_1 | { 0.5, 0.1, 0, 0.7 } | HSVa - Color that is used on the "bright" spots |
 | COLOR\_2 | { 0.5, 0.1, 0, 0.9 } | HSVa - Color that is used on the "dark" spots |
-
 ### Game
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | START\_DATE | 1337.4.1 |  |
 | END\_DATE | 1836.12.31 |  |
 | HOUR\_TICK | 2 |  |
@@ -1832,11 +1751,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | EVENT\_MP\_TIMEOUT\_MONTHS | 3 |  |
 | GAME\_SPEED\_FOR\_MULTI\_PLAYERS\_WARS | 3 |  |
 | LOSE\_OWNERSHIP\_ON\_EMPTY\_LOCATION | false |  |
-
 ### GameCityLocators
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | FLAT\_MAX\_SLOPE | 0.25 | how much slope a location should have before being considered a mountain |
 | HEIGHT\_BADNESS | 50 |  |
 | SLOPE\_BADNESS | 100 |  |
@@ -1849,11 +1765,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | TEST\_EXTENSION | 2 |  |
 | RIVER\_DELTA\_BADNESS | -400 |  |
 | OUT\_OF\_BOUNDS\_BADNESS | 50 |  |
-
 ### GameIcons
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | FLAG\_TEXT\_ICON\_FONT\_SIZE | 16 |  |
 | FLAG\_TEXT\_ICON\_SIZE | { 21, 14 } |  |
 | FLAG\_TEXT\_ICON\_OFFSET | { 0, 1 } |  |
@@ -1954,11 +1867,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | TROOP\_SUFFICIENCY\_IMPOSSIBLE\_COLOR | { 0, 1, 0.7 } | Red |
 | TROOP\_SUFFICIENCY\_BARELY\_POSSIBLE\_COLOR | { 0.12, 1, 0.7 } | Yellow |
 | TROOP\_SUFFICIENCY\_TRIVIAL\_COLOR | { 0.33, 1, 0.7 } | Green |
-
 ### GameIllustrations
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | SOCIETAL\_VALUE\_ILLUSTRATION\_PATH | gfx/interface/illustrations/societal\_values |  |
 | UNIT\_TYPE\_ILLUSTRATION\_PATH | gfx/interface/illustrations/units |  |
 | UNIT\_TYPE\_ILLUSTRATION\_MASK\_PATH | gfx/interface/illustrations/units/masks |  |
@@ -1969,11 +1879,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | MISSION\_ILLUSTRATION\_PATH | gfx/interface/illustrations/missions |  |
 | DISASTER\_ILLUSTRATION\_PATH | gfx/interface/illustrations/disaster |  |
 | ILLUSTATION\_AUDIO\_TAGS\_BLACKLIST | { gfx, interface, illustrations, event, frontobjects, burghers, nobles, clergy, peasants } |  |
-
 ### GameLocators
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MIN\_RIVER\_SEPARATION\_DISTANCE | 1 |  |
 | IGNORE\_OVER\_BADNESS | 3000 |  |
 | AVOID\_CITY\_RADIUS | 3 |  |
@@ -1993,11 +1900,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | COMBAT\_EXTENT\_MAX | { 6, 4 } |  |
 | SLOPE\_BADNESS | 1500 |  |
 | SEA\_HEIGHT\_BADNESS | 1000 |  |
-
 ### Graphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ARROW\_MOVEMENT\_SPEED | 2 |  |
 | DRAG\_SELECTION\_THRESHOLD | 10 | if selecting less than this it will count as a click instead of dragselect |
 | NO\_LOCATION\_HIGHLIGHT\_ZOOM\_STEP | 5 | where to not show location highlight |
@@ -2091,19 +1995,12 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | DISABLE\_SHADOWS\_ZOOM\_LEVEL | 6 |  |
 | TRADE\_WAGONS\_OPACITY\_START\_STEP\_LAND | 5 |  |
 | TRADE\_WAGONS\_OPACITY\_START\_STEP\_WATER | 8 |  |
-
 ### GraphicsTest
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | IGNORE\_KEY\_REGEX | default\_audio\_listener|default\_mesh|default\_particle|default\_skeletal\_mesh |  |
-
 ### GUI
-
 From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | VALUE\_LIMIT\_SHOW\_K | 100000 | army values greater that this will be shown as 50K |
 | RENAME\_MAX\_LENGTH | 40 | How long can names and such be when renaming things (E.G., characters, titles, dynasties) |
 | MAX\_BREAKDOWN\_ENTRIES | 10 | Used to limit the number of entries in some breakdowns (E.G., tax from vassals) |
@@ -2132,13 +2029,9 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt
 | SIGNIFICANT\_AMOUNT\_FOR\_NEGATIVE\_INCOME | -0.01 |  |
 | GOVERNMENT\_REFORM\_SOCIETAL\_VALUE\_REQUIREMENT\_FORECAST\_IN\_MONTHS | 12 |  |
 | GOVERNMENT\_REFORM\_SOCIETAL\_VALUE\_REQUIREMENT\_FORECAST\_CUTOFF\_IN\_MONTHS | 24 |  |
-
 ### Gui
-
 From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graphics.txt
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | TOOLTIP\_TINT\_RGBA | { 1, 1, 1, 1, 0.8, 0.8, 0.8, 1, 0.6, 0.6, 0.6, 1, 0.1, 0.1, 0.1, 0.2 } | Tooltip stack tint RGBA colors starting with the top tooltip |
 | ALERT\_NO\_GOODS\_TRADE\_MAX | 0.01 |  |
 | ALERT\_HIGH\_INFLATION\_MIN | 0.25 | Show an alert if inflation is more than this amount |
@@ -2147,68 +2040,47 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | LANGUAGE\_FLAGS | { lfENG={ pattern="pattern\_solid.dds" color1=blue color2=white color3=red colored\_emblem={ color1=blue color2=white color3=red texture="ce\_british\_union\_jack.dds" } }, lfBRA={ pattern="pattern\_solid.dds" color1=green color2=yellow color3=blue colored\_emblem={ color1=yellow color2=yellow texture="ce\_rhombus.dds" instance={ scale={ 0.800000 0.800000 } } } colored\_emblem={ color1=blue color2=green color3=white texture="ce\_celestial\_sphere\_brazil.dds" instance={ scale={ 0.660000 0.660000 } } } }, lfFRA={ pattern="pattern\_solid.dds" color1=blue\_dark color2=white color3=rgb { 127 25 28 } colored\_emblem={ color1=blue\_dark color2=white color3=rgb { 127 25 28 } texture="ce\_tricolor\_vertical.dds" } }, lfGER={ pattern="pattern\_solid.dds" color1=black color2=red color3=yellow colored\_emblem={ color1=black color2=red color3=yellow texture="ce\_tricolor\_horizontal.dds" } }, lfPOL={ pattern="pattern\_solid.dds" color1=white color2=red\_mid colored\_emblem={ color1=white color2=red\_mid texture="ce\_per\_fess.dds" } }, lfRUS={ pattern="pattern\_solid.dds" color1=white color2=blue color3=red\_secondary colored\_emblem={ color1=white color2=blue color3=red\_secondary texture="ce\_tricolor\_horizontal.dds" } }, lfSPA={ pattern="pattern\_solid.dds" color1=yellow color2=red colored\_emblem={ color1=red color2=red texture="ce\_solid.dds" instance={ position={ 0.500000 0.100000 } scale={ 1.000000 0.200000 } } instance={ position={ 0.500000 0.900000 } scale={ 1.000000 0.200000 } } } textured\_emblem={ texture="te\_coa\_spain\_modern.dds" instance={ position={ 0.330000 0.495000 } scale={ 0.600000 0.600000 } } } }, lfJAP={ pattern="pattern\_solid.dds" color1=white color2=red colored\_emblem={ color1=red color2=red texture="ce\_frame\_circle.dds" instance={ scale={ 0.600000 0.600000 } } } }, lfCHN={ pattern="pattern\_solid.dds" color1=red\_mid color2=yellow\_light colored\_emblem={ color1=yellow\_light color2=yellow\_light texture="ce\_china\_modern\_stars.dds" } }, lfKOR={ pattern="pattern\_solid.dds" color1=white color2=blue color3=red\_secondary color4=black colored\_emblem={ color1=red\_secondary color2=blue color3=black texture="ce\_korea\_modern\_taeguk.dds" } }, lfTUR={ pattern="pattern\_solid.dds" color1=red\_mid color2=white colored\_emblem={ color1=white color2=white texture="ce\_turkey\_modern\_crescent\_star.dds" } } } | Use "coa" console command e.g. to attain these; For flags visible on initial language screen, Also add a prefix like "lf" to the tag names so they don't overlap the game tags. Sorry about that implementation detail leakage.: English, Brazilian, French, German, Polish, Russian, Spanish, Japanese, Chinese, Korean, Turkish |
 | CONSTRUCTION\_PROGRESS\_COLOR\_STALLED | { 0.5, 0.5, 0.5, 1 } |  |
 | CONSTRUCTION\_PROGRESS\_COLOR\_USUAL | { 0.01, 0.6, 0.9, 1 } |  |
-
 ### ImperialCircle
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | FORMATION\_PERIOD\_MONTHS | 24 | How long HRE members have to join a circle before formation locks |
 | CANDIDATE\_AREA\_HRE\_LOCATION\_PERCENT | 0.5 | Minimum fraction of an area's locations that must be HRE-owned for a circle to form there |
 | MIN\_VOTING\_POWER\_THRESHOLD | 10 | Raw voting-power cutoff for merge cascade: circles below this absolute power get absorbed into the smallest adjacent circle during formation |
 | MAX\_VOTING\_POWER\_CAP | 0.35 | No single circle may exceed this share of total HRE voting power |
 | CIRCLE\_DORMANCY\_THRESHOLD | 2 | A circle with fewer than this many active members is dormant |
-
 ### InternationalOrganization
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MONTHS\_TO\_DISBAND\_FROM\_BIAS | 3 | how many months to let a bias imbalance build up before disbanding the IO |
 | PARLIAMENT\_REQUEST\_ISSUE\_SUPPORT\_NEEDED | 0.5 |  |
 | PARLIAMENT\_ISSUE\_THRESHOLD | 0.5 |  |
 | PARLIAMENT\_DURATION\_DAYS | 365 |  |
 | PARLIAMENT\_AVAILABLE\_AGENDAS | 5 |  |
-
 ### JominiEars
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | RANGE\_MIN | 10 |  |
 | RANGE\_MAX | 500 |  |
 | JOMINI\_CAMERA\_PROBE\_RANGES | { { ZOOM\_STEP\_FROM, 25, ZOOM\_STEP\_TO, 200, PROBE\_STEP\_FROM, 0, PROBE\_STEP\_TO, 100 }, { ZOOM\_STEP\_FROM, 201, ZOOM\_STEP\_TO, 8000, PROBE\_STEP\_FROM, 201, PROBE\_STEP\_TO, 500 } } |  |
 | PROBE\_DISTANCE\_DEFAULT\_SCALE\_FACTOR | 0.01 |  |
-
 ### JominiGraphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | BLOOM\_ITERATIONS | 6 |  |
 | NULL\_ENTITY | test\_object\_entity |  |
 | NULL\_MESH | test\_object\_mesh |  |
-
 ### JominiIcons
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ICON\_DEFAULT\_NAME | \_default |  |
 | ICON\_INVALID\_NAME | \_invalid |  |
 | MODIFIER\_TEXT\_ICON\_SIZE | { 32, 32 } |  |
 | MODIFIER\_TEXT\_ICON\_OFFSET | { 0, 10 } |  |
 | MODIFIER\_TEXT\_ICON\_FONT\_SIZE | 18 |  |
 | SHARED\_ICON\_DEFAULT\_PATH | gfx/interface/icons/\_default.dds |  |
-
 ### JominiMap
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | WORLD\_EXTENTS\_X | 16384 |  |
 | WORLD\_EXTENTS\_Y | 32 |  |
 | WORLD\_EXTENTS\_Z | 8192 |  |
 | WATERLEVEL | 2.669 |  |
-
 ### JominiMapGraphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MAP\_OBJECT\_CELL\_COUNT | 200 |  |
 | MAP\_OBJECT\_FADE\_SPEED | 3 |  |
 | COUNTRY\_NAMES\_TEST\_LINES\_SPACING | 50 |  |
@@ -2221,11 +2093,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | COUNTRY\_NAMES\_THICKNESS\_BIAS | 0 | More bias = thicker map names. Can be used to solve artifacts caused by thin areas |
 | COUNTRY\_NAMES\_STRIDE\_SIZE | 1 |  |
 | COUNTRY\_NAMES\_MAX\_COSINE | -0.9 |  |
-
 ### LateralView
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | IMPORT\_EXPORT\_ZOOM\_LEVEL | 14 |  |
 | RECRUIT\_LOCATION\_ZOOM\_LEVEL | 3 |  |
 | MAX\_INT\_ORG\_IN\_UI | 16 |  |
@@ -2235,11 +2104,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | MAX\_ESTATE\_PRIVILIGE\_ITEMS\_IN\_UI | 10 |  |
 | MIN\_AUTOCOMPLETE\_TEXT\_LENGTH | 3 |  |
 | FILTERED\_SEARCH\_BOX\_INPUT\_DEALY | 300 | milliseconds |
-
 ### Location
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MAX\_NUM\_LOCATIONS\_FOR\_INTEGRATE\_SLOWDOWN | 5 |  |
 | RGO\_BASE\_TIME | 180 |  |
 | RGO\_LOAD\_TIME\_FRACTION | 0.33 | 33% of cap, if pop can afford it. |
@@ -2279,18 +2145,12 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | ROAD\_PROPAGATION\_FACTOR | 0.25 | Build roads next to existing roads |
 | EXPECTED\_MINIMUM\_SETUP\_POPULATION | 0 | Total population minimum expected at setup |
 | MONTHLY\_CONTROL\_DECAY | 0.01 |  |
-
 ### LocationMapObjects
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | EXIT\_STATE\_NAME | ExitState |  |
 | EXIT\_VARIABLE\_NAME | Exit |  |
-
 ### MapColors
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` Colors are HSV with the Hue expressed as degree value / 360 ``` | | |
 | DEBUG\_COLOR | { 0.83, 1, 1 } |  |
 | DEFAULT\_COLOR | { 0, 0, 0.7 } |  |
@@ -2521,19 +2381,13 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | POPULATION\_MAPMODE\_MIN | 1 |  |
 | POPULATION\_MAPMODE\_LOG\_FACTOR | 1 |  |
 | TAX\_BASE\_MAPMODE\_LOG\_FACTOR | 0.5 |  |
-
 ### MapEditor
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` Jomini defines these are used to calculate the mask size ``` | | |
 | MASK\_SCALE | 1 |  |
 | THUMBNAIL\_SIZE\_REDUCTION | 16 |  |
-
 ### MapGraphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | CLIMATE\_MAP\_TEXTURE\_SIZE | { 1024, 512 } |  |
 | WINTER\_MAP\_TEXTURE\_SIZE | { 1024, 512 } |  |
 | WINTER\_MAP\_FADE\_SPEED | 0.1 | (winterness/second) |
@@ -2550,11 +2404,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | WINTER\_TERRAIN\_MATERIAL\_ICE | Ice | Which material in gfx/map/terrain/materials.settings to use for ice |
 | PORT\_SHIP\_LOCATOR | ship\_locator |  |
 | FORT\_SIEGE\_LOCATOR | siege\_locator |  |
-
 ### MapLines
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | POP\_MOVEMENT\_IN | line\_pop\_movement |  |
 | POP\_MOVEMENT\_OUT | line\_pop\_movement\_red |  |
 | TRADE\_ROUTE\_IMPORT | line\_trade\_blue |  |
@@ -2575,11 +2426,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | PROXIMITY\_ROAD\_2 | line\_paved\_road |  |
 | PROXIMITY\_ROAD\_3 | line\_modern\_road |  |
 | PROXIMITY\_ROAD\_4 | line\_rails\_road |  |
-
 ### MapMarker
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | FADE\_IN\_SPEED | 5 |  |
 | FADE\_OUT\_SPEED | 5 |  |
 | MAP\_MARKER\_FULL\_UPDATE\_FREQUENCY | 1 |  |
@@ -2643,18 +2491,12 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | CITY\_MARKER\_WEIGHT\_PLAYER\_HAS\_FOREIGN\_BUILDINGS | 1 | How much owning a building in a non-owned location influences |
 | CITY\_MARKER\_WEIGHT\_CEILING\_FOR\_NOT\_PLAYER\_CAPITAL | 19 | At what zoom level do we kill everything but your capital |
 | CITY\_MARKER\_RANK\_ZOOM\_THRESHOLD | 7 |  |
-
 ### MapModeSelector
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MAPMODES\_SLOTS\_COUNT | 14 |  |
 | MAPMODES\_SLOTS\_COLLECTION\_NAME\_PREFIX | map\_modes\_slot |  |
-
 ### MapName
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | NAME\_DRAW\_DISTANCE | 4000 | Remove province names beyond this distance |
 | NAME\_FONT\_NAME | { MapFont, MapFontNumbers, MapFontConsole } | Font used for drawing the map names |
 | NAME\_FONT\_SIZE | 60 | Font size used for drawing the map names |
@@ -2675,11 +2517,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | NAMES\_SETTING\_OVERIDE\_SMALL\_BLOB\_MAX\_SIZE | 10 |  |
 | NAMES\_TEST\_LINES\_SPACING\_SMALL | 3 |  |
 | NAMES\_TEST\_LINES\_SPACING\_MEDIUM | 10 |  |
-
 ### Market
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MONTHLY\_PRICE\_CHANGE | 0.05 | as fraction of (target - price) |
 | MARITIME\_PRESENCE\_POWER\_ON\_POP\_SCALE | 100 | divides on this. |
 | BURGHER\_TRADE\_IMPACT\_ON\_SUPPLY\_SCALE | 0.1 |  |
@@ -2735,11 +2574,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | MARKET\_STOCKPILE\_PERCENTAGE\_FOR\_EXTRA\_TRADE | 0.05 | When supply reaches MARKET\_STOCKPILE\_FULL\_EXTRA\_TRADE\_THRESHOLD, it will add maximum of this value. |
 | STOCKPILE\_TRADE\_IMPACT\_ON\_SUPPLY\_SCALE | 0 | How much of the stockpile bleed (the extra-trade supply produced when stockpile > MARKET\_MIN\_STOCKPILE\_TO\_ALLOW\_EXTRA\_TRADE) counts toward price-formation supply. 0 = stockpile fill never suppresses price; only feeds trade routing. |
 | MARKET\_WASTED\_MANUAL\_TRADE\_CAPACITY\_TRESHOLD | 0.1 |  |
-
 ### Mercenary
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MERCENARY\_MOBILIZATION\_TIME\_BASE | 2 |  |
 | MERCENARY\_GATHERING\_TIME\_BASE | 14 |  |
 | MERCENARY\_RECRUITMENT\_DISTANCE\_FACTOR | 0.025 |  |
@@ -2762,27 +2598,18 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | MERCENARY\_LEADER\_DISTANCE\_MULTIPLIER | 0.0005 | Mileage allowance, paid by employer. Must be nice. |
 | MERCENARY\_ATTRITION\_LEVEL\_TO\_THINK\_ABOUT\_ABANDONING\_CONTRACT | 3 |  |
 | MERCENARY\_DAYS\_THAT\_EMERGENCY\_RATIONS\_LAST | 365 |  |
-
 ### Messages
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MESSAGES\_CATEGORY\_ICON\_PATH | gfx/interface/icons/messages/categories |  |
 | BG\_MESSAGES\_CATEGORY\_ICON\_PATH | gfx/interface/icons/messages/background |  |
-
 ### Outliner
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ICON\_PATH | gfx/interface/icons/outliner |  |
 | CATEGORY\_ICON\_PATH | gfx/interface/icons/outliner/categories |  |
 | BG\_CATEGORY\_ICON\_PATH | gfx/interface/icons/outliner/background |  |
 | BG\_SUBCATEGORY\_ICON\_PATH | gfx/interface/icons/outliner/background |  |
-
 ### Pop
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MIN\_REBEL\_POP\_SIZE\_THRESHOLD | 5 | rebels need to have at least these amount of pop support to be a real revolt. (in thousand) |
 | PRODUCED\_IN\_MARKET\_DEMAND | 0.1 |  |
 | STARVING\_ON\_FOOD\_DEMAND | 1.5 |  |
@@ -2817,11 +2644,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | POP\_MINORITY\_SIMILAR\_THRESHOLD | 4 | if more or equal of this of pops of type in location, join either same culture or religion |
 | POP\_MINORITY\_JUST\_MERGE\_THRESHOLD | 8 | if more or equal of this of pops of type in location, join largest |
 | YEARLY\_POP\_SATISFACTION\_FROM\_EVENTS\_DECAY | 0.01 | percentage, will display as value \* 100 |
-
 ### Portrait
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | GENE\_DATABASE\_VERSION | 2 | If the version saved in a file does not match this number, the portrait DNAs will get regenerated. Increase this number when making gene database changed that would break old portraits. |
 | GRACEFUL\_AGING\_START | 25 | After this age, added life expectancy will make a character look younger than they are; the effect grows the further past this point one goes |
 | GRACEFUL\_AGING\_END | 70 | This is the apparent age at which life expectancy stops slowing down visual aging (each year onwards ages you visually 1 year) |
@@ -2833,21 +2657,15 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | DEFAULT\_BASE\_WEIGHT\_MAX | 35 | Max for starting random base weight inclusive |
 | IGNORED\_WEIGHT\_DEVIATION\_FOR\_DEAD\_WITHOUT\_DNA | 10 | Characters that die at between -10 and 10 weight, and have no DNA generated, will get their weight set to 0 to save storage in the save game |
 | MAX\_PORTRAIT\_GENERATION\_DEPTH | 8 | When generating someone's portrait, generate up to this many generations of missing portraits |
-
 ### Religion
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | RELIGIOUS\_FOCUS\_COST | 100 |  |
 | PERIPHORA\_DAYS\_PER\_LOCATION | 30 |  |
 | RELIGIOUS\_FIGURE\_CHANCE\_OF\_MOVING | 0.01 |  |
 | CORE\_THRESHOLD | 0.5 |  |
 | OMEN\_LENGTH\_MONTHS | 120 |  |
-
 ### Rivers
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | FADE\_IN\_DISTANCE | 10 |  |
 | FADE\_OUT\_DISTANCE | 2 |  |
 | NUM\_WIDTH\_PIXEL\_VALUES | 13 | how many pixels in the river bitmap that are allocated for different river widths |
@@ -2855,13 +2673,9 @@ From /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graph
 | WIDTH\_MAX | 2.2 | how wide the rivers are when using the highest width in the bitmap |
 | UV\_SCALE | 1 |  |
 | FADE\_IN\_INVISIBLE\_DISTANCE\_THRESHOLD | 0.5 | The factor by which FADE\_IN\_DISTANCE is multiplied is the boundary starting from the river source, where the river is visually invisible. |
-
 ### Roads
-
 From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` From loading_screen/defines/graphic/00_graphics.txt ``` | | |
 | ROADS\_DISSAPEAR\_ZOOM\_LEVEL | 8 |  |
 | ROADS\_DISSAPEAR\_FARAWAY\_ZOOM\_LEVEL | 13 |  |
@@ -2873,11 +2687,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | MATERIAL\_TEXTURE | gfx/models/buildings/bridge\_test/bridge\_test\_phong\_properties.dds |  |
 | ``` Caesar defines ``` | | |
 | MAP\_OBJECT\_OCCLUSION\_WIDTH | 2 |  |
-
 ### SeaCurrents
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ANIMATION\_SPEED | 0.3 |  |
 | MIN\_CAMERA\_LEVEL | 800 |  |
 | DISSAPEAR\_ALPHA\_START | 3000 |  |
@@ -2894,11 +2705,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | DISAPPEARENCE\_TRHESSHOLD\_3D | 1 |  |
 | DISAPPEARENCE\_TRHESSHOLD\_CORRECTION\_3D | 0.25 |  |
 | DISAPPEARENCE\_STATE\_SWITCH\_SPEED\_3D | 1.5 |  |
-
 ### SiegeEffect
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | NEGATIVE\_PARTICLES\_NUM | 5 |  |
 | NEGATIVE\_PARTICLES\_SPAWN\_RADIUS | 10 |  |
 | NEGATIVE\_PARTICLES\_SPAWN\_HEIGHT | 0 |  |
@@ -2912,32 +2720,23 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | ASSAULT\_PARTICLES\_SPAWN\_HEIGHT | 1 |  |
 | ASSAULT\_PARTICLES\_SCHEMATIC\_NAME | siege\_effect\_schematic\_assault |  |
 | PARTICLE\_MAX\_ZOOM\_LEVEL | 6 |  |
-
 ### Spreadable
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ESTIMATED\_TRAVELLERS\_TO\_NEIGHBOURING\_LOCATIONS | 0.06 |  |
 | ESTIMATED\_PEOPLE\_PER\_UNIT\_MERCHANT\_CAPACITY | 0.012 |  |
 | ESTIMATED\_TRAVELLERS\_TO\_CAPITAL | 0.06 |  |
 | ESTIMATED\_TRAVELLERS\_TO\_MARKET\_CENTRE | 0.06 |  |
 | ESTIMATED\_MIXING\_WITH\_UNITS | 0.06 |  |
 | ESTIMATED\_MIXING\_WITHIN\_UNITS | 0.35 |  |
-
 ### TerraIncognita
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | SHADER\_PATH | gfx/FX/terra\_incognita.shader |  |
 | HEIGHT | 5 |  |
 | TEXTURE\_SCALE | { 20, 10 } |  |
 | NUM\_EXTRA\_SAMPLES | 8 |  |
 | EXTRA\_SAMPLES\_DISTANCE | 8 |  |
-
 ### Text
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | DURATION\_SHOW\_YEARS\_THRESHOLD | 24 | Duration will show as years if it's at least this many months |
 | DURATION\_SHOW\_MONTHS\_THRESHOLD | 60 | Duration will show as months if it's at least this many days |
 | INDENTATION\_PER\_DEPTH | 2 |  |
@@ -2946,11 +2745,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | HINTS\_MAX\_IMPORTANT\_MODIFIER\_CANDIDATES | 5 | When hints try to list important modifiers, how many will they show at most? |
 | CHARACTER\_NAME\_LENGTH | -1 | debugging tool, set above 0 to test name length |
 | FORMAT\_CHARACTER\_NAMES | -1 | debugging tool, -1 = default behaviour, 0 = always no, 1 = always yes |
-
 ### TextSettings
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | DEFAULT\_ALIGNMENT | 2 | Center |
 | DEFAULT\_FONT | StandardGameFont |  |
 | DEFAULT\_FONT\_SIZE | 60 |  |
@@ -3006,11 +2802,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | LOOT\_MESSAGE\_BOUNDING\_BOX\_EXTRA\_SIZE | { 0, 0, 20 } | Add extra height to account for animation |
 | LOOT\_MESSAGE\_ANIMATION\_FUNCTION | ShowGrowAndDisappearAnimation |  |
 | LOOT\_MESSAGE\_TEXT\_DURATION | 1 |  |
-
 ### Tooltip
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | OPEN\_DELAYED\_TIME | 0 |  |
 | CLOSE\_TIME | 0.2 |  |
 | TENDENCY\_BUFFER | 15 |  |
@@ -3019,11 +2812,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | MOUSE\_MOVE\_DISTANCE\_TO\_UPDATE\_TOOLTIP\_POSITION | 10 |  |
 | MOUSE\_MOVE\_DURATION\_TO\_UPDATE\_TOOLTIP\_POSITION | 0.2 |  |
 | TOOLTIP\_TINT\_RGBA | { 1, 1, 1, 1, 0.8, 0.8, 0.8, 1, 0.6, 0.6, 0.6, 1, 0.1, 0.1, 0.1, 0.2 } | Tooltip stack tint RGBA colors starting with the top tooltip |
-
 ### TradeGraphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | WAGON\_SCALE | 0.125 |  |
 | SHIP\_SCALE | 0.5 |  |
 | SHIP\_FLATMAP\_Y\_OFFSET | 2 |  |
@@ -3043,11 +2833,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | MINIMUM\_SPAWN\_TIME\_BETWEEN\_EXPLORATION\_WAGONS\_GLOBAL | 0.1 |  |
 | MINIMUM\_SPAWN\_TIME\_BETWEEN\_EXPLORATION\_WAGONS\_OF\_THE\_SAME\_EXPLORATION | 20 |  |
 | TRADE\_PARTICLES\_ZOOM\_OUT\_STEP | 6 |  |
-
 ### TreeTweaks
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | SSS\_RADII | { 0.85, 1, 0.5, 0.3 } | This controls how "far" the light scatters inside the object. rgb, multiplied by alpha |
 | SSS\_COLOR | { 1, 1, 1, 0.6 } | Multiplied to the final SSS result. rgb, multiplied by alpha |
 | SSS\_BLEND\_TO\_NORMALIZED\_ALBEDO | 0 | At 0 SSS will use the texture as is, at 1 it will use the normalized albedo. 1 is bright and flat |
@@ -3067,19 +2854,13 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | WIND\_EFFECT\_SPEED | 1.5 | How fast the texture moves |
 | WIND\_EFFECT\_SPREAD | 2 | How much noise to add to the position of the wind sample - helps break up recognizable patterns from the texture, but also makes the texture a bit pointless |
 | WIND\_EFFECT\_NORMAL\_STRENGTH | -1 | How much wind will affect the normals for lighting. Both positive and negative values work. Positive makes normal point in the wind direction, negative makes it point against the wind |
-
 ### Trees
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | FADE\_FAR | 1 |  |
 | FADE\_NEAR | 0 |  |
 | QUAD\_SIZE | 100 |  |
-
 ### Unit
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | EMBARK\_DISEMBARK\_MULTIPLIER | 0.2 | to make disembark/embark from coast slower. |
 | SIZE\_IMPACT\_ON\_MOVEMENT\_SCALE | -0.02 |  |
 | SIZE\_IMPACT\_ON\_MOVEMENT\_CAP | -0.5 |  |
@@ -3123,11 +2904,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | LOCATION\_SCALE\_ON\_MOVEMENT\_COST | 1.33 |  |
 | PERCENTAGE\_OF\_REGIMENTS\_WITH\_NICKNAME | 0.5 | What fraction of regiments spawn with a nickname (e.g. 1st 'Sitges' Regiment instead of just 1st Regiment) |
 | PATHFIND\_FROZEN\_PENALTY\_FACTOR | 20 | How less likely is the pathfinding to select locations that are frozen when finding a path for armies, 0 = same as not frozen |
-
 ### UnitGraphics
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | UNIT\_ICON\_SHORT\_VARIANT\_AT\_ZOOM\_STEP | 9 |  |
 | UNIT\_MAP\_MARKER\_MAP\_PIXELS\_SOUTH | 2 | The unit map marker (-- of troops, etc.) will be positioned as if it was this many pixels on the map south of where the unit is standing |
 | ``` Defines for number of soldiers visible per army This visualization may or may not still work when you read this: https://www.desmos.com/calculator/qrvgaseadc ``` | | |
@@ -3205,11 +2983,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | FLATMAP\_COMBAT\_TEXT\_SEPARATION | 3 |  |
 | INSTANT\_MOVEMENT\_SPEED\_LIMIT | 6 | from whitch speed the movement of the unit graphics will be instant |
 | UNIT\_CHANGE\_MESSAGE\_HOLDDUP\_TIME | 0.5 |  |
-
 ### VisibleLocationsGfx
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MAX\_VISIBLE\_ZOOM\_LEVEL | 13 |  |
 | PLAGE\_SCHEMATIC\_NAME | plague\_particle |  |
 | GLACIER\_SCHEMATIC\_NAMES | { glacier\_schematic, glacier\_schematic\_medium, glacier\_schematic\_small } |  |
@@ -3220,11 +2995,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | DENSITY\_OF\_GLACIERS\_SEVERE | 0.001 |  |
 | NUMBER\_OF\_GLACIER\_RETRIES | 5 |  |
 | GLACIER\_ALLOWED\_CLIMATES | { arctic } |  |
-
 ### War
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | MAX\_WAR\_SCORE | 100 |  |
 | OCCUPATION\_VALUE\_SCALE | 2 | at 1.0 you need 100% of the occupied land to get 100% warscore, higher requires less.. |
 | PARTICIPATION\_SCORE\_BLOCKADE | 0.001 | Per development & ship, once each month |
@@ -3272,19 +3044,12 @@ From /Europa Universalis V/game/loading\_screen/common/defines/jomini/roads.txt
 | PEACE\_RETURN\_CORE\_MULT | 0.5 |  |
 | BUILDING\_DESTROY\_GOLD\_VALUE | 0.1 | percent of building cost |
 | BUILDING\_DESTROY\_CHANCE | 50 | chance of 100 |
-
 ### Water
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | DRAW\_REFRACTIONS\_CUTOFF | 1 |  |
-
 ### Weather
-
 From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt and /Europa Universalis V/game/loading\_screen/common/defines/graphic/00\_graphics.txt
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | ``` From loading_screen/defines/00_defines.txt ``` | | |
 | FRONT\_DEGRADATION\_DISTANCE\_FOR\_TOPOGRAPHY | 125 | every FRONT\_DEGRADATION\_DISTANCE\_FOR\_TOPOGRAPHY pixels moved, the strength of the weather front changes by weather\_front\_strength\_change\_percent on locations underneath the front |
 | CYCLONE\_DEGRADATION\_DISTANCE\_FOR\_TOPOGRAPHY | 125 | every CYCLONE\_DEGRADATION\_DISTANCE\_FOR\_TOPOGRAPHY pixels moved, the strength of the cyclone changes by weather\_cyclone\_strength\_change\_percent on locations underneath the cyclone |
@@ -3310,11 +3075,8 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt a
 | SNOW\_HEAVY\_PARTICLE | weather/snow\_heavy |  |
 | CYCLONE\_PARTICLE | environment/cyclone |  |
 | TORNADO\_PARTICLE | environment/tornado |  |
-
 ### WorkOfArt
-
 | Define | Default Value | Dev Comment |
-| --- | --- | --- |
 | NAME\_ADJECTIVES | { beautiful, bountiful, able, clear, great, large, true, glorious, fine, revered, splendid, astonishing, breathtaking, amazing, urban, greater, scarlet, crimson, anthracite, emerald, petty, pathetic, ugly, grotesque, terrible, horrendous, eldritch, strange, unnatural, terrific, grand, aesthetic, captivating, innovative, expressive, harmonious, majestic, intriguing, evocative, timeless, radiant, vibrant, masterful, enchanting, whimsical, inspiring, disjointed, uninspired, mediocre, confusing, repetitive, dull, cluttered, stale, derivative, trivial, lifeless, incoherent, banal, unimaginative, amateurish } |  |
 | NAME\_NOUNS | { love, glory, god, time, man, world, way, life, eye, mother, father, lady, lord, country, storm, wave, sea, view, monolith, titan, summer, moon, sun, prince, princess, grace, forest, meadow, lake, castle, rock, friend, bird, swan, rabbit, cow, eagle, bear, tree, rock, sandcastle } |  |
 | NAME\_SAINTS | { name\_george, name\_michael, name\_peter, name\_john, name\_james, name\_mark, name\_lucas, name\_matthew, name\_gabriel, name\_simeon, name\_gregory } |  |
@@ -3324,43 +3086,14 @@ From /Europa Universalis V/game/loading\_screen/common/defines/00\_defines.txt a
 | AGE\_CULTURE\_CAP | 2.5 |  |
 | BASE\_TRADITION\_SCALAR | 5 |  |
 | BASE\_INFLUENCE\_SCALAR | 5 |  |
-
 ## References
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | Defines • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

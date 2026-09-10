@@ -379,6 +379,37 @@ def to_markdown(md_converter, html_fragment: str) -> str | None:
     return getattr(result, "text_content", None) or getattr(result, "markdown", None)
 
 
+_IMG_RE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
+
+
+def clean_markdown(md: str) -> str:
+    """Remove wiki maintenance noise: version banners, ambox templates, image links."""
+    out: list[str] = []
+    for line in md.split("\n"):
+        # 版本横幅 / 维护请求（表格内外都是噪音）
+        if (
+            "Please help with verifying" in line
+            or "last verified for" in line
+            or "Please help improve" in line
+            or "Please help expand" in line
+        ):
+            continue
+        # 图片链接：先去掉普通 ![alt](url)；再处理数学公式等 alt 含特殊字符的图片
+        line = _IMG_RE.sub("", line)
+        line = re.sub(r"!\[[^\n]*?en\.wikipedia\.org/api/rest_v1/media/math[^\n]*\)", "", line)
+        # 空链接（markitdown 把 [[File:...]] 转成 [](url)，无文字价值）
+        line = re.sub(r"\[\]\([^)\n]*\)", "", line)
+        s = line.strip()
+        # 去图后只剩空白 / 空表格单元格 / 表格分隔符 → 整行跳过
+        if s == "" or re.fullmatch(r"\|[\s|:—-]*\|", s):
+            continue
+        out.append(line)
+    text = "\n".join(out)
+    # 压缩连续空行为一个空行
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip() + "\n"
+
+
 def load_revcache(path: Path) -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -523,6 +554,8 @@ def main(argv: list[str] | None = None) -> int:
             try:
                 html = fetch_page_html(gate, host, title, args.timeout)
                 markdown = to_markdown(md_converter, html)
+                if markdown:
+                    markdown = clean_markdown(markdown)
             except (URLError, TimeoutError, OSError) as e:
                 sys.stderr.write(f"[skip] {title}: network error ({e})\n")
                 continue

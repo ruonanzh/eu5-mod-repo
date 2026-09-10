@@ -1,23 +1,14 @@
 <!-- source: https://eu5.paradoxwikis.com/On_action revid: 35534 fetched: 2026-09-09 -->
 # On action
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.0.
-
 *This page is about the game effect hooks. For modding actions available in game, see [Action modding](/Action_modding "Action modding").*
-
 **On actions** are effects called by specific circumstances. Common examples are pulses which happen on a regular period, such as monthly or yearly. Other examples include various game occurrences such as starting or ending a war, gaining a new ruler, or a character dying.
-
 ## On action structure
-
 On actions have the following structure with several optional blocks. Most on actions have a specified root scope, some have additional scopes as well.
-
 ```
 on_action_name = {
 	trigger = {			# On_actions can have triggers. If an on_action fires and its trigger returns false, nothing happens
 		trigger_conditions = yes
 	}
-
 	weight_multiplier = {	# Used to manipulate the weight of this on_action if it is a candidate in a random_on_action list (see below)
 		base = 1
 		modifier = {
@@ -25,7 +16,6 @@ on_action_name = {
 			trigger_conditions = yes
 		}
 	}
-
 	events = {		# Events listed in "events" brackets will always fire as long as their trigger evaluates to true
 		event_id.1
 		delay = { days = 365 }		# A delay will mean that all events listed after it will only be fired after the delay has passed. NOTE: For performance reasons, an event will only successfully fire if it is valid both when the on_action is executed AND once the delay is complete. All firing entries support delays, whether for events or on_actions.
@@ -33,11 +23,8 @@ on_action_name = {
 		delay = { months = { 6 12 } }	# Setting a new delay overrides a previous delay. Delays support random ranges
 		event_id.3
 	}
-
 	random_events = {	# A single event will be picked to fire
-
 		chance_to_happen = 25	# A percentage chance determining whether the events involved will be evaluated at all
-
 		chance_of_no_event = { 	# An entry that can be formatted as a script value (and therefore have conditional entries). Separated from "chance_to_happen" for performance reasons. Will only be evaluated if chance_to_happen is true.
 			value = 0
 			if = {
@@ -45,7 +32,6 @@ on_action_name = {
 				add = 10
 			}
 		}
-
 		# If sample_count is present(and not commented out like in this example), the game only evaluates this number of events.
 		# They are chosen randomly(weight is taken into account). If the trigger for one of the evaluated events is fulfilled,
 		# it is executed. Otherwise none of the events in the random_events happen.
@@ -53,47 +39,37 @@ on_action_name = {
 		# but it can greatly reduce the chance that the pulse triggers one of the random_events
 		# (especially if the weight of all events which can happen, is very low).
 		#sample_count = 3
-
 		100 = event_id.1 	# The number is the weight for picking a specific event. The weight is factored by the event's weight_multiplier entry. (If no weight_multiplier is defined for the event, it is 1)
 		200 = event_id.2
 		100 = 0		# Having a "0" entry means that there is a chance no event fires, even if there are other valid events. Good for making sure that rare events don't always fire just because every other possible event is invalid.
 	}
-
 	first_valid = {		# Pick the first event for which the trigger returns true
 		event_id.1
 		event_id.2
 		fallback_event_without_trigger
 	}
-
 	on_actions = {	# An on_action can fire other on_actions, following the same rules as with events
 		on_action_1
 		on_action_2
 		on_action_3
 	}
-
 	random_on_action = {	# Same as with events. On_actions are also factored by their weight_multipliers, which defaults to 1
 		100 = on_action_1
 		200 = on_action_2
 		100 = 0
 	}
-
 	first_valid_on_action = {
 		on_action_1
 		on_action_2
 	}
-
 	effect = { 	# An on_action can run effects. It can access the same default or saved scopes as the script chain/code functionality it was fired from. Note that it happens concurrently to events triggered by the on_action, NOT before. Effects run here create a separate chain than events the on_action fires, so you can for example not manipulate values in the effect, and then reliably access those in an event that was fired at the same time. Scopes or local variables set in the effect here will not carry over to any event fired by the on_action.
 		effects = yes
 	}
-
 	fallback = another_on_action 	# on_actions can define a fallback on_action. If no events/on_actions are run by the on_action, the fallback gets called instead. Avoid creating infinite fallback loops, or the game may be prevented from advancing time!
 }
 ```
-
 On action parameters
-
 | Block | Description |
-| --- | --- |
 | trigger | [Triggers](/Trigger "Trigger") that determine if the on action can fire when called |
 | events | List of [events](/Event_modding "Event modding") that are called when the on action fires |
 | random\_events | A single valid event is called from the list, selected by weighted random |
@@ -104,24 +80,17 @@ On action parameters
 | effect | [Effects](/Effect "Effect") that are fired with the on action |
 | weight\_multiplier | A MTTH block that modifies the weight of the on action for use with a random\_on\_action block |
 | fallback | A single on action that is called if no effects, events, or on actions are fired by this this on action |
-
 Each block can have any number of `delay` blocks. Any events, on actions, or effects after the delay waits until the delay passes.
-
 On actions can also be called with the effect `trigger_event` as such:
-
 ```
 	trigger_event_(non_)silently = {
 		on_action = on_action_name
 		days/months/years = X  	# Optional, to delay the firing time
 	}
 ```
-
 ### Modding on actions
-
 On actions can easily modded by calling a new scripted on action from a hardcoded on action. Only a new `on_actions` block can be added to existing on actions. Adding other blocks to an existing on action causes errors.
-
 For example, to add new effects to the monthly country pulse, use the following template:
-
 ```
 monthly_country_pulse = {
 	on_actions = {
@@ -134,29 +103,17 @@ new_on_action = {
 	}
 }
 ```
-
 This makes the base game on-action call the modded on-action whenever it fires.
-
 Note: For compatibility with other mods, and as a general good practice, please add a somewhat unique prefix related to your on\_action to reduce the chance of two mods having the same one.
-
 ### Parallelisation
-
 The events block called by an on\_action is parallelised. This means that when the game is evaluating the events block of the on\_action, it will do so for multiple scopes simultaneously, at least for as many as there are available threads with which to do so- the more of the scopes which are to be evaluated that can be simultaneously processed, the closer the time to evaluate all of the scopes will be to the time it takes to evaluate just one scope.
-
 A single thread is still used to evaluate the events block for each scope.
-
 #### Practical implications
-
 It is potentially better from a performance standpoint, despite the overhead of constructing and calling a separate event, to use an event to apply effects to many scopes at the same time, rather than using the effects block of the same on\_action.
-
 Additionally, scopes affected by the same event from the same on\_action block may be so affected in an arbitrary sequence- if it is desirable that one scope's event be evaluated or occur after another, the the earlier event shall need to be called by the later, or be called after the other in an ordered list effect. In either case the process calling the events will not benefit from parallelism.
-
 ## List of on actions
-
 The given scope is `root` unless otherwise indicated
-
 | Name | Given scope | Description | Other Notes |
-| --- | --- | --- | --- |
 | biyearly\_country\_pulse | country | Bi-yearly pulse is primarily for religious flavor events | once every two years |
 | colonial\_charter\_monthly\_pulse | * root = country * scope:target = colonial\_charter |  |  |
 | country\_pulse\_for\_high\_infamy | country |  |  |
@@ -290,13 +247,9 @@ The given scope is `root` unless otherwise indicated
 | volcano\_location\_pulse | location | checks every location in the default.map list of volcano locations monthly |  |
 | weather\_monthly\_pulse | none |  |  |
 | yearly\_country\_pulse | country |  |  |
-
 ### Base game scripted on actions
-
 The following on actions are not called from game code, but instead by an effect or other on action.
-
 | Name | Given scope | Description | Other Notes |
-| --- | --- | --- | --- |
 | chinese\_expedition\_event\_pulse | * root = Country * scope:expedition\_initiator = country |  | * Root is nation harboring the treasure voyage * Expedition initiator is the nation from which the expedition originates |
 | chinese\_expedition\_movement\_events | country |  | Root is the Expedition Initiator |
 | delhi\_four\_yearly\_pulse | country |  |  |
@@ -326,43 +279,14 @@ The following on actions are not called from game code, but instead by an effect
 | on\_vassalized\_appanage | none |  |  |
 | wor\_on\_wallenstein\_prison\_occupation | none |  |  |
 | wor\_on\_wallenstein\_prison\_timeout | none |  |  |
-
 ## References
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

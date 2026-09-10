@@ -1,30 +1,18 @@
 <!-- source: https://eu5.paradoxwikis.com/Modifier_types revid: 36019 fetched: 2026-09-09 -->
 # Modifier types
-
 This article has been verified for the current [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") (1.3) of the game.
-
 *See also: [Modifier modding](/Modifier_modding "Modifier modding")*
-
 **Modifier types** are game script which modify various game statistics or allow or block certain actions. A *static modifier* may include multiple modifier types. Modifier types are also used in many other game objects, such as [laws](/Law_modding "Law modding"), [institutions](/Institution_modding "Institution modding"), and [advances](/Advance_modding "Advance modding"), among others.
-
 ## Behavior of modifier types
-
 Modifier types can hold a numerical or boolean value. Identical numerical modifier types affecting the same scope sum together to provide the final effect. Boolean modifier types can return only `yes` or `no`.
-
 There are three categories of modifier types: hardcoded, object-based, and script-only.
-
 * Hardcoded modifier types are defined based on game code and are only minimally moddable.
 * Object-based modifier types are defined based on a mix game code and game objects, and new modifier types can be defined for new game objects.
 * Script-only modifier types are defined entirely by script and do not have a direct effect on gameplay.
-
 Modifier types have a default value of `0` for numerical types and `no` for Boolean types.
-
 ### Modifier blocks
-
 A **modifier block** is an script element that accepts modifier types. A common example is a [static modifier](/Modifier_modding#Static_modifiers "Modifier modding") defined in common/static\_modifiers. Some static modifiers are defined in code and are [hardcoded](/Modifier_modding#Hardcoded_static_modifiers "Modifier modding"), but most are "event" modifiers, applied with the [effect](/Effect "Effect") [add\_<type>\_modifier](/Modifier_modding#Applying_and_removing_modifiers_during_the_game "Modifier modding").
-
 A static modifier generally looks like this:
-
 ```
 lack_of_agreement = {
 	game_data = {
@@ -34,21 +22,13 @@ lack_of_agreement = {
 	bank_interest = 0.03
 }
 ```
-
 This includes a game data block and a number of modifier types. A static modifier does not need a modifier type, in which case it is mainly cosmetic or indicative of some other mechanic.
-
 Other examples of modifier blocks include [laws](/Law_modding "Law modding"), [advances](/Advance_modding "Advance modding") and [estate privileges](/Estate_modding#estate_privileges "Estate modding"). In most cases, the modifier block is explicitly labeled with the term `modifier` or a similar variation.
-
 ### Modifier type values in script
-
 The [event target](/Event_target "Event target") `modifier` returns the summed value of the given modifier type. This value can be used in [script values](/Script_value "Script value") as well as [triggers](/Trigger "Trigger") and [effects](/Effect "Effect") that accept script values. For example, a trigger can check if a country has more or less than a certain value of a given modifier type, or an effect can scale its impact by a given modifier type. Boolean modifiers return `yes` or `no` which can be used in direct comparisons or for certain triggers.
-
 ## Defining modifier types
-
 All modifier types are defined in common/modifier\_type\_definitions. New files in common/modifier\_type\_definitions must be named fully in lowercase. If uppercase symbols are used in the file name the engine will not properly read the contents of the file. Each modifier type is scripted as its own block and may contain a number of parameters:
-
 | Parameter | Description |
-| --- | --- |
 | decimals | Defines how many decimals are used in displaying the modifier type's value Unmodified Europa Universalis 5 only uses 0, 1, and 2 |
 | color | Defines how the value is colored: neutral, good, or bad `neutral` is always black; `good` uses green for positive, red for negative; `bad` is the opposite. |
 | percent | If set to `yes`, displays value as a percentage This multiplies the displayed value by 100 |
@@ -56,19 +36,12 @@ All modifier types are defined in common/modifier\_type\_definitions. New files 
 | prefix | Determines which localization key should be prefixed when displaying the values for entries of this type |
 | suffix | Determines which localization key should be suffixed when displaying the values for entries of this type |
 | game\_data | Used for internal handling, described in `modifier_types.md` as:  ``` # the value to the AI of having this modifier, multiplied by the value to determine the chance the AI will go after static modifiers of this type; only implemented for certain modifier types ai_value = 0 # the alternate modifier definition this type should be treated as in bespoke regions of code. Not generically applicable, used for applying the same effect in contextually appropriate situations translate = battle_offense_add # the modifier typesets this type belongs to, used in code to perform bespoke operations (such as updating cultural community acceptance deltas when a country enacts a law with a modifier entry of this type) type_set = { cultural_acceptance } ``` |
-
 Hardcoded and object-based modifier types must use the exact script name or pattern expected, while script-only modifier types can use any script name.
-
 ### Localization
-
 Each modifier type generates two [localization](/Localization "Localization") keys, `MODIFIER_TYPE_NAME_<key>` and `MODIFIER_TYPE_DESC_<key>`
-
 ## Object-based modifiers
-
 Object-based modifiers can be extended for mods that add new types for each object category. Unmodified Europa Universalis 5 contains many, but not all possible modifier types for the game's objects.
-
 | Category | Description | Definition folder |
-| --- | --- | --- |
 | $Bureaucracy$ | Bureaucracies | common/bureaucracies |
 | $Estate$ | Estates | common/estates |
 | $Goods$ | Goods | common/goods |
@@ -79,11 +52,8 @@ Object-based modifiers can be extended for mods that add new types for each obje
 | $Spreadable$ | Diseases and movements | common/diseases |
 | $Topography$ | Topography | common/topography |
 | $UnitCategory$ | Unit categories | common/unit\_categories |
-
 List of modifier types
-
 | Modifier type | Description | Category | Type |
-| --- | --- | --- | --- |
 | $Bureaucracy$\_impact\_modifier | Multiplies impact of $Bureaucracy$ |  | multiplicative |
 | $Estate$\_agenda\_impact | Multiplies agenda impact of $Estate$ | estate |  |
 | $Estate$\_allowed\_in\_cabinet | $Estate$ characters can be in cabinet | estate |  |
@@ -147,23 +117,14 @@ List of modifier types
 | national\_$Spreadable$\_growth\_modifier | Adds growth of $Spreadable$ in country |  | multiplicative |
 | national\_$Spreadable$\_resistance\_modifier | Adds resistance to $Spreadable$ in country |  | multiplicative |
 | navy\_$UnitCategory$\_power | Adds to combat power of $UnitCategory$ | navy |  |
-
 ## Script-only modifier types
-
 Script-only modifier types do not have a direct effect on the gamestate. Instead, they act as "hooks" for other scripting. For example, the modifier type `baptize_ruler_from_kirishitan_cost_modifier` has no effect by itself, but instead it is used in the calculation of the [scripted action's price](/Action_modding#Price "Action modding"). Script-only modifier types can also be used with scripted values, as for example `hanseatic_shipwright_guild_max_level` which is used in a script value to determine the maximum allowed level of the Hanseatic Shipwright Guild building.
-
 The value of any modifier type can be returned with the scope link `modifier`. For example, `modifier:allowed_to_become_shogun` which returns yes or no depending on the value of the modifier type. Numerical modifiers are summed when returned with `modifier` so that separate sources add together, just as with hardcoded and object-based modifier types.
-
 Finally, some script-only modifier types act only as indicators while the actual effect is implemented in another way.
-
 ## List of all defined modifier types
-
 This table contains all modifier types defined in Europa Universalis 5 for easy searching. It does not include potential modifier types which are not defined
-
 List of modifier types
-
 | Modifier type | Localization | Category | Type | Format | Notes |
-| --- | --- | --- | --- | --- | --- |
 | a\_clan\_retainer\_cavalry\_build\_cost\_modifier | Clan Retainer Cavalry Build Cost | country | multiplicative | percent, bad |  |
 | a\_clan\_retainer\_cavalry\_maintenance\_cost\_modifier | Clan Retainer Cavalry Maintenance Cost | country | multiplicative | percent, bad |  |
 | a\_clan\_retainer\_cavalry\_reinforce\_cost\_modifier | Clan Retainer Cavalry Repair Cost | country | multiplicative | percent, bad |  |
@@ -2600,48 +2561,17 @@ List of modifier types
 | wotr\_action\_price\_cost\_modifier | War of the Roses Main Actions Price Cost Modifier | country | multiplicative | percent, bad |  |
 | wrong\_culture\_levy\_size | Non-Culture Levy Size | country |  | percent, good |  |
 | years\_to\_annex\_members | Years to Annex Members | internationalorganization |  | neutral |  |
-
 ## References
-
 ---
-
 * To update notes of defined modifier types, see [Module:Modifier type/List/Updates](/Module%3AModifier_type/List/Updates "Module:Modifier type/List/Updates")
 * To update the potential modifier types, see [Module:Modifier type/Potential](/Module%3AModifier_type/Potential "Module:Modifier type/Potential")
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • Modifier types • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

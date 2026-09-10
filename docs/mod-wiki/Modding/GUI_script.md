@@ -1,35 +1,16 @@
 <!-- source: https://eu5.paradoxwikis.com/GUI_script revid: 36997 fetched: 2026-09-10 -->
 # GUI script
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.0.
-
-|  |  |
-| --- | --- |
-| ![Wiki letter w.png](https://central.paradoxwikis.com/images/6/6a/Wiki_letter_w.png) | Please help improve this article or section by [**expanding it**](https://eu5.paradoxwikis.com/index.php?title=GUI_script&action=edit) with: more tables. |
-
 *See also: [Scripted gui](/Scripted_gui "Scripted gui")*
-
 **GUI script** is the style of scripting used in the game's [GUI](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") and [localization](/Localization "Localization"). This is different from the script used in most other game files, though there are some corresponding objects, such as countries and variables. Similar to game script's [scopes](/Scope "Scope"), GUI script uses data types; some of these correspond to game scopes while others are used only with GUI script.
-
 GUI script is divded in two types: *Functions* and *Promotes*.
-
 ## Common features
-
 All GUI script is written in "CamelCase"[[1]](#cite_note-1) – with a few exceptions, where each word in the function or promote is capitalized and no spaces are used. Each piece of GUI script is always enclosed in square brackets. Within the square brackets, the functions and promotes can be chained together with "dot chaining", for example `[State.GetJobseekersDesc]`. When moving from one data type to another, this is similar to dot chaining with [scopes](/Scope "Scope").
-
 Some functions and promotes take arguments which are enclosed in parentheses immediately following the function or promote, for example `[GetPopTypeByName('peasants').GetName]`. If the argument is a game script object, it is typically enclosed in single quotes; if it is another data type, function, or promote, it is not. If the function or promote takes multiple arguments, they must be passed in order with each separated by a comma.
-
 Some functions and promotes are "global", meaning they can be used without reference to a data type. All other data type functions and promotes require the correct data type to be in "scope".
-
 ## Lists of data types
-
 These tables list all data types used in GUI scripting which have at least one function or promote.
-
 List of data types for functions
-
 | Type | Description |
-| --- | --- |
 | AISettingsMenu |  |
 | AISettingsMenuItem |  |
 | AccountInventory |  |
@@ -1331,11 +1312,8 @@ List of data types for functions
 | uint64 |  |
 | uint8 |  |
 | void | Unspecified type / empty type. |
-
 List of data types for promotes
-
 | Type | Description |
-| --- | --- |
 | ActiveClip |  |
 | ActiveHegemon |  |
 | ActiveHegemonItem |  |
@@ -1967,34 +1945,18 @@ List of data types for promotes
 | WeatherSystem |  |
 | WorkOfArt |  |
 | WorkOfArtType |  |
-
 ### Data type descriptions
-
 Data Types
-
 | Type | Description | Notes |
-| --- | --- | --- |
 | CFixedValue | 64 bit signed fixed point number with 5 decimal places | Max 92233720368547.75807, Min -92233720368547.75808 |
-
 ## Const vs nonconst
-
 GUI script functions and promotes are categorized into two types: *const* and *nonconst*. These are generally identical in function, but one or the other may be required for certain uses.
-
 Generally, functions and promotes starting with "Access" are used with and return a const type, while those starting with "Get" are used with and return a nonconst type.
-
 ## GUI functions
-
-|  |  |
-| --- | --- |
-| ![Wiki letter w.png](https://central.paradoxwikis.com/images/6/6a/Wiki_letter_w.png) | Please help improve this article or section by [**expanding it**](https://eu5.paradoxwikis.com/index.php?title=GUI_script&action=edit) with: more tables. |
-
 GUI functions typically retrieve certain information from the input type or transform it in some way.
 Below are lists of functions available in certain scopes.
-
 List of global functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | Abs\_CFixedPoint | 1. unknown | CFixedPoint |  |
 | Abs\_float | 1. unknown | float |  |
 | Abs\_int32 | 1. unknown | int32 |  |
@@ -3383,11 +3345,8 @@ List of global functions
 | Vector3iToColor | 1. unknown | CVector4f |  |
 | Vector4iToColor | 1. unknown | CVector4f |  |
 | VersionInfoOnClick |  | void |  |
-
 List of Country functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | AccessSelf |  | Country |  |
 | AutoRaiseArmyLeviesAtWar |  | bool |  |
 | AutoRaiseMaintenanceAtWar | 1. unknown | bool |  |
@@ -3735,11 +3694,8 @@ List of Country functions
 | KnowsAboutInstitution | 1. unknown | bool |  |
 | MakeScope |  | Scope | Jomini Script System |
 | Self |  | Country |  |
-
 List of Scope functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | AccessSelf |  | Scope |  |
 | ActiveResolution |  | unknown | Jomini Script System |
 | AdvanceType |  | unknown | Jomini Script System |
@@ -3857,11 +3813,8 @@ List of Scope functions
 | WeatherSystem |  | unknown | Jomini Script System |
 | WorkOfArt |  | unknown | Jomini Script System |
 | WorkOfArtType |  | unknown | Jomini Script System |
-
 List of TopScope functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | AccessSelf |  | TopScope |  |
 | End |  | TopScope |  |
 | GetFlagName | 1. unknown | CString |  |
@@ -3983,25 +3936,13 @@ List of TopScope functions
 | sWeatherSystem | 1. unknown | unknown |  |
 | sWorkOfArt | 1. unknown | unknown |  |
 | sWorkOfArtType | 1. unknown | unknown |  |
-
 ### List of all data type functions
-
 *Main article: [List of GUI script functions](/List_of_GUI_script_functions "List of GUI script functions")*
-
 The list is on a separate page as it is too large to directly be included on this page. It includes all GUI functions in every scope including those above.
-
 ## GUI promotes
-
-|  |  |
-| --- | --- |
-| ![Wiki letter w.png](https://central.paradoxwikis.com/images/6/6a/Wiki_letter_w.png) | Please help improve this article or section by [**expanding it**](https://eu5.paradoxwikis.com/index.php?title=GUI_script&action=edit) with: more tables. |
-
 GUI promotes typically move the "scope" from one type to another.
-
 List of global promotes
-
 | Promote | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | ACTIVE\_RESOLUTION |  | ActiveResolution |  |
 | ACTIVE\_SITUATION |  | ActiveSituation |  |
 | ADVANCE |  | Advance |  |
@@ -4384,11 +4325,8 @@ List of global promotes
 | WEATHER\_SYSTEM |  | WeatherSystem |  |
 | WORK\_OF\_ART |  | WorkOfArt |  |
 | WORK\_OF\_ART\_TYPE |  | WorkOfArtType |  |
-
 List of Country functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | AccessSelf |  | Country |  |
 | AutoRaiseArmyLeviesAtWar |  | bool |  |
 | AutoRaiseMaintenanceAtWar | 1. unknown | bool |  |
@@ -4736,11 +4674,8 @@ List of Country functions
 | KnowsAboutInstitution | 1. unknown | bool |  |
 | MakeScope |  | Scope | Jomini Script System |
 | Self |  | Country |  |
-
 List of Scope functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | AccessSelf |  | Scope |  |
 | ActiveResolution |  | unknown | Jomini Script System |
 | AdvanceType |  | unknown | Jomini Script System |
@@ -4858,11 +4793,8 @@ List of Scope functions
 | WeatherSystem |  | unknown | Jomini Script System |
 | WorkOfArt |  | unknown | Jomini Script System |
 | WorkOfArtType |  | unknown | Jomini Script System |
-
 List of TopScope functions
-
 | Function | Arguments | Output | Description |
-| --- | --- | --- | --- |
 | AccessSelf |  | TopScope |  |
 | End |  | TopScope |  |
 | GetFlagName | 1. unknown | CString |  |
@@ -4984,13 +4916,9 @@ List of TopScope functions
 | sWeatherSystem | 1. unknown | unknown |  |
 | sWorkOfArt | 1. unknown | unknown |  |
 | sWorkOfArtType | 1. unknown | unknown |  |
-
 ### List of all GUI promotes
-
 List of all promotes
-
 | Type | Promote | Arguments | Output | Description |
-| --- | --- | --- | --- | --- |
 | ActiveClip | OnEnterEventsKeyframe |  | ActiveClipEventsKeyframe |  |
 | ActiveClip | OnExitEventsKeyframe |  | ActiveClipEventsKeyframe |  |
 | ActiveHegemon | GetCurrent |  | Country |  |
@@ -7052,49 +6980,17 @@ List of all promotes
 | WorkOfArt | GetOwner |  | Country |  |
 | WorkOfArt | MakeScope |  | Scope |  |
 | WorkOfArtType | MakeScope |  | Scope |  |
-
 ## References
-
 1. [↑](#cite_ref-1) More precisely, "UpperCamelCase" or "PascalCase"
-
 ---
-
 * To update the tables, see [Module:GUI script/Functions](/Module%3AGUI_script/Functions "Module:GUI script/Functions") and [Module:GUI script/Promotes](/Module%3AGUI_script/Promotes "Module:GUI script/Promotes")
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  GUI script • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

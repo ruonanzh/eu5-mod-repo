@@ -1,23 +1,12 @@
 <!-- source: https://eu5.paradoxwikis.com/Scope_link revid: 34419 fetched: 2026-09-09 -->
 # Scope link
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.2.
-
 *This page discusses the game script element often called "event targets". For pop-up narrative content events, see [Event modding](/Event_modding "Event modding"); for lists and details of events that exist in Europa Universalis V, see [Events](/Events "Events").*
-
 **Scope links** – often called *event targets* or colloquially just *scopes* – are object, [scope](/Scope "Scope"), or value references used in Europa Universalis V's game script. Most scope links can be used as target of an [effect](/Effect "Effect") or [trigger](/Trigger "Trigger") when it refers to an appropriate scope, object, or value. Similarly, scope links can be used as scopes or the left side of a value comparison.
-
 Scope links that represent scopes can generally be used in dot chains as for example: `p:xF98DA3.state.owner.capital` which looks at the given province, then chains to that province's state, that state's owning country, and finally to that country's capital state.
-
 ## Data scope links
-
 These scope links require additional input, such as a scripted type or specified scope. This generally takes the form of `event_target:data`; some use the format `event_target(data)`, this type must be enclosed in quotation marks, including any dot scoped elements, e.g. `"scope:power_bloc.power_bloc_leader.market.market_number_goods_shortages_with(scope:with_country)"`.
-
 List of scope links
-
 | Scope link | Description | From scope | To scope |
-| --- | --- | --- | --- |
 | active\_outbreak | gets the active outbreak for a disease in a location or subunit - usage active\_outbreak(<disease>) | location, sub\_unit | disease\_outbreak |
 | active\_resolution | gets the active resolution of the type specified in the scope international organization or situation - usage active\_resolution(<resolution>) | international\_organization, situation | active\_resolution |
 | advance\_type | Unknown, add something in code registration | none | advance\_type |
@@ -180,15 +169,10 @@ List of scope links
 | war\_with\_country | Gets the current war of the country scope against the specified target country - usage war\_with\_country(<country>) | country | war |
 | work\_of\_art | Unknown, add something in code registration | none | work\_of\_art |
 | work\_of\_art\_type | Unknown, add something in code registration | none, work\_of\_art | work\_of\_art\_type |
-
 ## Value scope links
-
 These scope links return a numerical or boolean value. This allows them to be used in comparisons or script values.
-
 List of value scope links
-
 | Scope link | Description | From scope |
-| --- | --- | --- |
 | array\_define | Reference the value of a numeric value in an array define: array\_define:Namespace|Name|Index. Index is 0-based. | none |
 | bias\_value | Unknown, add something in code registration | none |
 | building\_base\_cost\_in\_gold | The Building base price in gold | building\_type |
@@ -233,34 +217,19 @@ List of value scope links
 | total\_sub\_unit\_type\_strength | Checks the total strength of a subunit-type for a country | unit |
 | traded\_in\_market | The amount of goods traded in a specific market | market |
 | value | A numeric literal value eg: 1, 5.2, -6 | none |
-
 ## Wild card scope links
-
 These scope links refer to a type of scope link, rather than a specifically named scope link. For example, the scope link `compare_value` refers to any simple, inline [trigger](/Trigger "Trigger") which checks a numerical value such as `free_arable_land`. Similarly, `named_script_value` refers to the calculated script value by its name.
-
 List of wild card scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | compare\_complex\_value | A comparison trigger that needs a parsable string parameter that will return its value in the context it is used eg: scope:root.number\_of(armies) | value |
 | compare\_date | A comparison trigger that will return its date in the context it is used eg: root.gold | date |
 | compare\_value | A comparison trigger that will return its value in the context it is used eg: root.gold | value |
 | named\_script\_value | A script value that will calculate and returns its value in the context it is used | color, value |
-
 ## Scope links by scope
-
-|  |  |
-| --- | --- |
-| ![Wiki letter w.png](https://central.paradoxwikis.com/images/6/6a/Wiki_letter_w.png) | Please help improve this article or section by [**expanding it**](https://eu5.paradoxwikis.com/index.php?title=Scope_link&action=edit) with: more lists by scope. |
-
 The following tables list scope links by their required scope. Some scope links are repeated as they can be used in multiple scopes. Scope links that can be used in any scope are indicated with `none`.
-
 ### None scope/scopeless
-
 List of none scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | advance\_type | Unknown, add something in code registration | advance\_type |
 | age | Unknown, add something in code registration | age |
 | ai\_personality | Unknown, add something in code registration | ai\_personality |
@@ -382,25 +351,17 @@ List of none scope links
 | work\_of\_art | Unknown, add something in code registration | work\_of\_art |
 | work\_of\_art\_type | Unknown, add something in code registration | work\_of\_art\_type |
 | yes | Boolean literal for true values | boolean |
-
 ### Building scope
-
 List of building scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | building\_type | Unknown, add something in code registration | building\_type |
 | estate\_type | Unknown, add something in code registration | estate\_type |
 | linked\_pop | Unknown, add something in code registration | pop |
 | location | Unknown, add something in code registration | location |
 | owner | Unknown, add something in code registration | country |
-
 ### Character scope
-
 List of character scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | birth\_location | Unknown, add something in code registration | location |
 | cabinet\_action | The cabinet action a character is performing | cabinet\_action |
 | culture | Unknown, add something in code registration | culture |
@@ -422,13 +383,9 @@ List of character scope links
 | religious\_school | Unknown, add something in code registration | religious\_school |
 | rule\_end\_date | Unknown, add something in code registration | date |
 | unit | Unknown, add something in code registration | unit |
-
 ### Country scope
-
 List of country scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | active\_mission | Unknown, add something in code registration | mission |
 | ai\_personality | Unknown, add something in code registration | ai\_personality |
 | autocephalous\_patriarchate | Unknown, add something in code registration | international\_organization |
@@ -502,13 +459,9 @@ List of country scope links
 | total\_sub\_unit\_type\_count | Checks the amount of a subunit-type that a country has (in regiments/ships) | value |
 | union | Unknown, add something in code registration | international\_organization |
 | war\_with\_country | Gets the current war of the country scope against the specified target country - usage war\_with\_country(<country>) | war |
-
 ### Location scope
-
 List of location scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | active\_outbreak | gets the active outbreak for a disease in a location or subunit - usage active\_outbreak(<disease>) | disease\_outbreak |
 | area | Unknown, add something in code registration | area |
 | building | Unknown, add something in code registration | building |
@@ -541,13 +494,9 @@ List of location scope links
 | siege | Unknown, add something in code registration | siege |
 | sub\_continent | Unknown, add something in code registration | sub\_continent |
 | top\_owner | Unknown, add something in code registration | country |
-
 ### Market scope
-
 List of market scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | dialect | Unknown, add something in code registration | dialect |
 | language | Unknown, add something in code registration | language |
 | location | Unknown, add something in code registration | location |
@@ -558,13 +507,9 @@ List of market scope links
 | stockpile\_in\_market | The amount of goods stockpiled in a specific market | value |
 | target\_price | The target price a goods has in a market | value |
 | traded\_in\_market | The amount of goods traded in a specific market | value |
-
 ### Pop scope
-
 List of pop scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | culture | Unknown, add something in code registration | culture |
 | dialect | Unknown, add something in code registration | dialect |
 | estate\_type | Unknown, add something in code registration | estate\_type |
@@ -573,26 +518,18 @@ List of pop scope links
 | pop\_type | Unknown, add something in code registration | pop\_type |
 | rebel | Unknown, add something in code registration | rebels |
 | religion | Unknown, add something in code registration | religion |
-
 ### War scope
-
 List of war scope links
-
 | Scope link | Description | To scope |
-| --- | --- | --- |
 | attacker\_leader | Unknown, add something in code registration | country |
 | casus\_belli | Unknown, add something in code registration | casus\_belli |
 | defender\_leader | Unknown, add something in code registration | country |
 | original\_attacker\_leader | Unknown, add something in code registration | country |
 | original\_defender\_leader | Returns the country which was the original defender. In cases where the war is started against a subject country, defender\_leader would return the overlord while original\_defender\_leader would return the subject country. Returns the current defender war leader as fallback. | country |
 | war\_goal\_province | Links to the war goal of the war. If no war goal is set or is unrelated to locations (such as superiority) the link returns the capital of the defender war leader | province |
-
 ## All scope links
-
 List of scope links
-
 | Scope link | Description | From scope | To scope |
-| --- | --- | --- | --- |
 | active\_mission | Unknown, add something in code registration | country | mission |
 | active\_outbreak | gets the active outbreak for a disease in a location or subunit - usage active\_outbreak(<disease>) | location, sub\_unit | disease\_outbreak |
 | active\_resolution | gets the active resolution of the type specified in the scope international organization or situation - usage active\_resolution(<resolution>) | international\_organization, situation | active\_resolution |
@@ -875,47 +812,16 @@ List of scope links
 | work\_of\_art | Unknown, add something in code registration | none | work\_of\_art |
 | work\_of\_art\_type | Unknown, add something in code registration | none, work\_of\_art | work\_of\_art\_type |
 | yes | Boolean literal for true values | none | boolean |
-
 ## References
-
 ---
-
 * To update these tables, see [Module:Script docs/Scope links/Updates](/Module%3AScript_docs/Scope_links/Updates "Module:Script docs/Scope links/Updates")
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • [Scopes](/Scope "Scope") • Scope links • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

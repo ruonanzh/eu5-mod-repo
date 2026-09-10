@@ -1,27 +1,14 @@
 <!-- source: https://eu5.paradoxwikis.com/Effect revid: 34338 fetched: 2026-09-09 -->
 # Effect
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.2.
-
 *See also: [Scope link](/Scope_link "Scope link"), [Trigger](/Trigger "Trigger")*
-
 Effects change the current game state – such as creating or killing a character, changing the ownership of a state, and much else.
-
 Effects come in two basic types, inline and block. Inline effects take a simple target, such as a scope, script value, or defined type. Block effects are more complex and often take multiple targets, such as a scope and script value.
-
 All effects require a certain [scope](/Scope "Scope"). Some effects can be used in any scope (noted as "none" in the follow tables), others only function when in the correct scope. Some effects change the current scope.
-
 The tables below are generated from the script documentation (*script\_docs* console command).
-
 ## Iterator effects
-
 Iterators examine all relevant scopes and output one or more.
-
 List of effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | every\_accepted\_culture | Iterate through all accepted cultures in a country | ``` every_accepted_culture = {  limit = { <triggers> }  <effects> } ``` | country | culture |
 | every\_active\_disaster | Iterate through all active disasters for a country | ``` every_active_disaster = {  limit = { <triggers> }  <effects> } ``` | country | disaster |
 | every\_active\_estate | Iterate through all active estates (non-crown) | ``` every_active_estate = {  limit = { <triggers> }  <effects> } ``` | none | estate\_type |
@@ -909,15 +896,10 @@ List of effects
 | random\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` random_work_of_art_by_creator = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | work\_of\_art |
 | random\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` random_work_of_art_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | work\_of\_art |
 | random\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` random_work_of_art_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | work\_of\_art |
-
 ## Flow effects
-
 Flow effects control how other effects are used. This includes conditionals and loops as well as tooltips. They can always be used in any scope
-
 List of effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | else | Executes enclosed effects if limit criteria of preceding 'if' or 'else\_if' is not met | ``` if = {  limit = { <triggers> }  <effects> } else = {  <effects> } ``` | none |  |
 | else\_if | Executes enclosed effects if limit criteria of preceding 'if' or 'else\_if' is not met, and its own limit is met | ``` if = {  limit = { <triggers> }  <effects> } else_if = {  limit = { <triggers> }  <effects> } ``` | none |  |
 | if | Executes enclosed effects if limit criteria are met | ``` if = {  limit = { <triggers> }  <effects> } ``` | none |  |
@@ -925,30 +907,20 @@ List of effects
 | random\_list | randomly choose effects from a list | ``` random_list = {     10 = {                  # defines an option with base chance 10        trigger = { ... }    # optional trigger to enable/disable this option         modifier = { ... }   # optional MTTH-style modifier for the chance. Any special modifiers work here as well        min = 5              # optional number to constrain this option's chance after applying modifiers        max = 20             # optional number to constrain this option's chance after applying modifiers         desc = loc_key       # optional loc key to insert into this option's effect description        show_chance = yes/no # whether to show this option's chance in the effect description, default is yes         effects...           # effects to run if this option is picked     }      5 = { ... }             # another option with base chance 5, so half as likely as the first one      desc = loc_key          # optional way to override the default header for the effect description     pick = 3                # how many options to pick, default is 1     unique = yes/no         # require picked entries to be unique, if pick > 1, default is no } ``` | none |  |
 | switch | Switch on a trigger for the evaluation of another trigger with an optional fallback trigger. | ``` switch = { 	trigger = simple_assign_trigger 	case_1 = { <effects> } 	case_2 = { <effects> } 	case_n = { <effects> } 	fallback = { <effects> } } ``` | none |  |
 | while | Repeats enclosed effects while limit criteria are met or until set iteration count is reached | ``` while = {  limit = { <triggers> }  <effects> } while = {  count = 3  <effects> } Default max of 1000. ``` | none |  |
-
 ## Log effects
-
 Log effects output a message for testing and debugging purposes. They can always be used in any scope.
-
 List of effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | debug\_log | Log a string to the debug log when this effect executes, the message can be a localization string with ROOT, SCOPE and PREV available | ``` debug_log = message ``` | none |  |
 | debug\_log\_date | Logs the current date to the debug.log |  | none |  |
 | debug\_log\_scopes | Log the current scope to the debug log when this effect executes | ``` debug_log_scopes = yes # log full scope info debug_log_scopes = no  # log only current scope ``` | none |  |
 | error\_log | Log a string to the error log when this effect executes, error\_log = message, the message can be a localization string with ROOT, SCOPE and PREV available |  | none |  |
 | random\_log\_scopes | Log the current scope to the random log when this effect executes. | ``` Only use temprorarily for debugging purposes as it can introduce localized strings into the random log. random_log_scopes = yes # log full scope info random_log_scopes = no  # log only current scope ``` | none |  |
 | test\_log | Log a string to the test log when this effect executes, test\_log = message, the message can be a localization string with ROOT, SCOPE and PREV available. | ``` test_log = {  name = <test_key>  text = <custom_log_message> } ``` | none |  |
-
 ## Variable effects
-
 Variable effects set or change the value of a [variable](/Variable "Variable"). They can always be used in any scope, but may require a certain scope to affect the correct variable.
-
 List of effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | add\_to\_global\_variable\_list | Adds the event target to a global variable list for the given duration | ``` add_to_global_variable_list = {  name = <variable_name>  target = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_global\_variable\_map | Adds the event target to a global variable map for the given duration | ``` add_to_global_variable_map = {  name = <variable_name>  key = <event_target>  value = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
 | add\_to\_local\_variable\_list | Adds the event target to a local variable list for the given duration | ``` add_to_local_variable_list = {  name = <variable_name>  target = <event_target>  days/weeks/months/years = <script_value> (optional) } ``` | none |  |
@@ -1004,17 +976,11 @@ List of effects
 | sort\_global\_variable\_list | Sorts a global\_variable list | ``` sort_global_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
 | sort\_local\_variable\_list | Sorts a local variable list | ``` sort_local_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
 | sort\_variable\_list | Sorts a variable list | ``` sort_variable_list = {  name = <variable_name>  order = <script_value> } ``` | none |  |
-
 ## Effects by scope
-
 The following tables list effects by their required scope. Iterators are excluded for space. They can be seen [above](#Iterator_effects) or [below](#All_effects). Some effects are repeated as they can be used in multiple scopes.
-
 ### None/any scope
-
 List of none effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | abandon\_colonial\_charter | Abandons a colonial charter |  | colonial\_charter |
 | activate\_situation | activates a situation |  | situation |
 | add\_extended\_winter | Adds extended winter to target area |  | area |
@@ -1134,23 +1100,15 @@ List of none effects
 | trigger\_event\_silently | triggers an event or on\_action | ``` trigger_event = {  id = X  days/months/years = Y } (for events) or trigger_event = {  on_action = X  days/months/years = Y } (for on_actions) Days/months/years are optional and equal to 0 if not specified. If specified, Y can be a value or an inclusive interval "{ A B }" from which the duration will be picked randomly. ``` |  |
 | update\_leadership | Update the leadership panel of the target international organization. |  | international\_organization |
 | white\_peace | forces a white peace in the target war |  | war |
-
 ### Building scope
-
 List of building effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | change\_building\_level | change the level of a building |  |  |
 | change\_building\_owner | assigns a new owner to a building |  | country |
 | set\_subsidized | change whether a building is subsidised or not |  |  |
-
 ### Character scope
-
 List of character effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_adm | Adds adm ability |  |  |
 | add\_artist\_skill | gives (or takes) artist\_skill to a character |  |  |
 | add\_character\_modifier | add a modifier to a character | ``` add_character_modifier = {  modifier = <static_modifier_name>  days/months/years=<script_value/int> #negative values are permanent duration  (mode = add/extend/replace/add_and_extend/set_to_largest/set_to_largest_and_extend)  (size = <script_value/int>) # multiplies the effect of the modifier  (desc = <localization_key>) # desc replaces the description of how long the modifier lasts  (recalculate_immediately = yes) #forces game to update effects immediately } ``` |  |
@@ -1189,13 +1147,9 @@ List of character effects
 | set\_nickname | Set the nickname of a character to the defined string |  |  |
 | set\_to\_limited\_random\_stat | Sets the stats of the character scope to a random value between a min and max value. | ``` set_to_limited_random_stat = {  ability = adm/dip/mil  max = <scripted value>  min = <scripted value> } ``` |  |
 | start\_work\_of\_art | Makes the target character start working on some art. | ``` start_work_of_art = {  work_of_art_type = work_of_art_type:<type> (optional, will start a random type of WoA if not set)  quality = <calc> (optional, will take artist skill into consideration if unset)  show_quality = yes/no (by default no, shows the probable quality of the WoA before it is finished) } ``` |  |
-
 ### Country scope
-
 List of country effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | abandon\_location | Abandons the target location! |  | location |
 | add\_accepted\_culture | Adds an accepted culture to a country |  | culture |
 | add\_antagonism | Adds an antagonism modifier | ``` add_antagonism = {  modifier = <scripted_modifier>  target = Z  scale = {script value} } ``` |  |
@@ -1422,13 +1376,9 @@ List of country effects
 | transfer\_yearly\_manpower | Transfers a proportion of your yearly Manpower to the target country |  |  |
 | transfer\_yearly\_sailors | Transfers a proportion of your yearly sailors to the target country |  |  |
 | unset\_participated\_in\_parliament | Remove the mark of the country as having participated in the parliament of the target international organization. |  | international\_organization |
-
 ### Culture scope
-
 List of culture effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_cultural\_influence | gives (or takes) cultural\_influence to a culture |  |  |
 | add\_cultural\_tradition | gives (or takes) cultural\_tradition to a culture |  |  |
 | change\_cultural\_view | Changes the cultural view of target. | ``` change_cultural_view = {  target = x  change = relation_change } ``` |  |
@@ -1436,27 +1386,15 @@ List of culture effects
 | reverse\_change\_cultural\_view | Sets the targets cultural view of current culture. | ``` reverse_change_cultural_view = {  target = x  value = relation_change } ``` |  |
 | reverse\_set\_cultural\_view | Sets the targets cultural view of current culture. | ``` reverse_set_cultural_view = {  target = x  value = relation_level } ``` |  |
 | set\_cultural\_view | Sets the cultural view of target. | ``` set_cultural_view = {  target = x  value = relation_level } ``` |  |
-
 ### Goods scope
-
 List of goods effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
-
 ### Institution scope
-
 List of institution effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
-
 ### International organization scope
-
 List of international organization effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_army\_tradition | Adds army tradition |  |  |
 | add\_complacency | Adds complacency |  |  |
 | add\_cooldown | adds a cooldown for a country or international organization. | ``` add_cooldown = {  type = <token>  days/weeks/months/years = <integer> } ``` |  |
@@ -1541,13 +1479,9 @@ List of international organization effects
 | set\_vote | Sets the vote for a country on a resolution in an international organization or situation. | ``` set_vote = {  voter = <country>  resolution = <resolution>  vote = <whatever>  [locked = yes/no] } ``` |  |
 | set\_war\_exhaustion | Sets WarExhaustion |  |  |
 | set\_yanantin | Sets yanantin |  |  |
-
 ### Location scope
-
 List of location effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_core | makes the location a core of the target country |  | country |
 | add\_location\_modifier | add a modifier to a location | ``` add_location_modifier = {  modifier = <static_modifier_name>  days/months/years=<script_value/int> #negative values are permanent duration  (mode = add/extend/replace/add_and_extend/set_to_largest/set_to_largest_and_extend)  (size = <script_value/int>) # multiplies the effect of the modifier  (desc = <localization_key>) # desc replaces the description of how long the modifier lasts  (recalculate_immediately = yes) #forces game to update effects immediately } ``` |  |
 | add\_pop | sets up a pop culture/religion/type/literacy/size possible to set. |  |  |
@@ -1601,13 +1535,9 @@ List of location effects
 | spawn\_disease | Spawns a disease in a location or on a subunit. | ``` spawn_disease = {  disease = <disease>  value = <script_value> } ``` | disease\_outbreak |
 | spawn\_movement | Spawns a movement in a location | ``` spawn_movement = {  movement_definition = <movement_definition>  supporters = <script value> } ``` | movement |
 | transfer\_location\_occupation | Transfers occupation of a Location to the target country |  | country |
-
 ### Market scope
-
 List of market effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_goods\_supply | Adds goods to a market's stockpile. | ``` add_goods_supply = {  goods = <goods>  amount = <amount> } ``` |  |
 | add\_merchant\_power | Adds temporary power to a merchant | ``` add_merchant_power = {  country = <country>  power = value  key = localisation  months = y } ``` |  |
 | add\_temporary\_demand | Adds a temporary demand to a market | ``` add_temporary_demand = {  type = demand  scale = x  months = months } ``` |  |
@@ -1616,13 +1546,9 @@ List of market effects
 | remove\_merchant\_power | Removes temporary power to a merchant | ``` remove_merchant_power = {  country = <country>  key = localisation } ``` |  |
 | remove\_temporary\_demand | Remove a temporary demand in a market |  | demand |
 | sell\_goods\_from\_location | Adds goods to a market's stockpile, selling them from a specific location, and the location's owner country selling them will get the sale value. | ``` sell_goods_from_location = {  goods = <goods>  amount = <amount>  location = <location> } ``` |  |
-
 ### Pop scope
-
 List of pop effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_pop\_satisfaction | change the Satisfaction of a pop |  |  |
 | add\_pop\_size | change the size of a pop |  |  |
 | change\_pop\_allegiance | change rebel allegiance of pop to target Rebel |  | rebels |
@@ -1632,23 +1558,14 @@ List of pop effects
 | change\_pop\_type | changes pop type of the pop |  | pop\_type |
 | remove\_pop\_allegiance | removed allegienace of a pop |  |  |
 | split\_pop | Splits a pop and makes changes to it. If both size and fraction are scripted, it will use the largest. | ``` split_pop = {  size = <fixed_num>  fraction = <percentage_of_size>  religion = x  type = poptype  culture = y  location = z } ``` |  |
-
 ### War scope
-
 List of war effects
-
 | Effect | Description | Example | Targets |
-| --- | --- | --- | --- |
 | add\_bonus\_warscore | adds some bonus war score to the supplied country. | ``` add_bonus_warscore = {  country = country scope  amount = script value } ``` |  |
-
 ## All effects
-
 Use this table to search for all effects.
-
 List of all effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | abandon\_colonial\_charter | Abandons a colonial charter |  | none | colonial\_charter |
 | abandon\_location | Abandons the target location! |  | country | location |
 | activate\_situation | activates a situation |  | none | situation |
@@ -3133,47 +3050,16 @@ List of all effects
 | update\_leadership | Update the leadership panel of the target international organization. |  | none | international\_organization |
 | while | Repeats enclosed effects while limit criteria are met or until set iteration count is reached | ``` while = {  limit = { <triggers> }  <effects> } while = {  count = 3  <effects> } Default max of 1000. ``` | none |  |
 | white\_peace | forces a white peace in the target war |  | none | war |
-
 ## References
-
 ---
-
 * To update these tables, see [Module:Script docs/Effects/Updates](/Module%3AScript_docs/Effects/Updates "Module:Script docs/Effects/Updates")
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • Effects • [Scopes](/Scope "Scope") • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

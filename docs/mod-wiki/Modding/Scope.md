@@ -1,44 +1,24 @@
 <!-- source: https://eu5.paradoxwikis.com/Scope revid: 33015 fetched: 2026-09-09 -->
 # Scope
-
-Please help with verifying or updating older sections of this article.
-At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") pre-release.
-
 **Scopes** are game objects used with most [effects](/Effect "Effect") and [triggers](/Trigger "Trigger"). Scopes represent game object types - a `country` scope represents a country, and all effects that are on a country scope will therefore expect to be fired on a country. Relationships between scopes are defined using [event targets](/Event_target "Event target") and, when used in triggers and effects - <#Iterators>. Scopes are set in a few ways. Most scripted content sets a certain scope, such as `country` as the base or **root** scope.
-
 Most scopes are a particular instance of a game object, determined when the scope is called. Certain scopes refer to game object *types* instead.
-
 ## Scopes and scripting
-
 Most scripting is done "in scope" meaning that an effect or trigger must be run in a relevant scoped object in order to correctly check or affect the gamestate. For example, an effect that changes a character's ability stats functions only if it is in a character scope. Similarly, a trigger that checks national tax base does not function outside of a country scope.
-
 Some effects and triggers work in multiple scope types, and others do not require a specific scope at all, meaning they can be used nearly anywhere. Scopeless script is sometimes referred to as "global", "any", or "none" scope. In the [effect](/Effect "Effect"), [trigger](/Trigger "Trigger"), and [scope link](/Scope_link "Scope link") tables, script that does not require a specific scope is noted with "none".
-
 ## Base scope
-
 Each scripted element in the game files that runs effects or triggers may contain a base scope, which is callable with `root`. Some may contain additional scopes, saved as `saved scope` and referred to using `scope:` datalink.
-
 ## Iterators
-
 **Iterators** – also called lists – are [effects](/Effect "Effect") or [triggers](/Trigger "Trigger") which iterate through all eligible scopes of a certain type, returning them for checking triggers or executing effects.
-
 There are four types of iterators, one for triggers and three for effects.
-
 | Prefix | Description |
-| --- | --- |
 | any\_<name> | * Trigger scope, checks that any returned scope returns true for contained triggers.   + Can use `count <operator> <scripted value>` or `percent <operator> <scripted value>` to check a specified amount or ratio   + With `count = all` or `percent = 1`, it requires all scopes to return true   + Can use `filter = { <triggers> }` with `count` or `percent` to limit returned scopes |
 | every\_<name> | * Effect scope, executes effects on all returned scopes   + Can use `limit = { <triggers> }` to narrow the scopes returned |
 | ordered\_<name> | * Effect scope, executes effects on returned scope, by default first scope in ordering is returned   + Uses `order_by = value` to determine the ordering   + Can use `limit = { <triggers> }` to narrow the scopes returned   + Can use `position = int` to select a different position in order, 0-indexed   + Can use `min = int` and `max = value` to limit which and how many scopes are returned in the ordering   + Can use `check_range_bounds = no` to prevent error logging if the number of returned scopes is less than the range betweem min and max |
 | random\_<name> | * Effect scope, executes effects on a single random returned scope   + Can use `limit = { <triggers> }` to narrow the scopes returned   + Can use `weight = { mtth_blocks }` to weight the random selection |
-
 ### Trigger iterators
-
 *See also: [Trigger](/Trigger "Trigger")*
-
 List of iterator triggers
-
 | Trigger | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | any\_accepted\_culture | Iterate through all accepted cultures in a country | ``` any_accepted_culture = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | culture |
 | any\_active\_disaster | Iterate through all active disasters for a country | ``` any_active_disaster = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | disaster |
 | any\_active\_estate | Iterate through all active estates (non-crown) | ``` any_active_estate = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | none | estate\_type |
@@ -316,21 +296,13 @@ List of iterator triggers
 | any\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` any_work_of_art_by_creator = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | character | work\_of\_art |
 | any\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` any_work_of_art_in_country = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | country | work\_of\_art |
 | any\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` any_work_of_art_in_location = {   filter = { <triggers> } (optional)   <count=num/all> /   <percent=fixed_point> (optional)   <triggers> } ``` | location | work\_of\_art |
-
 Trigger iterators all start with `any_` and return true if any scope meets the contained triggers. This behavior can be changed with the parameter `count op int value` or `percent op value [0-1]` when then requires at least the specified number or percent of the scope to meet the contained triggers. These use the usual [comparison operators](/Trigger#Comparison_triggers "Trigger").
-
 If `count` or `percent` are used, another parameter `filter` can be used to limit which scopes are considered.
-
 When negated, trigger iterators behave like `count = all` is set by default, such that it returns true if no scope meets the contained triggers; actually setting `count = all`, however, inverts the behavior back to returning true if any scope does not meet the contained triggers.
-
 ### Effect iterators
-
 *See also: [Effect](/Effect "Effect")*
-
 List of iterator effects
-
 | Effect | Description | Example | Scopes | Targets |
-| --- | --- | --- | --- | --- |
 | every\_accepted\_culture | Iterate through all accepted cultures in a country | ``` every_accepted_culture = {  limit = { <triggers> }  <effects> } ``` | country | culture |
 | every\_active\_disaster | Iterate through all active disasters for a country | ``` every_active_disaster = {  limit = { <triggers> }  <effects> } ``` | country | disaster |
 | every\_active\_estate | Iterate through all active estates (non-crown) | ``` every_active_estate = {  limit = { <triggers> }  <effects> } ``` | none | estate\_type |
@@ -1218,19 +1190,12 @@ List of iterator effects
 | random\_work\_of\_art\_by\_creator | Iterate through all work\_of\_art by a particular artist | ``` random_work_of_art_by_creator = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | character | work\_of\_art |
 | random\_work\_of\_art\_in\_country | Iterate through all work\_of\_art in a country | ``` random_work_of_art_in_country = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | country | work\_of\_art |
 | random\_work\_of\_art\_in\_location | Iterate through all work\_of\_art in a location | ``` random_work_of_art_in_location = {  limit = { <triggers> }  (weight = { <mean time to happen value> })  <effects> } ``` | location | work\_of\_art |
-
 Effect iterators begin with `every_`, `ordered_`, and `random_`. `every_` iterators apply their effects to all returned scopes, `ordered_` iterators order their returned scopes by a value comparison and apply their effects to the first in the ordering, and `random_` iterators apply their effects to a single random returned scope.
-
 All three can use the parameter `limit` to apply triggers that limit which scopes are returned. If the limit triggers are specific enough, such that they return only a single scope, all three types of iterator are effectively identical.
-
 `ordered_` iterators can return a scope besides the first by using the parameter `position = int` which is 0-indexed. Additionally, the parameters `min = int` and `max = value` can be used to limit how many and which scopes are returned in the ordering. `min` sets the "top" position, using the same 0-indexing as `position`, while `max` determines the number of scopes to return, from the floored value given. If not specified, `min = 0` and `max = 1`. Setting `min` without setting `max` considers `max` as equal to the iterator's list size. Use `check_range_bounds = no` to prevent error logging when using min or max, otherwise using a min or max higher than the list size gives and error.
-
 `random_` iterators can weight the returned scopes so that certain scopes are more likely to be selected. This uses `weight = { <mtth blocks> }`. Without a modified weighting, all returned scopes are equally weighted.
-
 #### Multiple random scopes
-
 Often it is useful to return multiple random or semi-random scopes. This can be implemented in a few different ways. The most straightforward is multiple uses of a `random_` iterator. To ensure that the same scope is not returned twice, set a variable on each scope as part of its effects and check that the variable has not been set in order to return the next scope.
-
 ```
 random_country = {
     limit = {
@@ -1242,11 +1207,8 @@ random_country = {
 }
 <repeat above as desired>
 ```
-
 This style can be made more succinct by using a [scripted effect](/Macro "Macro") or a [while](/Effect#while "Effect") loop, so that the actual effect only needs to be defined once.
-
 An alternative approach uses a single `ordered_` iterator with a semi-random ordering. This ensures each returned scope is unique without having to check for variables, as well as keeping the amount of script used to a minimum. It makes use of the [script value](/Script_value "Script value") function `modulo` to give a semi-random ordering.
-
 ```
 ordered_country = {
     limit = { } # if desired
@@ -1258,17 +1220,11 @@ ordered_country = {
     <effects>
 }
 ```
-
 This example returns 10 countries which are ordered by a randomized modulo of total population. The `modulo` range can be set to any values desired and can also used `fixed_range` or `integer_range` in order to make use of other scripted values, and other values can be used as the basis, such as gold, prestige, or any reasonably unique value set.
-
 ## Event targets
-
 *Main article: [Event target](/Event_target "Event target")*
-
 List of contextual scope links
-
 | Scope link | Description | From scope | To scope |
-| --- | --- | --- | --- |
 | active\_mission | Unknown, add something in code registration | country | mission |
 | advance\_age | Unknown, add something in code registration | advance\_type | age |
 | attacker\_leader | Unknown, add something in code registration | war | country |
@@ -1386,11 +1342,8 @@ List of contextual scope links
 | unit\_next\_location | Unknown, add something in code registration | unit | location |
 | upgrade\_demand | Unknown, add something in code registration | production\_method | demand |
 | war\_goal\_province | Links to the war goal of the war. If no war goal is set or is unrelated to locations (such as superiority) the link returns the capital of the defender war leader | war | province |
-
 List of specified scope links
-
 | Scope link | Description | From scope | To scope |
-| --- | --- | --- | --- |
 | active\_outbreak | gets the active outbreak for a disease in a location or subunit - usage active\_outbreak(<disease>) | location, sub\_unit | disease\_outbreak |
 | active\_resolution | gets the active resolution of the type specified in the scope international organization or situation - usage active\_resolution(<resolution>) | international\_organization, situation | active\_resolution |
 | advance\_type | Unknown, add something in code registration | none | advance\_type |
@@ -1553,22 +1506,14 @@ List of specified scope links
 | war\_with\_country | Gets the current war of the country scope against the specified target country - usage war\_with\_country(<country>) | country | war |
 | work\_of\_art | Unknown, add something in code registration | none | work\_of\_art |
 | work\_of\_art\_type | Unknown, add something in code registration | none, work\_of\_art | work\_of\_art\_type |
-
 **Event targets** are scope identifiers that return a specific scope from context or specification. Event targets can be used to set the scope or as the target of an effect or trigger. When setting the scope, event targets can be used either for triggers or for effects, unlike iterators which are specified only for triggers or effects, but not both.
-
 Scope event targets come in two types, contextual or specified. Contextual event targets almost always must be used in a relevant scope, as they refer to scopes relevant to the current scope, such as the capital state or ruler of a country. Specified event targets are often scopeless as they refer to a specific object. Some specified event targets still require a certain scope as they refer to an instance of a type, rather than a unique object.
-
 Specified scope event targets typically use a colon `:` followed by a script key, such as a building type, country tag, or area. Some use parentheses instead.
-
 ### Scope stacking
-
 Scope stacking, also known as dot chaining, is a method of quickly going from one scope to another without having to insert multiple event target blocks. This allows for quickly changing through scopes without having to create a new block for each scope level. They follow the format of `<preceding event_target>.<next_event_target>`.
-
 While scope stacking seems to produce a technically equivalent result, there is one caveat - the previous scope (`PREV`) is set to the scope before the chain.
 For example, to check if any country has a capital in a certain region, either of the following methods return the same result,
-
 Without scope stacking
-
 ```
 any_country = {
     capital = {
@@ -1576,18 +1521,14 @@ any_country = {
     }
 }
 ```
-
 With scope stacking
-
 ```
 any_country = {
     capital.region = region:<region_name>
 }
 ```
-
 Here is an example showcasing how `PREV` works:
 Without scope stacking
-
 ```
 any_country = {
 	ruler = {
@@ -1597,9 +1538,7 @@ any_country = {
 	}
 }
 ```
-
 With scope stacking
-
 ```
 any_country = {
 	ruler.birth_location = {
@@ -1607,24 +1546,17 @@ any_country = {
 	}
 }
 ```
-
 ### Scope existence checks and ?= operator
-
 Trying to fire effects or check triggers on scopes that do not exist will lead to results and unintended behavior, so it is critical to have certainty that the object behind the scope exists.
 This can be done using some regular triggers like [has\_capital](/Trigger#has_capital "Trigger"), or, more generally, **[exists](/Trigger#exists "Trigger")**.
-
 The `?=` existence operator can be combined with [Event targets](/Event_target "Event target") to ease this process.
-
 In triggers, `?=` means that the scope must exist and must fulfill the requirements:
-
 ```
 scope:target ?= {
 	gold >= 100
 }
 ```
-
 is equivalent to:
-
 ```
 AND = {
 	exists = scope:target
@@ -1633,37 +1565,28 @@ AND = {
 	}
 }
 ```
-
 It must be specified that in comparison contexts, `?=` only checks for the left-hand side:
-
 ```
 ruler ?= scope:target
 ```
-
 If ruler does not exist, the block will evaluate to false, if scope:target does not exist, an error will be printed and the check might have unexpected behavior.
 Alternative ways to do the two-sided existance check:
-
 ```
 ruler ?= {
 	scope:target ?= this
 }
-
 AND = {
 	exists = scope:target
 	ruler ?= scope:target
 }
 ```
-
 In effects, `?=` evaluates to a check that makes the effects inside fire only if the scope exists.
-
 ```
 scope:target ?= {
 	add_gold = 100
 }
 ```
-
 is equivalent to:
-
 ```
 if = {
 	limit = {
@@ -1674,21 +1597,14 @@ if = {
 	}
 }
 ```
-
 ### Value triggers
-
 Some triggers can be used in value comparison triggers - those triggers can also be used as scope links that return `value` scope and can therefore be used at the end of scope stacking.
 Such triggers will usually have the following line in their documentation:
 `Traits: <, <=, =, !=, >, >=`
-
 ## Common scope examples
-
 WIP
-
 ## Scope types
-
 Here are all recognizable scope types in the game. [Effects](/Effect "Effect"), [triggers](/Trigger "Trigger"), and [scope links](/Scope_link "Scope link") listed on this wiki note which scopes they can be used in.
-
 * active\_resolution
 * advance\_type
 * age
@@ -1809,11 +1725,8 @@ Here are all recognizable scope types in the game. [Effects](/Effect "Effect"), 
 * weather\_system
 * work\_of\_art
 * work\_of\_art\_type
-
 ### Scopes with variables
-
 Some game objects can hold variables and variable lists on them. Here is the list of such scopes:
-
 * cabinet
 * character
 * colonial\_charter
@@ -1829,43 +1742,14 @@ Some game objects can hold variables and variable lists on them. Here is the lis
 * active\_situation
 * unit
 * war
-
 ## References
-
 [Modding](/Modding "Modding")[Return to top](#top)
-
-|  |  |
-| --- | --- |
 | Documentation | [Defines](/Defines "Defines") • [Effects](/Effect "Effect") • Scopes • [Scope links](/Scope_link "Scope link") • [Triggers](/Trigger "Trigger")  [Colors](/Color "Color") • [Macros](/Macro "Macro") • [Mean time to happen](/Mean_time_to_happen "Mean time to happen") • [Modifier types](/Modifier_types "Modifier types") • [On actions](/On_actions "On actions") • [Script value](/Script_value "Script value") • [Variables](/Variable "Variable")  [GUI script](/GUI_script "GUI script") • [Localization](/Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted content | [Actions](/Action_modding "Action modding") • [Disasters](/Disaster_modding "Disaster modding") • [Events](/Event_modding "Event modding") • [Missions](/Mission_modding "Mission modding") • [Modifiers](/Modifier_modding "Modifier modding") • [Scripted gui](/Scripted_gui "Scripted gui") • [Setup](/Setup_modding "Setup modding") • [Situations](/Situation_modding "Situation modding") • [Customizable localization](/Localization#Customizable_Localization "Localization") |
-
-|  |  |
-| --- | --- |
 | Scripted types | [Advances](/Advance_modding "Advance modding") • [Art](/Art_modding "Art modding") • [Buildings](/Building_modding "Building modding") • [Bureaucracies](/index.php?title=Bureaucracy_modding&action=edit&redlink=1 "Bureaucracy modding (page does not exist)") • [Casus belli](/War_modding "War modding") • [Characters](/Character_modding "Character modding") • [Concepts](/Concept_modding "Concept modding") • [Countries](/Country_modding "Country modding") • [Culture](/Culture_modding "Culture modding") • [Diplomacy](/index.php?title=Diplomacy_modding&action=edit&redlink=1 "Diplomacy modding (page does not exist)") • [Diseases](/Disease_modding "Disease modding") • [Estates](/Estate_modding "Estate modding") • [Goods](/Goods_modding "Goods modding") • [Institutions](/Institution_modding "Institution modding") • [International organizations](/International_organization_modding "International organization modding") • [Laws](/Law_modding "Law modding") • [Movements](/index.php?title=Movement_modding&action=edit&redlink=1 "Movement modding (page does not exist)") • [Peace treaties](/War_modding "War modding") • [Pops](/Pop_modding "Pop modding") • [Religion](/Religion_modding "Religion modding") • [Subject types](/Subject_type_modding "Subject type modding")  • [Traits](/Trait_modding "Trait modding") • [Units](/Unit_modding "Unit modding") • [Wargoals](/War_modding "War modding") |
-
-|  |  |
-| --- | --- |
 | Map | [Map](/Map_modding "Map modding") • [Map modes](/index.php?title=Map_mode_modding&action=edit&redlink=1 "Map mode modding (page does not exist)") • [Terrain](/Terrain_modding "Terrain modding") |
-
-|  |  |
-| --- | --- |
 | Graphics | [3D Models](/index.php?title=Model_modding&action=edit&redlink=1 "Model modding (page does not exist)") • [Interface](/index.php?title=Interface_modding&action=edit&redlink=1 "Interface modding (page does not exist)") • [Graphical assets](/index.php?title=Graphical_asset_modding&action=edit&redlink=1 "Graphical asset modding (page does not exist)") • [Fonts](/index.php?title=Font_modding&action=edit&redlink=1 "Font modding (page does not exist)") • [Flags](/Flag_modding "Flag modding") |
-
-|  |  |
-| --- | --- |
 | Audio | [Music](/index.php?title=Music_modding&action=edit&redlink=1 "Music modding (page does not exist)") • [Sound](/index.php?title=Sound_modding&action=edit&redlink=1 "Sound modding (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Other | [AI](/index.php?title=AI_modding&action=edit&redlink=1 "AI modding (page does not exist)") • [Console commands](/Console_commands "Console commands") • [Checksum](/index.php?title=Checksum&action=edit&redlink=1 "Checksum (page does not exist)") • [Mods](/Mod "Mod") • [Mod compatibility](/Mod_compatibility "Mod compatibility") • [Mod structure](/Mod_structure "Mod structure") • [Troubleshooting](/index.php?title=Mod_troubleshooting&action=edit&redlink=1 "Mod troubleshooting (page does not exist)") |
-
-|  |  |
-| --- | --- |
 | Guides | [Interface modding guide](/Interface_modding_guide "Interface modding guide") • [Mod translation](/index.php?title=Mod_translation&action=edit&redlink=1 "Mod translation (page does not exist)") • [Save-game editing](/Save-game_editing "Save-game editing") • [Settlement position modding guide](/Settlement_position_modding_guide "Settlement position modding guide") |
-
-|  |  |
-| --- | --- |
 | Tools | [Arcanum](/Arcanum "Arcanum") • [PDX DeepL](/PDX_DeepL "PDX DeepL") • [PDX Flag Builder](/PDX_Flag_Builder "PDX Flag Builder") • [PDX Workshop Manager](/PDX_Workshop_Manager "PDX Workshop Manager") • [Community Mod Toolkit](/Community_Mod_Toolkit "Community Mod Toolkit") • **[Add Your Tool to the Wiki](/Form%3AModding_tool "Form:Modding tool")** |

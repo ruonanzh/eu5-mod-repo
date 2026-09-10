@@ -1,5 +1,5 @@
-<!-- source: https://eu5.paradoxwikis.com/Work_of_Art revid: 35649 fetched: 2026-09-09 -->
-# Work of Art
+<!-- source: https://eu5.paradoxwikis.com/Work_of_art revid: 37071 fetched: 2026-09-10 -->
+# Work of art
 
 Please help with verifying or updating older sections of this article.
 At least some were last verified for [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") 1.0.
@@ -71,7 +71,7 @@ Depending on its level of quality, each work of art will give the following bene
 
 |  |  |
 | --- | --- |
-| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/index.php?title=Talk:Work_of_Art&action=edit&redlink=1 "Talk:Work of Art (page does not exist)")**. |
+| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/index.php?title=Talk:Work_of_art&action=edit&redlink=1 "Talk:Work of art (page does not exist)")**. |
 
 ### Starting works of art
 
@@ -225,7 +225,7 @@ The following historical works of art can be created over the course of the game
 
 |  |  |
 | --- | --- |
-| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/index.php?title=Talk:Work_of_Art&action=edit&redlink=1 "Talk:Work of Art (page does not exist)")**. |
+| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/index.php?title=Talk:Work_of_art&action=edit&redlink=1 "Talk:Work of art (page does not exist)")**. |
 
 | Work of art | Type | Art quality | Location | Artist | Earliest date | Latest date | Country |
 | --- | --- | --- | --- | --- | --- | --- | --- |

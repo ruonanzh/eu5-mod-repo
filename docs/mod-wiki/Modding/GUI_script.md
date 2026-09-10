@@ -1,4 +1,4 @@
-<!-- source: https://eu5.paradoxwikis.com/GUI_script revid: 33010 fetched: 2026-09-09 -->
+<!-- source: https://eu5.paradoxwikis.com/GUI_script revid: 36997 fetched: 2026-09-10 -->
 # GUI script
 
 Please help with verifying or updating older sections of this article.
@@ -2009,7 +2009,7 @@ List of global functions
 | AddTextIf | 1. unknown 2. unknown | CString |  |
 | Add\_CFixedPoint | 1. unknown 2. unknown | CFixedPoint |  |
 | Add\_CVector2f | 1. unknown 2. unknown | CVector2f |  |
-| Add\_float | 1. float 2. float | float |  |
+| Add\_float | 1. unknown 2. unknown | float |  |
 | Add\_int32 | 1. unknown 2. unknown | int32 |  |
 | Add\_int64 | 1. unknown 2. unknown | int64 |  |
 | Add\_uint32 | 1. unknown 2. unknown | uint32 |  |
@@ -3384,6 +3384,606 @@ List of global functions
 | Vector4iToColor | 1. unknown | CVector4f |  |
 | VersionInfoOnClick |  | void |  |
 
+List of Country functions
+
+| Function | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AccessSelf |  | Country |  |
+| AutoRaiseArmyLeviesAtWar |  | bool |  |
+| AutoRaiseMaintenanceAtWar | 1. unknown | bool |  |
+| AutoRaiseNavyLeviesAtWar |  | bool |  |
+| CanColonize |  | bool |  |
+| CanEmbraceInstitution | 1. unknown | bool |  |
+| CanExtendRegency |  | bool |  |
+| CanTakeLand |  | bool |  |
+| CountryIsHeir | 1. unknown | bool |  |
+| CountryIsInLineOfSuccessionNotHeir | 1. unknown | bool |  |
+| Custom | 1. unknown | CString |  |
+| Exists |  | bool |  |
+| GenerateSceneDesc | 1. unknown | unknown |  |
+| GetAcceptedCulturesInfo |  | CString |  |
+| GetActiveDisasters |  | unknown |  |
+| GetActiveEmploymentSystemInfo |  | CString |  |
+| GetActiveGods |  | unknown |  |
+| GetActiveRebels |  | unknown |  |
+| GetAdjective |  | CString |  |
+| GetAdjectiveWithFlag |  | CString |  |
+| GetAdjectiveWithFlagWithNoTooltip |  | CString |  |
+| GetAdjectiveWithNoTooltip |  | CString |  |
+| GetAgePreferenceInfo |  | CString |  |
+| GetAiUtility | 1. unknown 2. unknown | CString |  |
+| GetAltAdjective | 1. unknown | CString |  |
+| GetAltAdjectiveWithFlag | 1. unknown | CString |  |
+| GetAltAdjectiveWithFlagWithNoTooltip | 1. unknown | CString |  |
+| GetAltAdjectiveWithNoTooltip | 1. unknown | CString |  |
+| GetAltLongName | 1. unknown | CString |  |
+| GetAltLongNameWithFlag | 1. unknown | CString |  |
+| GetAltLongNameWithFlagWithNoTooltip | 1. unknown | CString |  |
+| GetAltName | 1. unknown | CString |  |
+| GetAltNameWithFlag | 1. unknown | CString |  |
+| GetAltNameWithFlagWithNoTooltip | 1. unknown | CString |  |
+| GetAltNameWithNoTooltip | 1. unknown | CString |  |
+| GetArmyBreakdown |  | CString |  |
+| GetArmyLevyPower |  | CString |  |
+| GetArmyLevyPowerInfo |  | CString |  |
+| GetArmyLevyPowerTooltip |  | CString |  |
+| GetArmyLevyPowerValue |  | CFixedPoint |  |
+| GetArmySize |  | CString |  |
+| GetArtTooltip |  | CString |  |
+| GetAverageArmyExperience |  | CFixedPoint |  |
+| GetAverageArmyExperienceInfo |  | CString |  |
+| GetAverageLiteracy |  | CFixedPoint |  |
+| GetAverageNavyExperience |  | CFixedPoint |  |
+| GetAverageNavyExperienceInfo |  | CString |  |
+| GetBankruptcyEndDate |  | CString |  |
+| GetBankruptcyProgress |  | float |  |
+| GetBestArmyUnits |  | CString |  |
+| GetBestNavyUnits |  | CString |  |
+| GetBlockadedPercent |  | CFixedPoint |  |
+| GetBlockadedPortsInfo |  | CString |  |
+| GetCapital |  | unknown |  |
+| GetCapitalOrParliament |  | unknown |  |
+| GetCardinals |  | unknown |  |
+| GetCharacterArtistsAmount |  | int32 |  |
+| GetColonialCharters |  | unknown |  |
+| GetCommonDialect |  | unknown |  |
+| GetCommonLanguage |  | unknown |  |
+| GetCountry |  | unknown |  |
+| GetCountryDescriptionCategoryDesc |  | CString |  |
+| GetCountryDescriptionCategoryName |  | CString |  |
+| GetCountryReleaseInfo |  | CString |  |
+| GetCountryTypeDesc |  | CString |  |
+| GetCountryTypeName |  | CString |  |
+| GetCountryTypeNameWithNoTooltip |  | CString |  |
+| GetCountryTypeString |  | CString |  |
+| GetCourtDialect |  | unknown |  |
+| GetCourtLanguage |  | unknown |  |
+| GetCrownpower |  | CFixedPoint |  |
+| GetCulturalCapacity |  | CFixedPoint |  |
+| GetCulturalUnity |  | CFixedPoint |  |
+| GetCulture |  | unknown |  |
+| GetCulturePercentage | 1. unknown | CFixedPoint |  |
+| GetCulturePercentageInfo | 1. unknown | CString |  |
+| GetCultureStatus | 1. unknown | CString |  |
+| GetCurrencyBalance | 1. unknown | CFixedPoint |  |
+| GetCurrencyMaxValue | 1. unknown | CFixedPoint |  |
+| GetCurrencyMinValue | 1. unknown | CFixedPoint |  |
+| GetCurrencyPosition | 1. unknown | float |  |
+| GetCurrencyTooltipDescription | 1. unknown | CString |  |
+| GetCurrencyTooltipHint | 1. unknown | CString |  |
+| GetCurrencyTooltipTitle | 1. unknown | CString |  |
+| GetCurrencyTooltipValueDescription | 1. unknown | CString |  |
+| GetCurrencyValue | 1. unknown | CString |  |
+| GetCurrentCivilWar |  | unknown |  |
+| GetCurrentFortsAmount |  | CFixedPoint |  |
+| GetCurrentFortsAmountInfo |  | CString |  |
+| GetCurrentRegencyInfo |  | CString |  |
+| GetCurrentRegencyName |  | CString |  |
+| GetCurrentReligiousFocus |  | unknown |  |
+| GetCurrentResearch |  | unknown |  |
+| GetDebugTag |  | unknown |  |
+| GetDebugText |  | CString |  |
+| GetDefaultLandMorale |  | CFixedPoint |  |
+| GetDefaultLandMoraleTooltip |  | CString |  |
+| GetDefaultNavalMorale |  | CFixedPoint |  |
+| GetDefaultNavalMoraleTooltip |  | CString |  |
+| GetDescriptionFor | 1. unknown | CString |  |
+| GetDifficultyLevelDesc |  | CString |  |
+| GetDifficultyLevelName |  | CString |  |
+| GetDiplomacy |  | unknown |  |
+| GetDiplomaticCurrency | 1. unknown | CString |  |
+| GetDiplomaticCurrencyDesc | 1. unknown | CString |  |
+| GetDominantLanguage |  | Language |  |
+| GetDoubleDescriptionFor | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValue | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueCapped | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueNoFormat | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueNoFormatNoSign | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueNoFormatTruncated | 1. unknown 2. unknown | CString |  |
+| GetDynamicQuickDiplomaticActions |  | unknown |  |
+| GetDynasties |  | unknown |  |
+| GetEconomicalBase |  | CFixedPoint |  |
+| GetEconomicalBaseWithLabel |  | CString |  |
+| GetEconomy |  | unknown |  |
+| GetEffectiveDistanceFromCapital | 1. unknown | CFixedPoint |  |
+| GetEligibleForRoyalMarriage | 1. unknown | unknown |  |
+| GetEmploymentSystem |  | unknown |  |
+| GetEndDataDate |  | int32 |  |
+| GetEstateLoanSize |  | CFixedPoint |  |
+| GetEstimatedMonthlyIncome |  | CFixedPoint |  |
+| GetEstimatedMonthlyIncomeAccountedForTradeBalance |  | CFixedPoint |  |
+| GetEstimatedMonthlyIncomeTradeAndTax |  | CFixedPoint |  |
+| GetExpectedArmySize |  | CFixedPoint |  |
+| GetExpectedNavySize |  | CFixedPoint |  |
+| GetExplorations |  | unknown |  |
+| GetExtendRegencyInfo |  | CString |  |
+| GetFixedPointCurrencyValue | 1. unknown | CFixedPoint |  |
+| GetFlag |  | CString |  |
+| GetFlagIcon |  | CString |  |
+| GetFlagIconWithNoTooltip |  | CString |  |
+| GetFlavorPrefix |  | CString |  |
+| GetFlavorRank |  | CString |  |
+| GetFortLimit |  | CFixedPoint |  |
+| GetFortsLimitInfo |  | CString |  |
+| GetGovernment |  | unknown |  |
+| GetGovernmentPowerConcept |  | CString |  |
+| GetGreatPowerBonusInfo |  | CString |  |
+| GetGreatPowerRank |  | int32 |  |
+| GetGreatPowerScore |  | CFixedPoint |  |
+| GetGreatPowerScoreInfo |  | CString |  |
+| GetHegemons |  | unknown |  |
+| GetHighestProgressRebel |  | unknown |  |
+| GetHistoricalMaxPopulation |  | CString |  |
+| GetHistoricalMaxTaxBase |  | CFixedPoint |  |
+| GetHistoricalMinPopulation |  | CString |  |
+| GetHistoricalMinTaxBase |  | CFixedPoint |  |
+| GetHistoricalPopulation |  | unknown |  |
+| GetHistoricalTaxBase |  | unknown |  |
+| GetHistoryDesc |  | CString |  |
+| GetHolySites |  | unknown |  |
+| GetId |  | int32 |  |
+| GetImplementedAvatars |  | unknown |  |
+| GetIncomeTooltip |  | CString |  |
+| GetIncomeValue |  | CFixedPoint |  |
+| GetInstitutionActiveCount |  | CFixedPoint |  |
+| GetInstitutionEmbracedCount |  | CFixedPoint |  |
+| GetInstitutionInfo |  | CString |  |
+| GetInstitutionMissingMinimumPercent | 1. unknown | float |  |
+| GetInstitutionSpreadValue | 1. unknown | float |  |
+| GetInternationalOrganizations |  | unknown |  |
+| GetInvitedReligiousFigures |  | unknown |  |
+| GetIsHumanCountryTooltip |  | CString |  |
+| GetLastMonthsPopulationChange |  | CFixedPoint |  |
+| GetLastMonthsPopulationText |  | CString |  |
+| GetLiturgicalDialect |  | unknown |  |
+| GetLiturgicalLanguage |  | unknown |  |
+| GetLiturgicalLanguageInfo |  | CString |  |
+| GetLiturgicalLanguagePower |  | CString |  |
+| GetLivingCharacters |  | unknown |  |
+| GetLongName |  | CString |  |
+| GetLongNameWithFlag |  | CString |  |
+| GetLongNameWithFlagWithNoTooltip |  | CString |  |
+| GetLongNameWithNoTooltip |  | CString |  |
+| GetLosingGreatPowerScoreInfo |  | CString |  |
+| GetMapColor |  | CVector4f |  |
+| GetMapName |  | CString |  |
+| GetMaxCurrencyNeedGui | 1. unknown | CString |  |
+| GetMaxManpowerTT |  | CString |  |
+| GetMaxManpowerValue |  | CString |  |
+| GetMaxSailorValue |  | CString |  |
+| GetMaxSailorsTT |  | CString |  |
+| GetMilitaryStance |  | unknown |  |
+| GetMilitaryStrength |  | CFixedPoint |  |
+| GetMilitaryStrengthForRelativePower |  | CFixedPoint |  |
+| GetMissionProgress |  | unknown |  |
+| GetModifier | 1. unknown | CFixedPoint |  |
+| GetModifierCappedValue | 1. unknown | CString |  |
+| GetModifierCappedValueWithNoTooltip | 1. unknown | CString |  |
+| GetModifierRawValue | 1. unknown | CFixedPoint |  |
+| GetModifierValue | 1. unknown | CString |  |
+| GetModifierValueInverse | 1. unknown | CString |  |
+| GetModifierValueNoFormat | 1. unknown | CString |  |
+| GetModifierValueNoSign | 1. unknown | CString |  |
+| GetModifierValueWithNoTooltipNoSign | 1. unknown | CString |  |
+| GetMonthlyCurrencyChangeBreakdown | 1. unknown | CString |  |
+| GetName |  | CString |  |
+| GetNameAbbreviation |  | CString |  |
+| GetNameAbbreviationWithNoTooltip |  | CString |  |
+| GetNameWithFlag |  | CString |  |
+| GetNameWithFlagWithNoTooltip |  | CString |  |
+| GetNameWithNoTooltip |  | CString |  |
+| GetNavalDistance | 1. unknown | CFixedPoint |  |
+| GetNavalDistanceToTooltip | 1. unknown | CString |  |
+| GetNavalRange |  | CFixedPoint |  |
+| GetNavyBreakdown |  | CString |  |
+| GetNavyLevyPower |  | CString |  |
+| GetNavyLevyPowerInfo |  | CString |  |
+| GetNavyLevyPowerTooltip |  | CString |  |
+| GetNavyLevyPowerValue |  | CFixedPoint |  |
+| GetNavySize |  | CString |  |
+| GetNavySizeTooltip |  | CString |  |
+| GetNavySizeValue |  | CString |  |
+| GetNavyStrength |  | CFixedPoint |  |
+| GetNumHolySites |  | int32 |  |
+| GetNumWorksOfArt |  | int32 |  |
+| GetNumberOfAvatars |  | int32 |  |
+| GetNumberOfCharacters |  | int32 |  |
+| GetNumberOfGods |  | int32 |  |
+| GetOwnedLocationCount |  | int32 |  |
+| GetOwnedLocationsInfo |  | CString |  |
+| GetOwnedSubUnits |  | unknown |  |
+| GetPercentSpeakersOfLiturgicalLanguage |  | CFixedPoint |  |
+| GetPlayerDiplomacyInfo |  | CString |  |
+| GetPlayerQuickDiplomaticActions |  | unknown |  |
+| GetPopulationChart |  | unknown |  |
+| GetPossibleBuildingSubjectRegionsAmount |  | int32 |  |
+| GetPossibleReleasableCountriessAmount |  | int32 |  |
+| GetPossibleTotalSubjectsAmount |  | int32 |  |
+| GetPotentialArmyLevyPowerTooltip |  | CString |  |
+| GetPotentialArmyLevyPowerValue |  | CFixedPoint |  |
+| GetPotentialDisasters |  | unknown |  |
+| GetPotentialNavyLevyPowerTooltip |  | CString |  |
+| GetPotentialNavyLevyPowerValue |  | CFixedPoint |  |
+| GetPowerProjection |  | CFixedPoint |  |
+| GetPowerProjectionInfo |  | CString |  |
+| GetPrimaryCulturePercentage |  | CFixedPoint |  |
+| GetPrimaryCulturePercentageInfo |  | CString |  |
+| GetPrimaryReligionPercentage |  | CFixedPoint |  |
+| GetPrimaryReligionPercentageInfo |  | CString |  |
+| GetPrivateers |  | unknown |  |
+| GetProvinces |  | unknown |  |
+| GetQuickDiplomaticActions |  | unknown |  |
+| GetRank |  | unknown |  |
+| GetRawArmyLevyPower |  | CFixedPoint |  |
+| GetRawNavyLevyPower |  | CFixedPoint |  |
+| GetRegularArmySize |  | CString |  |
+| GetRegularArmySizeTooltip |  | CString |  |
+| GetRelativeEstatePower | 1. unknown | CFixedPoint |  |
+| GetRelativeMilitaryStrength | 1. unknown | CFixedPoint |  |
+| GetReligion |  | unknown |  |
+| GetReligionPercentage | 1. unknown | CFixedPoint |  |
+| GetReligionPercentageInfo | 1. unknown | CString |  |
+| GetReligiousAspects |  | unknown |  |
+| GetReligiousSchool |  | unknown |  |
+| GetReligiousUnity |  | CFixedPoint |  |
+| GetSaints |  | unknown |  |
+| GetScore |  | unknown |  |
+| GetShortCurrencyValue | 1. unknown | CString |  |
+| GetSocietalValueDirectionTooltip | 1. unknown | CString |  |
+| GetSocietalValuePositionTooltip | 1. unknown | CString |  |
+| GetStartDataDate |  | int32 |  |
+| GetStarvingProvinces |  | CString |  |
+| GetStarvingProvincesAmount |  | int32 |  |
+| GetSubjectTypeLabel |  | CString |  |
+| GetTag |  | CString |  |
+| GetTagAndName |  | CString |  |
+| GetTakeLoanInfo |  | CString |  |
+| GetTaxBaseInfo |  | CString |  |
+| GetTaxBaseWithTooltip |  | CString |  |
+| GetTimedModifierOwner |  | unknown |  |
+| GetTimedModifiers |  | unknown |  |
+| GetTooltip |  | CString |  |
+| GetTooltipLeftRight |  | CString |  |
+| GetTooltipRows |  | CString |  |
+| GetTotalCoastalPopulation |  | CFixedPoint |  |
+| GetTotalColonialCharters |  | CFixedPoint |  |
+| GetTotalCultureCapacityUsed |  | CFixedPoint |  |
+| GetTotalPopulation |  | CString |  |
+| GetTotalPopulationNoLink |  | CString |  |
+| GetTotalPrimaryCulturePoliticalPower |  | CFixedPoint |  |
+| GetTotalProperCultureNobles |  | CFixedPoint |  |
+| GetTotalShips |  | int32 |  |
+| GetTotalStateReligionClergy |  | CFixedPoint |  |
+| GetTotalStrength |  | CString |  |
+| GetTotalTaxBase |  | CString |  |
+| GetTotalWarScore |  | CFixedPoint |  |
+| GetTownsAndCities |  | CString |  |
+| GetTradeByGoodForCountryInfo | 1. unknown | CString |  |
+| GetTradeRangeTooltip | 1. unknown | CString |  |
+| GetTruceToolTip | 1. unknown | CString |  |
+| GetUnits |  | unknown |  |
+| GetWarLosses |  | unknown |  |
+| GetWinterAffectedLocations |  | CString |  |
+| GetWinterAffectedLocationsAmount |  | int32 |  |
+| HasActiveRebels |  | bool |  |
+| HasAnyActiveEmploymentSystem |  | bool |  |
+| HasAnyAgePreferenceInfo |  | bool |  |
+| HasArmy |  | bool |  |
+| HasCardinals |  | bool |  |
+| HasColonialCharters |  | bool |  |
+| HasCountryDescriptionCategory |  | bool |  |
+| HasDifficultyLevel |  | bool |  |
+| HasEmbracedInstitution | 1. unknown | bool |  |
+| HasEnoughHistoricalPopulation |  | bool |  |
+| HasHarmony |  | bool |  |
+| HasHint | 1. unknown | bool |  |
+| HasHumanController |  | bool |  |
+| HasInvitedReligiousFigures |  | bool |  |
+| HasModifier | 1. unknown | bool |  |
+| HasModifierValue | 1. unknown | bool |  |
+| HasNavy |  | bool |  |
+| HasParticipatedInIOParliament | 1. unknown | bool |  |
+| HasPossibleResearch |  | bool |  |
+| HasRighteousness |  | bool |  |
+| HasSelfControl |  | bool |  |
+| HasSpecialStatus | 1. unknown 2. unknown | bool |  |
+| HasTooManyCultures |  | bool |  |
+| HasUnits |  | bool |  |
+| HasVariable | 1. unknown | bool |  |
+| IsAllied |  | bool |  |
+| IsAutoExtendMercenaries |  | bool |  |
+| IsBeingAnnexed |  | bool |  |
+| IsCourtDialectSelected | 1. unknown | bool |  |
+| IsCurrencyEnabled | 1. unknown | bool |  |
+| IsCurrencyValueEqualOrLessThanZero | 1. unknown | bool |  |
+| IsDominantCountryOfPrimaryCulture |  | bool |  |
+| IsEnemy | 1. unknown | bool |  |
+| IsGreatPower |  | bool |  |
+| IsHegemon |  | bool |  |
+| IsInCivilWar |  | bool |  |
+| IsLocalPlayer |  | bool |  |
+| IsLosingGreatPowerStatus |  | bool |  |
+| IsMemberOfInternationalOrganization | 1. unknown | bool |  |
+| IsMovingCapital |  | bool |  |
+| IsNeutral |  | bool |  |
+| IsPlayer |  | bool |  |
+| IsReal |  | bool |  |
+| IsRevolutionary |  | bool |  |
+| IsRevolutionaryTarget |  | bool |  |
+| IsValid |  | bool |  |
+| KnownToPlayerForUI |  | bool |  |
+| KnowsAboutInstitution | 1. unknown | bool |  |
+| MakeScope |  | Scope | Jomini Script System |
+| Self |  | Country |  |
+
+List of Scope functions
+
+| Function | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AccessSelf |  | Scope |  |
+| ActiveResolution |  | unknown | Jomini Script System |
+| AdvanceType |  | unknown | Jomini Script System |
+| Age |  | unknown | Jomini Script System |
+| Area |  | unknown | Jomini Script System |
+| Artist |  | unknown | Jomini Script System |
+| Avatar |  | unknown | Jomini Script System |
+| Building |  | unknown | Jomini Script System |
+| BuildingType |  | unknown | Jomini Script System |
+| Cabinet |  | unknown | Jomini Script System |
+| Cardinal |  | unknown | Jomini Script System |
+| CasusBelli |  | unknown | Jomini Script System |
+| Character |  | unknown | Jomini Script System |
+| CharacterInteraction |  | unknown | Jomini Script System |
+| ChildEducation |  | unknown | Jomini Script System |
+| Climate |  | unknown | Jomini Script System |
+| ColonialCharter |  | unknown | Jomini Script System |
+| Combat |  | unknown | Jomini Script System |
+| CombatSide |  | unknown | Jomini Script System |
+| Continent |  | unknown | Jomini Script System |
+| Country |  | unknown | Jomini Script System |
+| CountryInteraction |  | unknown | Jomini Script System |
+| CountryRank |  | unknown | Jomini Script System |
+| Culture |  | unknown | Jomini Script System |
+| CultureGroup |  | unknown | Jomini Script System |
+| DisasterType |  | unknown | Jomini Script System |
+| Disease |  | unknown | Jomini Script System |
+| DiseaseOutbreak |  | unknown | Jomini Script System |
+| Dynasty |  | unknown | Jomini Script System |
+| EmploymentSystem |  | unknown | Jomini Script System |
+| Estate |  | unknown | Jomini Script System |
+| EstateType |  | unknown | Jomini Script System |
+| Ethnicity |  | unknown | Jomini Script System |
+| Exploration |  | unknown | Jomini Script System |
+| Faction |  | unknown | Jomini Script System |
+| FormableCountry |  | unknown | Jomini Script System |
+| GenericAction |  | unknown | Jomini Script System |
+| GetFlagName |  | CString |  |
+| GetList | 1. unknown | unknown |  |
+| GetScriptValueDesc | 1. unknown | CString |  |
+| GetValue |  | CFixedPoint |  |
+| GetValueWithDefault | 1. unknown | CFixedPoint |  |
+| God |  | unknown | Jomini Script System |
+| Goods |  | unknown | Jomini Script System |
+| GoodsDemand |  | unknown | Jomini Script System |
+| GovernmentType |  | unknown | Jomini Script System |
+| Hegemony |  | unknown | Jomini Script System |
+| HeirSelection |  | unknown | Jomini Script System |
+| HolySite |  | unknown | Jomini Script System |
+| HolySiteDefinition |  | unknown | Jomini Script System |
+| HolySiteType |  | unknown | Jomini Script System |
+| Institution |  | unknown | Jomini Script System |
+| InternationalOrganization |  | unknown | Jomini Script System |
+| InternationalOrganizationType |  | unknown | Jomini Script System |
+| IsSet |  | bool |  |
+| LandOwnershipRule |  | unknown | Jomini Script System |
+| Language |  | unknown | Jomini Script System |
+| LanguageFamily |  | unknown | Jomini Script System |
+| Law |  | unknown | Jomini Script System |
+| LevySetup |  | unknown | Jomini Script System |
+| Loan |  | unknown | Jomini Script System |
+| Location |  | unknown | Jomini Script System |
+| LocationRank |  | unknown | Jomini Script System |
+| Market |  | unknown | Jomini Script System |
+| Mercenary |  | unknown | Jomini Script System |
+| MissionDefinition |  | unknown | Jomini Script System |
+| MissionTaskDefinition |  | unknown | Jomini Script System |
+| ParliamenType |  | unknown | Jomini Script System |
+| ParliamentAgenda |  | unknown | Jomini Script System |
+| ParliamentIssue |  | unknown | Jomini Script System |
+| Payment |  | unknown | Jomini Script System |
+| Policy |  | unknown | Jomini Script System |
+| Pop |  | unknown | Jomini Script System |
+| PopType |  | unknown | Jomini Script System |
+| Price |  | unknown | Jomini Script System |
+| Privateer |  | unknown | Jomini Script System |
+| ProductionMethod |  | unknown | Jomini Script System |
+| Province |  | unknown | Jomini Script System |
+| ProvinceDefinition |  | unknown | Jomini Script System |
+| Rebel |  | unknown | Jomini Script System |
+| RecruitmentMethod |  | unknown | Jomini Script System |
+| RegencyType |  | unknown | Jomini Script System |
+| Region |  | unknown | Jomini Script System |
+| RelationType |  | unknown | Jomini Script System |
+| Religion |  | unknown | Jomini Script System |
+| ReligionGroup |  | unknown | Jomini Script System |
+| ReligiousAspect |  | unknown | Jomini Script System |
+| ReligiousFigure |  | unknown | Jomini Script System |
+| ReligiousFocus |  | unknown | Jomini Script System |
+| ReligiousSchool |  | unknown | Jomini Script System |
+| Resolution |  | unknown | Jomini Script System |
+| RoadType |  | unknown | Jomini Script System |
+| ScriptValue | 1. unknown | CFixedPoint |  |
+| ScriptableHintDefinition |  | unknown | Jomini Script System |
+| ScriptedPeaceTreatyType |  | unknown | Jomini Script System |
+| Self |  | Scope |  |
+| Siege |  | unknown | Jomini Script System |
+| Situation |  | unknown | Jomini Script System |
+| SocietalValue |  | unknown | Jomini Script System |
+| SpecialStatus |  | unknown | Jomini Script System |
+| SubContinent |  | unknown | Jomini Script System |
+| SubUnit |  | unknown | Jomini Script System |
+| SubUnitCategory |  | unknown | Jomini Script System |
+| SubjectMilitaryStance |  | unknown | Jomini Script System |
+| SubjectType |  | unknown | Jomini Script System |
+| Topography |  | unknown | Jomini Script System |
+| Trade |  | unknown | Jomini Script System |
+| Trait |  | unknown | Jomini Script System |
+| Unit |  | unknown | Jomini Script System |
+| UnitAbility |  | unknown | Jomini Script System |
+| UnitType |  | unknown | Jomini Script System |
+| VarRemaining | 1. unknown | int32 |  |
+| Vegetation |  | unknown | Jomini Script System |
+| War |  | unknown | Jomini Script System |
+| WeatherSystem |  | unknown | Jomini Script System |
+| WorkOfArt |  | unknown | Jomini Script System |
+| WorkOfArtType |  | unknown | Jomini Script System |
+
+List of TopScope functions
+
+| Function | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AccessSelf |  | TopScope |  |
+| End |  | TopScope |  |
+| GetFlagName | 1. unknown | CString |  |
+| GetLocalVariable | 1. unknown | unknown |  |
+| GetRootScope |  | unknown |  |
+| GetScriptValueDesc | 1. unknown | CString |  |
+| GetValue | 1. unknown | CFixedPoint |  |
+| ScriptValue | 1. unknown | CFixedPoint |  |
+| Self |  | TopScope |  |
+| sActiveResolution | 1. unknown | unknown |  |
+| sAdvanceType | 1. unknown | unknown |  |
+| sAge | 1. unknown | unknown |  |
+| sArea | 1. unknown | unknown |  |
+| sArtist | 1. unknown | unknown |  |
+| sAudioCulture | 1. unknown | unknown |  |
+| sAvatar | 1. unknown | unknown |  |
+| sBuildingType | 1. unknown | unknown |  |
+| sCabinet | 1. unknown | unknown |  |
+| sCabinetAction | 1. unknown | unknown |  |
+| sCardinal | 1. unknown | unknown |  |
+| sCasusBelli | 1. unknown | unknown |  |
+| sCharacter | 1. unknown | unknown |  |
+| sCharacterInteraction | 1. unknown | unknown |  |
+| sChildEducation | 1. unknown | unknown |  |
+| sClimate | 1. unknown | unknown |  |
+| sColonialCharter | 1. unknown | unknown |  |
+| sCombat | 1. unknown | unknown |  |
+| sCombatSide | 1. unknown | unknown |  |
+| sContinent | 1. unknown | unknown |  |
+| sCountry | 1. unknown | unknown |  |
+| sCountryInteraction | 1. unknown | unknown |  |
+| sCountryRank | 1. unknown | unknown |  |
+| sCulture | 1. unknown | unknown |  |
+| sDialect | 1. unknown | unknown |  |
+| sDisaster | 1. unknown | unknown |  |
+| sDisasterType | 1. unknown | unknown |  |
+| sDisease | 1. unknown | unknown |  |
+| sDiseaseOutbreak | 1. unknown | unknown |  |
+| sDynasty | 1. unknown | unknown |  |
+| sEmploymentSystem | 1. unknown | unknown |  |
+| sEstate | 1. unknown | unknown |  |
+| sEstatePrivilege | 1. unknown | unknown |  |
+| sEstateType | 1. unknown | unknown |  |
+| sEthnicity | 1. unknown | unknown |  |
+| sExploration | 1. unknown | unknown |  |
+| sFormableCountry | 1. unknown | unknown |  |
+| sGenericAction | 1. unknown | unknown |  |
+| sGod | 1. unknown | unknown |  |
+| sGoods | 1. unknown | unknown |  |
+| sGoodsDemand | 1. unknown | unknown |  |
+| sGovernmentReform | 1. unknown | unknown |  |
+| sGovernmentType | 1. unknown | unknown |  |
+| sGraphicalCulture | 1. unknown | unknown |  |
+| sHegemony | 1. unknown | unknown |  |
+| sHeirSelection | 1. unknown | unknown |  |
+| sHolySite | 1. unknown | unknown |  |
+| sHolySiteDefinition | 1. unknown | unknown |  |
+| sHolySiteType | 1. unknown | unknown |  |
+| sInstitution | 1. unknown | unknown |  |
+| sInternationalOrganization | 1. unknown | unknown |  |
+| sInternationalOrganizationType | 1. unknown | unknown |  |
+| sLandOwnershipRule | 1. unknown | unknown |  |
+| sLanguage | 1. unknown | unknown |  |
+| sLanguageFamily | 1. unknown | unknown |  |
+| sLaw | 1. unknown | unknown |  |
+| sLevySetup | 1. unknown | unknown |  |
+| sLoan | 1. unknown | unknown |  |
+| sLocation | 1. unknown | unknown |  |
+| sLocationRank | 1. unknown | unknown |  |
+| sMarket | 1. unknown | unknown |  |
+| sMercenary | 1. unknown | unknown |  |
+| sMissionDefinition | 1. unknown | unknown |  |
+| sMissionTaskDefinition | 1. unknown | unknown |  |
+| sParliamentAgenda | 1. unknown | unknown |  |
+| sParliamentIssue | 1. unknown | unknown |  |
+| sParliamentType | 1. unknown | unknown |  |
+| sPayment | 1. unknown | unknown |  |
+| sPolicy | 1. unknown | unknown |  |
+| sPop | 1. unknown | unknown |  |
+| sPopType | 1. unknown | unknown |  |
+| sPrice | 1. unknown | unknown |  |
+| sPrivateer | 1. unknown | unknown |  |
+| sProductionMethod | 1. unknown | unknown |  |
+| sProvince | 1. unknown | unknown |  |
+| sProvinceDefinition | 1. unknown | unknown |  |
+| sRebel | 1. unknown | unknown |  |
+| sRecruitmentMethod | 1. unknown | unknown |  |
+| sRegencyType | 1. unknown | unknown |  |
+| sRegion | 1. unknown | unknown |  |
+| sRelationType | 1. unknown | unknown |  |
+| sReligion | 1. unknown | unknown |  |
+| sReligionGroup | 1. unknown | unknown |  |
+| sReligiousAspect | 1. unknown | unknown |  |
+| sReligiousFaction | 1. unknown | unknown |  |
+| sReligiousFigure | 1. unknown | unknown |  |
+| sReligiousFocus | 1. unknown | unknown |  |
+| sReligiousSchool | 1. unknown | unknown |  |
+| sResolution | 1. unknown | unknown |  |
+| sRoadType | 1. unknown | unknown |  |
+| sScriptableHintDefinition | 1. unknown | unknown |  |
+| sScriptedPeaceTreatyType | 1. unknown | unknown |  |
+| sSiege | 1. unknown | unknown |  |
+| sSituation | 1. unknown | unknown |  |
+| sSocietalValue | 1. unknown | unknown |  |
+| sSpecialStatus | 1. unknown | unknown |  |
+| sSubContinent | 1. unknown | unknown |  |
+| sSubUnit | 1. unknown | unknown |  |
+| sSubUnitCategory | 1. unknown | unknown |  |
+| sSubjectMilitaryStance | 1. unknown | unknown |  |
+| sSubjectType | 1. unknown | unknown |  |
+| sTopography | 1. unknown | unknown |  |
+| sTrade | 1. unknown | unknown |  |
+| sTrait | 1. unknown | unknown |  |
+| sUnit | 1. unknown | unknown |  |
+| sUnitAbility | 1. unknown | unknown |  |
+| sUnitType | 1. unknown | unknown |  |
+| sVegetation | 1. unknown | unknown |  |
+| sWar | 1. unknown | unknown |  |
+| sWeatherSystem | 1. unknown | unknown |  |
+| sWorkOfArt | 1. unknown | unknown |  |
+| sWorkOfArtType | 1. unknown | unknown |  |
+
 ### List of all data type functions
 
 *Main article: [List of GUI script functions](/List_of_GUI_script_functions "List of GUI script functions")*
@@ -3784,6 +4384,606 @@ List of global promotes
 | WEATHER\_SYSTEM |  | WeatherSystem |  |
 | WORK\_OF\_ART |  | WorkOfArt |  |
 | WORK\_OF\_ART\_TYPE |  | WorkOfArtType |  |
+
+List of Country functions
+
+| Function | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AccessSelf |  | Country |  |
+| AutoRaiseArmyLeviesAtWar |  | bool |  |
+| AutoRaiseMaintenanceAtWar | 1. unknown | bool |  |
+| AutoRaiseNavyLeviesAtWar |  | bool |  |
+| CanColonize |  | bool |  |
+| CanEmbraceInstitution | 1. unknown | bool |  |
+| CanExtendRegency |  | bool |  |
+| CanTakeLand |  | bool |  |
+| CountryIsHeir | 1. unknown | bool |  |
+| CountryIsInLineOfSuccessionNotHeir | 1. unknown | bool |  |
+| Custom | 1. unknown | CString |  |
+| Exists |  | bool |  |
+| GenerateSceneDesc | 1. unknown | unknown |  |
+| GetAcceptedCulturesInfo |  | CString |  |
+| GetActiveDisasters |  | unknown |  |
+| GetActiveEmploymentSystemInfo |  | CString |  |
+| GetActiveGods |  | unknown |  |
+| GetActiveRebels |  | unknown |  |
+| GetAdjective |  | CString |  |
+| GetAdjectiveWithFlag |  | CString |  |
+| GetAdjectiveWithFlagWithNoTooltip |  | CString |  |
+| GetAdjectiveWithNoTooltip |  | CString |  |
+| GetAgePreferenceInfo |  | CString |  |
+| GetAiUtility | 1. unknown 2. unknown | CString |  |
+| GetAltAdjective | 1. unknown | CString |  |
+| GetAltAdjectiveWithFlag | 1. unknown | CString |  |
+| GetAltAdjectiveWithFlagWithNoTooltip | 1. unknown | CString |  |
+| GetAltAdjectiveWithNoTooltip | 1. unknown | CString |  |
+| GetAltLongName | 1. unknown | CString |  |
+| GetAltLongNameWithFlag | 1. unknown | CString |  |
+| GetAltLongNameWithFlagWithNoTooltip | 1. unknown | CString |  |
+| GetAltName | 1. unknown | CString |  |
+| GetAltNameWithFlag | 1. unknown | CString |  |
+| GetAltNameWithFlagWithNoTooltip | 1. unknown | CString |  |
+| GetAltNameWithNoTooltip | 1. unknown | CString |  |
+| GetArmyBreakdown |  | CString |  |
+| GetArmyLevyPower |  | CString |  |
+| GetArmyLevyPowerInfo |  | CString |  |
+| GetArmyLevyPowerTooltip |  | CString |  |
+| GetArmyLevyPowerValue |  | CFixedPoint |  |
+| GetArmySize |  | CString |  |
+| GetArtTooltip |  | CString |  |
+| GetAverageArmyExperience |  | CFixedPoint |  |
+| GetAverageArmyExperienceInfo |  | CString |  |
+| GetAverageLiteracy |  | CFixedPoint |  |
+| GetAverageNavyExperience |  | CFixedPoint |  |
+| GetAverageNavyExperienceInfo |  | CString |  |
+| GetBankruptcyEndDate |  | CString |  |
+| GetBankruptcyProgress |  | float |  |
+| GetBestArmyUnits |  | CString |  |
+| GetBestNavyUnits |  | CString |  |
+| GetBlockadedPercent |  | CFixedPoint |  |
+| GetBlockadedPortsInfo |  | CString |  |
+| GetCapital |  | unknown |  |
+| GetCapitalOrParliament |  | unknown |  |
+| GetCardinals |  | unknown |  |
+| GetCharacterArtistsAmount |  | int32 |  |
+| GetColonialCharters |  | unknown |  |
+| GetCommonDialect |  | unknown |  |
+| GetCommonLanguage |  | unknown |  |
+| GetCountry |  | unknown |  |
+| GetCountryDescriptionCategoryDesc |  | CString |  |
+| GetCountryDescriptionCategoryName |  | CString |  |
+| GetCountryReleaseInfo |  | CString |  |
+| GetCountryTypeDesc |  | CString |  |
+| GetCountryTypeName |  | CString |  |
+| GetCountryTypeNameWithNoTooltip |  | CString |  |
+| GetCountryTypeString |  | CString |  |
+| GetCourtDialect |  | unknown |  |
+| GetCourtLanguage |  | unknown |  |
+| GetCrownpower |  | CFixedPoint |  |
+| GetCulturalCapacity |  | CFixedPoint |  |
+| GetCulturalUnity |  | CFixedPoint |  |
+| GetCulture |  | unknown |  |
+| GetCulturePercentage | 1. unknown | CFixedPoint |  |
+| GetCulturePercentageInfo | 1. unknown | CString |  |
+| GetCultureStatus | 1. unknown | CString |  |
+| GetCurrencyBalance | 1. unknown | CFixedPoint |  |
+| GetCurrencyMaxValue | 1. unknown | CFixedPoint |  |
+| GetCurrencyMinValue | 1. unknown | CFixedPoint |  |
+| GetCurrencyPosition | 1. unknown | float |  |
+| GetCurrencyTooltipDescription | 1. unknown | CString |  |
+| GetCurrencyTooltipHint | 1. unknown | CString |  |
+| GetCurrencyTooltipTitle | 1. unknown | CString |  |
+| GetCurrencyTooltipValueDescription | 1. unknown | CString |  |
+| GetCurrencyValue | 1. unknown | CString |  |
+| GetCurrentCivilWar |  | unknown |  |
+| GetCurrentFortsAmount |  | CFixedPoint |  |
+| GetCurrentFortsAmountInfo |  | CString |  |
+| GetCurrentRegencyInfo |  | CString |  |
+| GetCurrentRegencyName |  | CString |  |
+| GetCurrentReligiousFocus |  | unknown |  |
+| GetCurrentResearch |  | unknown |  |
+| GetDebugTag |  | unknown |  |
+| GetDebugText |  | CString |  |
+| GetDefaultLandMorale |  | CFixedPoint |  |
+| GetDefaultLandMoraleTooltip |  | CString |  |
+| GetDefaultNavalMorale |  | CFixedPoint |  |
+| GetDefaultNavalMoraleTooltip |  | CString |  |
+| GetDescriptionFor | 1. unknown | CString |  |
+| GetDifficultyLevelDesc |  | CString |  |
+| GetDifficultyLevelName |  | CString |  |
+| GetDiplomacy |  | unknown |  |
+| GetDiplomaticCurrency | 1. unknown | CString |  |
+| GetDiplomaticCurrencyDesc | 1. unknown | CString |  |
+| GetDominantLanguage |  | Language |  |
+| GetDoubleDescriptionFor | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValue | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueCapped | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueNoFormat | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueNoFormatNoSign | 1. unknown 2. unknown | CString |  |
+| GetDoubleModifierValueNoFormatTruncated | 1. unknown 2. unknown | CString |  |
+| GetDynamicQuickDiplomaticActions |  | unknown |  |
+| GetDynasties |  | unknown |  |
+| GetEconomicalBase |  | CFixedPoint |  |
+| GetEconomicalBaseWithLabel |  | CString |  |
+| GetEconomy |  | unknown |  |
+| GetEffectiveDistanceFromCapital | 1. unknown | CFixedPoint |  |
+| GetEligibleForRoyalMarriage | 1. unknown | unknown |  |
+| GetEmploymentSystem |  | unknown |  |
+| GetEndDataDate |  | int32 |  |
+| GetEstateLoanSize |  | CFixedPoint |  |
+| GetEstimatedMonthlyIncome |  | CFixedPoint |  |
+| GetEstimatedMonthlyIncomeAccountedForTradeBalance |  | CFixedPoint |  |
+| GetEstimatedMonthlyIncomeTradeAndTax |  | CFixedPoint |  |
+| GetExpectedArmySize |  | CFixedPoint |  |
+| GetExpectedNavySize |  | CFixedPoint |  |
+| GetExplorations |  | unknown |  |
+| GetExtendRegencyInfo |  | CString |  |
+| GetFixedPointCurrencyValue | 1. unknown | CFixedPoint |  |
+| GetFlag |  | CString |  |
+| GetFlagIcon |  | CString |  |
+| GetFlagIconWithNoTooltip |  | CString |  |
+| GetFlavorPrefix |  | CString |  |
+| GetFlavorRank |  | CString |  |
+| GetFortLimit |  | CFixedPoint |  |
+| GetFortsLimitInfo |  | CString |  |
+| GetGovernment |  | unknown |  |
+| GetGovernmentPowerConcept |  | CString |  |
+| GetGreatPowerBonusInfo |  | CString |  |
+| GetGreatPowerRank |  | int32 |  |
+| GetGreatPowerScore |  | CFixedPoint |  |
+| GetGreatPowerScoreInfo |  | CString |  |
+| GetHegemons |  | unknown |  |
+| GetHighestProgressRebel |  | unknown |  |
+| GetHistoricalMaxPopulation |  | CString |  |
+| GetHistoricalMaxTaxBase |  | CFixedPoint |  |
+| GetHistoricalMinPopulation |  | CString |  |
+| GetHistoricalMinTaxBase |  | CFixedPoint |  |
+| GetHistoricalPopulation |  | unknown |  |
+| GetHistoricalTaxBase |  | unknown |  |
+| GetHistoryDesc |  | CString |  |
+| GetHolySites |  | unknown |  |
+| GetId |  | int32 |  |
+| GetImplementedAvatars |  | unknown |  |
+| GetIncomeTooltip |  | CString |  |
+| GetIncomeValue |  | CFixedPoint |  |
+| GetInstitutionActiveCount |  | CFixedPoint |  |
+| GetInstitutionEmbracedCount |  | CFixedPoint |  |
+| GetInstitutionInfo |  | CString |  |
+| GetInstitutionMissingMinimumPercent | 1. unknown | float |  |
+| GetInstitutionSpreadValue | 1. unknown | float |  |
+| GetInternationalOrganizations |  | unknown |  |
+| GetInvitedReligiousFigures |  | unknown |  |
+| GetIsHumanCountryTooltip |  | CString |  |
+| GetLastMonthsPopulationChange |  | CFixedPoint |  |
+| GetLastMonthsPopulationText |  | CString |  |
+| GetLiturgicalDialect |  | unknown |  |
+| GetLiturgicalLanguage |  | unknown |  |
+| GetLiturgicalLanguageInfo |  | CString |  |
+| GetLiturgicalLanguagePower |  | CString |  |
+| GetLivingCharacters |  | unknown |  |
+| GetLongName |  | CString |  |
+| GetLongNameWithFlag |  | CString |  |
+| GetLongNameWithFlagWithNoTooltip |  | CString |  |
+| GetLongNameWithNoTooltip |  | CString |  |
+| GetLosingGreatPowerScoreInfo |  | CString |  |
+| GetMapColor |  | CVector4f |  |
+| GetMapName |  | CString |  |
+| GetMaxCurrencyNeedGui | 1. unknown | CString |  |
+| GetMaxManpowerTT |  | CString |  |
+| GetMaxManpowerValue |  | CString |  |
+| GetMaxSailorValue |  | CString |  |
+| GetMaxSailorsTT |  | CString |  |
+| GetMilitaryStance |  | unknown |  |
+| GetMilitaryStrength |  | CFixedPoint |  |
+| GetMilitaryStrengthForRelativePower |  | CFixedPoint |  |
+| GetMissionProgress |  | unknown |  |
+| GetModifier | 1. unknown | CFixedPoint |  |
+| GetModifierCappedValue | 1. unknown | CString |  |
+| GetModifierCappedValueWithNoTooltip | 1. unknown | CString |  |
+| GetModifierRawValue | 1. unknown | CFixedPoint |  |
+| GetModifierValue | 1. unknown | CString |  |
+| GetModifierValueInverse | 1. unknown | CString |  |
+| GetModifierValueNoFormat | 1. unknown | CString |  |
+| GetModifierValueNoSign | 1. unknown | CString |  |
+| GetModifierValueWithNoTooltipNoSign | 1. unknown | CString |  |
+| GetMonthlyCurrencyChangeBreakdown | 1. unknown | CString |  |
+| GetName |  | CString |  |
+| GetNameAbbreviation |  | CString |  |
+| GetNameAbbreviationWithNoTooltip |  | CString |  |
+| GetNameWithFlag |  | CString |  |
+| GetNameWithFlagWithNoTooltip |  | CString |  |
+| GetNameWithNoTooltip |  | CString |  |
+| GetNavalDistance | 1. unknown | CFixedPoint |  |
+| GetNavalDistanceToTooltip | 1. unknown | CString |  |
+| GetNavalRange |  | CFixedPoint |  |
+| GetNavyBreakdown |  | CString |  |
+| GetNavyLevyPower |  | CString |  |
+| GetNavyLevyPowerInfo |  | CString |  |
+| GetNavyLevyPowerTooltip |  | CString |  |
+| GetNavyLevyPowerValue |  | CFixedPoint |  |
+| GetNavySize |  | CString |  |
+| GetNavySizeTooltip |  | CString |  |
+| GetNavySizeValue |  | CString |  |
+| GetNavyStrength |  | CFixedPoint |  |
+| GetNumHolySites |  | int32 |  |
+| GetNumWorksOfArt |  | int32 |  |
+| GetNumberOfAvatars |  | int32 |  |
+| GetNumberOfCharacters |  | int32 |  |
+| GetNumberOfGods |  | int32 |  |
+| GetOwnedLocationCount |  | int32 |  |
+| GetOwnedLocationsInfo |  | CString |  |
+| GetOwnedSubUnits |  | unknown |  |
+| GetPercentSpeakersOfLiturgicalLanguage |  | CFixedPoint |  |
+| GetPlayerDiplomacyInfo |  | CString |  |
+| GetPlayerQuickDiplomaticActions |  | unknown |  |
+| GetPopulationChart |  | unknown |  |
+| GetPossibleBuildingSubjectRegionsAmount |  | int32 |  |
+| GetPossibleReleasableCountriessAmount |  | int32 |  |
+| GetPossibleTotalSubjectsAmount |  | int32 |  |
+| GetPotentialArmyLevyPowerTooltip |  | CString |  |
+| GetPotentialArmyLevyPowerValue |  | CFixedPoint |  |
+| GetPotentialDisasters |  | unknown |  |
+| GetPotentialNavyLevyPowerTooltip |  | CString |  |
+| GetPotentialNavyLevyPowerValue |  | CFixedPoint |  |
+| GetPowerProjection |  | CFixedPoint |  |
+| GetPowerProjectionInfo |  | CString |  |
+| GetPrimaryCulturePercentage |  | CFixedPoint |  |
+| GetPrimaryCulturePercentageInfo |  | CString |  |
+| GetPrimaryReligionPercentage |  | CFixedPoint |  |
+| GetPrimaryReligionPercentageInfo |  | CString |  |
+| GetPrivateers |  | unknown |  |
+| GetProvinces |  | unknown |  |
+| GetQuickDiplomaticActions |  | unknown |  |
+| GetRank |  | unknown |  |
+| GetRawArmyLevyPower |  | CFixedPoint |  |
+| GetRawNavyLevyPower |  | CFixedPoint |  |
+| GetRegularArmySize |  | CString |  |
+| GetRegularArmySizeTooltip |  | CString |  |
+| GetRelativeEstatePower | 1. unknown | CFixedPoint |  |
+| GetRelativeMilitaryStrength | 1. unknown | CFixedPoint |  |
+| GetReligion |  | unknown |  |
+| GetReligionPercentage | 1. unknown | CFixedPoint |  |
+| GetReligionPercentageInfo | 1. unknown | CString |  |
+| GetReligiousAspects |  | unknown |  |
+| GetReligiousSchool |  | unknown |  |
+| GetReligiousUnity |  | CFixedPoint |  |
+| GetSaints |  | unknown |  |
+| GetScore |  | unknown |  |
+| GetShortCurrencyValue | 1. unknown | CString |  |
+| GetSocietalValueDirectionTooltip | 1. unknown | CString |  |
+| GetSocietalValuePositionTooltip | 1. unknown | CString |  |
+| GetStartDataDate |  | int32 |  |
+| GetStarvingProvinces |  | CString |  |
+| GetStarvingProvincesAmount |  | int32 |  |
+| GetSubjectTypeLabel |  | CString |  |
+| GetTag |  | CString |  |
+| GetTagAndName |  | CString |  |
+| GetTakeLoanInfo |  | CString |  |
+| GetTaxBaseInfo |  | CString |  |
+| GetTaxBaseWithTooltip |  | CString |  |
+| GetTimedModifierOwner |  | unknown |  |
+| GetTimedModifiers |  | unknown |  |
+| GetTooltip |  | CString |  |
+| GetTooltipLeftRight |  | CString |  |
+| GetTooltipRows |  | CString |  |
+| GetTotalCoastalPopulation |  | CFixedPoint |  |
+| GetTotalColonialCharters |  | CFixedPoint |  |
+| GetTotalCultureCapacityUsed |  | CFixedPoint |  |
+| GetTotalPopulation |  | CString |  |
+| GetTotalPopulationNoLink |  | CString |  |
+| GetTotalPrimaryCulturePoliticalPower |  | CFixedPoint |  |
+| GetTotalProperCultureNobles |  | CFixedPoint |  |
+| GetTotalShips |  | int32 |  |
+| GetTotalStateReligionClergy |  | CFixedPoint |  |
+| GetTotalStrength |  | CString |  |
+| GetTotalTaxBase |  | CString |  |
+| GetTotalWarScore |  | CFixedPoint |  |
+| GetTownsAndCities |  | CString |  |
+| GetTradeByGoodForCountryInfo | 1. unknown | CString |  |
+| GetTradeRangeTooltip | 1. unknown | CString |  |
+| GetTruceToolTip | 1. unknown | CString |  |
+| GetUnits |  | unknown |  |
+| GetWarLosses |  | unknown |  |
+| GetWinterAffectedLocations |  | CString |  |
+| GetWinterAffectedLocationsAmount |  | int32 |  |
+| HasActiveRebels |  | bool |  |
+| HasAnyActiveEmploymentSystem |  | bool |  |
+| HasAnyAgePreferenceInfo |  | bool |  |
+| HasArmy |  | bool |  |
+| HasCardinals |  | bool |  |
+| HasColonialCharters |  | bool |  |
+| HasCountryDescriptionCategory |  | bool |  |
+| HasDifficultyLevel |  | bool |  |
+| HasEmbracedInstitution | 1. unknown | bool |  |
+| HasEnoughHistoricalPopulation |  | bool |  |
+| HasHarmony |  | bool |  |
+| HasHint | 1. unknown | bool |  |
+| HasHumanController |  | bool |  |
+| HasInvitedReligiousFigures |  | bool |  |
+| HasModifier | 1. unknown | bool |  |
+| HasModifierValue | 1. unknown | bool |  |
+| HasNavy |  | bool |  |
+| HasParticipatedInIOParliament | 1. unknown | bool |  |
+| HasPossibleResearch |  | bool |  |
+| HasRighteousness |  | bool |  |
+| HasSelfControl |  | bool |  |
+| HasSpecialStatus | 1. unknown 2. unknown | bool |  |
+| HasTooManyCultures |  | bool |  |
+| HasUnits |  | bool |  |
+| HasVariable | 1. unknown | bool |  |
+| IsAllied |  | bool |  |
+| IsAutoExtendMercenaries |  | bool |  |
+| IsBeingAnnexed |  | bool |  |
+| IsCourtDialectSelected | 1. unknown | bool |  |
+| IsCurrencyEnabled | 1. unknown | bool |  |
+| IsCurrencyValueEqualOrLessThanZero | 1. unknown | bool |  |
+| IsDominantCountryOfPrimaryCulture |  | bool |  |
+| IsEnemy | 1. unknown | bool |  |
+| IsGreatPower |  | bool |  |
+| IsHegemon |  | bool |  |
+| IsInCivilWar |  | bool |  |
+| IsLocalPlayer |  | bool |  |
+| IsLosingGreatPowerStatus |  | bool |  |
+| IsMemberOfInternationalOrganization | 1. unknown | bool |  |
+| IsMovingCapital |  | bool |  |
+| IsNeutral |  | bool |  |
+| IsPlayer |  | bool |  |
+| IsReal |  | bool |  |
+| IsRevolutionary |  | bool |  |
+| IsRevolutionaryTarget |  | bool |  |
+| IsValid |  | bool |  |
+| KnownToPlayerForUI |  | bool |  |
+| KnowsAboutInstitution | 1. unknown | bool |  |
+| MakeScope |  | Scope | Jomini Script System |
+| Self |  | Country |  |
+
+List of Scope functions
+
+| Function | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AccessSelf |  | Scope |  |
+| ActiveResolution |  | unknown | Jomini Script System |
+| AdvanceType |  | unknown | Jomini Script System |
+| Age |  | unknown | Jomini Script System |
+| Area |  | unknown | Jomini Script System |
+| Artist |  | unknown | Jomini Script System |
+| Avatar |  | unknown | Jomini Script System |
+| Building |  | unknown | Jomini Script System |
+| BuildingType |  | unknown | Jomini Script System |
+| Cabinet |  | unknown | Jomini Script System |
+| Cardinal |  | unknown | Jomini Script System |
+| CasusBelli |  | unknown | Jomini Script System |
+| Character |  | unknown | Jomini Script System |
+| CharacterInteraction |  | unknown | Jomini Script System |
+| ChildEducation |  | unknown | Jomini Script System |
+| Climate |  | unknown | Jomini Script System |
+| ColonialCharter |  | unknown | Jomini Script System |
+| Combat |  | unknown | Jomini Script System |
+| CombatSide |  | unknown | Jomini Script System |
+| Continent |  | unknown | Jomini Script System |
+| Country |  | unknown | Jomini Script System |
+| CountryInteraction |  | unknown | Jomini Script System |
+| CountryRank |  | unknown | Jomini Script System |
+| Culture |  | unknown | Jomini Script System |
+| CultureGroup |  | unknown | Jomini Script System |
+| DisasterType |  | unknown | Jomini Script System |
+| Disease |  | unknown | Jomini Script System |
+| DiseaseOutbreak |  | unknown | Jomini Script System |
+| Dynasty |  | unknown | Jomini Script System |
+| EmploymentSystem |  | unknown | Jomini Script System |
+| Estate |  | unknown | Jomini Script System |
+| EstateType |  | unknown | Jomini Script System |
+| Ethnicity |  | unknown | Jomini Script System |
+| Exploration |  | unknown | Jomini Script System |
+| Faction |  | unknown | Jomini Script System |
+| FormableCountry |  | unknown | Jomini Script System |
+| GenericAction |  | unknown | Jomini Script System |
+| GetFlagName |  | CString |  |
+| GetList | 1. unknown | unknown |  |
+| GetScriptValueDesc | 1. unknown | CString |  |
+| GetValue |  | CFixedPoint |  |
+| GetValueWithDefault | 1. unknown | CFixedPoint |  |
+| God |  | unknown | Jomini Script System |
+| Goods |  | unknown | Jomini Script System |
+| GoodsDemand |  | unknown | Jomini Script System |
+| GovernmentType |  | unknown | Jomini Script System |
+| Hegemony |  | unknown | Jomini Script System |
+| HeirSelection |  | unknown | Jomini Script System |
+| HolySite |  | unknown | Jomini Script System |
+| HolySiteDefinition |  | unknown | Jomini Script System |
+| HolySiteType |  | unknown | Jomini Script System |
+| Institution |  | unknown | Jomini Script System |
+| InternationalOrganization |  | unknown | Jomini Script System |
+| InternationalOrganizationType |  | unknown | Jomini Script System |
+| IsSet |  | bool |  |
+| LandOwnershipRule |  | unknown | Jomini Script System |
+| Language |  | unknown | Jomini Script System |
+| LanguageFamily |  | unknown | Jomini Script System |
+| Law |  | unknown | Jomini Script System |
+| LevySetup |  | unknown | Jomini Script System |
+| Loan |  | unknown | Jomini Script System |
+| Location |  | unknown | Jomini Script System |
+| LocationRank |  | unknown | Jomini Script System |
+| Market |  | unknown | Jomini Script System |
+| Mercenary |  | unknown | Jomini Script System |
+| MissionDefinition |  | unknown | Jomini Script System |
+| MissionTaskDefinition |  | unknown | Jomini Script System |
+| ParliamenType |  | unknown | Jomini Script System |
+| ParliamentAgenda |  | unknown | Jomini Script System |
+| ParliamentIssue |  | unknown | Jomini Script System |
+| Payment |  | unknown | Jomini Script System |
+| Policy |  | unknown | Jomini Script System |
+| Pop |  | unknown | Jomini Script System |
+| PopType |  | unknown | Jomini Script System |
+| Price |  | unknown | Jomini Script System |
+| Privateer |  | unknown | Jomini Script System |
+| ProductionMethod |  | unknown | Jomini Script System |
+| Province |  | unknown | Jomini Script System |
+| ProvinceDefinition |  | unknown | Jomini Script System |
+| Rebel |  | unknown | Jomini Script System |
+| RecruitmentMethod |  | unknown | Jomini Script System |
+| RegencyType |  | unknown | Jomini Script System |
+| Region |  | unknown | Jomini Script System |
+| RelationType |  | unknown | Jomini Script System |
+| Religion |  | unknown | Jomini Script System |
+| ReligionGroup |  | unknown | Jomini Script System |
+| ReligiousAspect |  | unknown | Jomini Script System |
+| ReligiousFigure |  | unknown | Jomini Script System |
+| ReligiousFocus |  | unknown | Jomini Script System |
+| ReligiousSchool |  | unknown | Jomini Script System |
+| Resolution |  | unknown | Jomini Script System |
+| RoadType |  | unknown | Jomini Script System |
+| ScriptValue | 1. unknown | CFixedPoint |  |
+| ScriptableHintDefinition |  | unknown | Jomini Script System |
+| ScriptedPeaceTreatyType |  | unknown | Jomini Script System |
+| Self |  | Scope |  |
+| Siege |  | unknown | Jomini Script System |
+| Situation |  | unknown | Jomini Script System |
+| SocietalValue |  | unknown | Jomini Script System |
+| SpecialStatus |  | unknown | Jomini Script System |
+| SubContinent |  | unknown | Jomini Script System |
+| SubUnit |  | unknown | Jomini Script System |
+| SubUnitCategory |  | unknown | Jomini Script System |
+| SubjectMilitaryStance |  | unknown | Jomini Script System |
+| SubjectType |  | unknown | Jomini Script System |
+| Topography |  | unknown | Jomini Script System |
+| Trade |  | unknown | Jomini Script System |
+| Trait |  | unknown | Jomini Script System |
+| Unit |  | unknown | Jomini Script System |
+| UnitAbility |  | unknown | Jomini Script System |
+| UnitType |  | unknown | Jomini Script System |
+| VarRemaining | 1. unknown | int32 |  |
+| Vegetation |  | unknown | Jomini Script System |
+| War |  | unknown | Jomini Script System |
+| WeatherSystem |  | unknown | Jomini Script System |
+| WorkOfArt |  | unknown | Jomini Script System |
+| WorkOfArtType |  | unknown | Jomini Script System |
+
+List of TopScope functions
+
+| Function | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AccessSelf |  | TopScope |  |
+| End |  | TopScope |  |
+| GetFlagName | 1. unknown | CString |  |
+| GetLocalVariable | 1. unknown | unknown |  |
+| GetRootScope |  | unknown |  |
+| GetScriptValueDesc | 1. unknown | CString |  |
+| GetValue | 1. unknown | CFixedPoint |  |
+| ScriptValue | 1. unknown | CFixedPoint |  |
+| Self |  | TopScope |  |
+| sActiveResolution | 1. unknown | unknown |  |
+| sAdvanceType | 1. unknown | unknown |  |
+| sAge | 1. unknown | unknown |  |
+| sArea | 1. unknown | unknown |  |
+| sArtist | 1. unknown | unknown |  |
+| sAudioCulture | 1. unknown | unknown |  |
+| sAvatar | 1. unknown | unknown |  |
+| sBuildingType | 1. unknown | unknown |  |
+| sCabinet | 1. unknown | unknown |  |
+| sCabinetAction | 1. unknown | unknown |  |
+| sCardinal | 1. unknown | unknown |  |
+| sCasusBelli | 1. unknown | unknown |  |
+| sCharacter | 1. unknown | unknown |  |
+| sCharacterInteraction | 1. unknown | unknown |  |
+| sChildEducation | 1. unknown | unknown |  |
+| sClimate | 1. unknown | unknown |  |
+| sColonialCharter | 1. unknown | unknown |  |
+| sCombat | 1. unknown | unknown |  |
+| sCombatSide | 1. unknown | unknown |  |
+| sContinent | 1. unknown | unknown |  |
+| sCountry | 1. unknown | unknown |  |
+| sCountryInteraction | 1. unknown | unknown |  |
+| sCountryRank | 1. unknown | unknown |  |
+| sCulture | 1. unknown | unknown |  |
+| sDialect | 1. unknown | unknown |  |
+| sDisaster | 1. unknown | unknown |  |
+| sDisasterType | 1. unknown | unknown |  |
+| sDisease | 1. unknown | unknown |  |
+| sDiseaseOutbreak | 1. unknown | unknown |  |
+| sDynasty | 1. unknown | unknown |  |
+| sEmploymentSystem | 1. unknown | unknown |  |
+| sEstate | 1. unknown | unknown |  |
+| sEstatePrivilege | 1. unknown | unknown |  |
+| sEstateType | 1. unknown | unknown |  |
+| sEthnicity | 1. unknown | unknown |  |
+| sExploration | 1. unknown | unknown |  |
+| sFormableCountry | 1. unknown | unknown |  |
+| sGenericAction | 1. unknown | unknown |  |
+| sGod | 1. unknown | unknown |  |
+| sGoods | 1. unknown | unknown |  |
+| sGoodsDemand | 1. unknown | unknown |  |
+| sGovernmentReform | 1. unknown | unknown |  |
+| sGovernmentType | 1. unknown | unknown |  |
+| sGraphicalCulture | 1. unknown | unknown |  |
+| sHegemony | 1. unknown | unknown |  |
+| sHeirSelection | 1. unknown | unknown |  |
+| sHolySite | 1. unknown | unknown |  |
+| sHolySiteDefinition | 1. unknown | unknown |  |
+| sHolySiteType | 1. unknown | unknown |  |
+| sInstitution | 1. unknown | unknown |  |
+| sInternationalOrganization | 1. unknown | unknown |  |
+| sInternationalOrganizationType | 1. unknown | unknown |  |
+| sLandOwnershipRule | 1. unknown | unknown |  |
+| sLanguage | 1. unknown | unknown |  |
+| sLanguageFamily | 1. unknown | unknown |  |
+| sLaw | 1. unknown | unknown |  |
+| sLevySetup | 1. unknown | unknown |  |
+| sLoan | 1. unknown | unknown |  |
+| sLocation | 1. unknown | unknown |  |
+| sLocationRank | 1. unknown | unknown |  |
+| sMarket | 1. unknown | unknown |  |
+| sMercenary | 1. unknown | unknown |  |
+| sMissionDefinition | 1. unknown | unknown |  |
+| sMissionTaskDefinition | 1. unknown | unknown |  |
+| sParliamentAgenda | 1. unknown | unknown |  |
+| sParliamentIssue | 1. unknown | unknown |  |
+| sParliamentType | 1. unknown | unknown |  |
+| sPayment | 1. unknown | unknown |  |
+| sPolicy | 1. unknown | unknown |  |
+| sPop | 1. unknown | unknown |  |
+| sPopType | 1. unknown | unknown |  |
+| sPrice | 1. unknown | unknown |  |
+| sPrivateer | 1. unknown | unknown |  |
+| sProductionMethod | 1. unknown | unknown |  |
+| sProvince | 1. unknown | unknown |  |
+| sProvinceDefinition | 1. unknown | unknown |  |
+| sRebel | 1. unknown | unknown |  |
+| sRecruitmentMethod | 1. unknown | unknown |  |
+| sRegencyType | 1. unknown | unknown |  |
+| sRegion | 1. unknown | unknown |  |
+| sRelationType | 1. unknown | unknown |  |
+| sReligion | 1. unknown | unknown |  |
+| sReligionGroup | 1. unknown | unknown |  |
+| sReligiousAspect | 1. unknown | unknown |  |
+| sReligiousFaction | 1. unknown | unknown |  |
+| sReligiousFigure | 1. unknown | unknown |  |
+| sReligiousFocus | 1. unknown | unknown |  |
+| sReligiousSchool | 1. unknown | unknown |  |
+| sResolution | 1. unknown | unknown |  |
+| sRoadType | 1. unknown | unknown |  |
+| sScriptableHintDefinition | 1. unknown | unknown |  |
+| sScriptedPeaceTreatyType | 1. unknown | unknown |  |
+| sSiege | 1. unknown | unknown |  |
+| sSituation | 1. unknown | unknown |  |
+| sSocietalValue | 1. unknown | unknown |  |
+| sSpecialStatus | 1. unknown | unknown |  |
+| sSubContinent | 1. unknown | unknown |  |
+| sSubUnit | 1. unknown | unknown |  |
+| sSubUnitCategory | 1. unknown | unknown |  |
+| sSubjectMilitaryStance | 1. unknown | unknown |  |
+| sSubjectType | 1. unknown | unknown |  |
+| sTopography | 1. unknown | unknown |  |
+| sTrade | 1. unknown | unknown |  |
+| sTrait | 1. unknown | unknown |  |
+| sUnit | 1. unknown | unknown |  |
+| sUnitAbility | 1. unknown | unknown |  |
+| sUnitType | 1. unknown | unknown |  |
+| sVegetation | 1. unknown | unknown |  |
+| sWar | 1. unknown | unknown |  |
+| sWeatherSystem | 1. unknown | unknown |  |
+| sWorkOfArt | 1. unknown | unknown |  |
+| sWorkOfArtType | 1. unknown | unknown |  |
 
 ### List of all GUI promotes
 
@@ -4408,7 +5608,7 @@ List of all promotes
 | Government | GetBestHeirCandidateFor | 1. unknown | Character |  |
 | Government | GetConsort |  | Character |  |
 | Government | GetEstate | 1. unknown | Estate |  |
-| Government | GetEstateFromKey | 1. EstateKey | Estate |  |
+| Government | GetEstateFromKey | 1. unknown | Estate |  |
 | Government | GetGovernmentType |  | GovernmentType |  |
 | Government | GetHeir |  | Character |  |
 | Government | GetHeirSelection |  | HeirSelection |  |
@@ -5859,7 +7059,7 @@ List of all promotes
 
 ---
 
-* To update the tables, see [Module:GUI script/Functions/Updates](/Module%3AGUI_script/Functions/Updates "Module:GUI script/Functions/Updates") and [Module:GUI script/Promotes/Updates](/Module%3AGUI_script/Promotes/Updates "Module:GUI script/Promotes/Updates")
+* To update the tables, see [Module:GUI script/Functions](/Module%3AGUI_script/Functions "Module:GUI script/Functions") and [Module:GUI script/Promotes](/Module%3AGUI_script/Promotes "Module:GUI script/Promotes")
 
 [Modding](/Modding "Modding")[Return to top](#top)
 

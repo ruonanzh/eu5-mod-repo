@@ -1,4 +1,4 @@
-<!-- source: https://eu5.paradoxwikis.com/Location revid: 36695 fetched: 2026-09-09 -->
+<!-- source: https://eu5.paradoxwikis.com/Location revid: 37115 fetched: 2026-09-10 -->
 # Location
 
 Please help with verifying or updating older sections of this article.
@@ -411,22 +411,11 @@ After an eruption the location will gain the Volcanic Soil modifier, which is vi
 
 ### Earthquakes
 
-[![Earthquake.png](/thumb.php?f=Earthquake.png&width=24)](/Earthquake "Earthquake") Earthquakes can occur along certain lines that pass through locations and appear orange on the Dangers map mode. Every month there is a chance that an earthquake will take place somewhere in the world. The epicenter location will take the full penalties of the earthquake while all adjacent locations will take half of the penalties and will not lose buildings.
-
-| Earthquake | Monthly chance | [![Population.png](/thumb.php?f=Population.png&width=24)](/File%3APopulation.png) Population | [![Prosperity.png](/thumb.php?f=Prosperity.png&width=24)](/File%3AProsperity.png) Prosperity | Buildings | Army health | Cities | Recovery Efforts | [![Ducats](/thumb.php?f=Resource_gold.png&width=24)](/Economy#Gold "Ducats") Recovery Cost |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Minor** | 1.6% | **−10%** | **−20%** | **−1 per 10 buildings** | **−33%** | Unchanged | Minor | 10 times the location's tax base |
-| **Major** | 0.4% | **−20%** | **−50%** | **−1 per 8 buildings** | **−50%** | Unchanged | Major | 20 times the location's tax base |
-| **Catastrophic** | 0.1% | **−33%** | **−75%** | **−1 per 6 buildings** | **Killed** | **Downgraded to Town** | Major | 30 times the location's tax base |
-
-#### Historical earthquakes
-
-Historical [![Earthquake.png](/thumb.php?f=Earthquake.png&width=24)](/Earthquake "Earthquake") earthquakes occur in every game, but each one happens only once. They have predetermined locations and years, and also affect all neighboring locations.
-Most of the time when a historical [![Earthquake.png](/thumb.php?f=Earthquake.png&width=24)](/Earthquake "Earthquake") earthquake occurs, players will have the choice between different options, each with different penalties.
+[![Earthquake.png](/thumb.php?f=Earthquake.png&width=24)](/Earthquake "Earthquake") Earthquakes can occur along certain lines that pass through locations and appear orange on the Dangers map mode. Every month there is a chance that an earthquake will take place somewhere in the world. The epicenter location will take the full penalties of the earthquake while all adjacent locations will take half of the penalties and will not lose buildings. Earthquake have several possible severity levels with increasing penalties.
 
 |  |  |
 | --- | --- |
-| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This section is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/index.php?title=Talk:Location&action=edit&redlink=1 "Talk:Location (page does not exist)")**. |
+| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is planned to be [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/index.php?title=Talk:Location&action=edit&redlink=1 "Talk:Location (page does not exist)")**. |
 
 |  | | | | | |
 | --- | --- | --- | --- | --- | --- |
@@ -442,100 +431,105 @@ Most of the time when a historical [![Earthquake.png](/thumb.php?f=Earthquake.pn
 | **−5%** | **−33%** | **Severe penalty** | **−1 per 15 buildings** |  |
 | **−10%** | **−50%** | **Extreme penalty** | **−1 per 10 buildings** |  |
 
-Below is the list of all scripted [![Earthquake.png](/thumb.php?f=Earthquake.png&width=24)](/Earthquake "Earthquake") earthquakes. Most of them have a 10-year time window in which they will occur.
+In addition to random earthquakes, there are a number of historical [![Earthquake.png](/thumb.php?f=Earthquake.png&width=24)](/Earthquake "Earthquake") earthquakes, each of them having 25% chance to open every year within a given range (typically 10-year wide around the real-life occurence). Below is the list of all scripted [![Earthquake.png](/thumb.php?f=Earthquake.png&width=24)](/Earthquake "Earthquake") earthquakes.
 
-| Tier | Location | Date is between |
-| --- | --- | --- |
-| Minor | Constantinople | 1338 and 1365 |
-| Minor | Lusta | 1338 and 1348 |
-| Minor | Udine | 1343 and 1352 |
-| Minor | Basel | 1351 and 1361 |
-| Minor | Canterbury | 1377 and 1387 |
-| Minor | Vic | 1377 and 1387 |
-| Minor | Lisbon | 1526 and 1536 |
-| Minor | Ferrara | 1565 and 1575 |
-| Minor | Fez | 1619 and 1629 |
-| Minor | Tabriz | 1633 and 1643 |
-| Minor | Shamakhi | 1662 and 1672 |
-| Minor | Tifu | 1669 and 1679 |
-| Minor | Melfi | 1691 and 1699 |
-| Minor | Spoleto | 1698 and 1708 |
-| Minor | Aquila | 1698 and 1708 |
-| Minor | Sulmona | 1701 and 1711 |
-| Minor | Dadu | 1725 and 1735 |
-| Minor | Ariano | 1727 and 1737 |
-| Minor | Naumkeag | 1750 and 1760 |
-| Minor | Komarom | 1758 and 1768 |
-| Minor | Turuepano | 1761 and 1771 |
-| Minor | Monteleone | 1778 and 1788 |
-| Minor | Suisin | 1831 and 1837 |
-| Major | Ariano | 1451 and 1461 |
-| Major | Rodos | 1476 and 1486 |
-| Major | Constantinople | 1504 and 1514 |
-| Major | Gujou | 1581 and 1591 |
-| Major | Shida | 1600 and 1610 |
-| Major | Qiongshan | 1600 and 1610 |
-| Major | Ningxia | 1617 and 1627 |
-| Major | Monteleone | 1633 and 1643 |
-| Major | Ondaonnentakwi | 1658 and 1668 |
-| Major | Dubrovnik | 1662 and 1672 |
-| Major | Avellino | 1683 and 1693 |
-| Major | Tolombon | 1687 and 1697 |
-| Major | Maynoa | 1687 and 1697 |
-| Major | Catania | 1688 and 1698 |
-| Major | Linfen | 1690 and 1700 |
-| Major | Banten | 1694 and 1704 |
-| Major | Yingli | 1704 and 1714 |
-| Major | Arzew | 1711 and 1721 |
-| Major | Fuqiang | 1713 and 1723 |
-| Major | Tabriz | 1716 and 1726 |
-| Major | Fez | 1750 and 1760 |
-| Major | Nawa | 1754 and 1764 |
-| Major | Constantinople | 1761 and 1769 |
-| Major | Haniguayagua | 1765 and 1775 |
-| Major | Cuauhtemallan | 1768 and 1778 |
-| Major | Tabriz | 1775 and 1785 |
-| Major | Dartsedo | 1781 and 1791 |
-| Major | Waranka | 1792 and 1802 |
-| Major | Covasna | 1797 and 1807 |
-| Major | Candia | 1805 and 1810 |
-| Major | Towosaghy | 1807 and 1817 |
-| Major | Caracas | 1807 and 1817 |
-| Major | Yaanga | 1807 and 1817 |
-| Major | Ineseno | 1807 and 1817 |
-| Major | Morvi | 1814 and 1824 |
-| Major | Kona | 1818 and 1828 |
-| Major | Kathmandu | 1827 and 1837 |
-| Catastrophic | Lisbon | 1351 and 1361 |
-| Catastrophic | Fuchi | 1493 and 1503 |
-| Catastrophic | Yanal\_densa | 1500 and 1510 |
-| Catastrophic | Lintong | 1551 and 1561 |
-| Catastrophic | Pikunwijimapu | 1570 and 1580 |
-| Catastrophic | Unimax | 1580 and 1590 |
-| Catastrophic | Chaucalana | 1599 and 1609 |
-| Catastrophic | Kuji | 1606 and 1616 |
-| Catastrophic | Banda\_island | 1624 and 1634 |
-| Catastrophic | Gegou | 1663 and 1673 |
-| Catastrophic | Ladik\_pontus | 1663 and 1673 |
-| Catastrophic | Isumi | 1672 and 1682 |
-| Catastrophic | Ica | 1682 and 1692 |
-| Catastrophic | Tillamok | 1695 and 1705 |
-| Catastrophic | Kamakura | 1698 and 1708 |
-| Catastrophic | Hidaka | 1702 and 1712 |
-| Catastrophic | Mawlen | 1725 and 1735 |
-| Catastrophic | Achava | 1732 and 1742 |
-| Catastrophic | Dingyuan\_lingzhou | 1734 and 1744 |
-| Catastrophic | Chancay | 1741 and 1751 |
-| Catastrophic | Lafkenmapu | 1746 and 1756 |
-| Catastrophic | Lisbon | 1750 and 1760 |
-| Catastrophic | Lisbon | 1756 and 1766 |
-| Catastrophic | Chittagong | 1757 and 1767 |
-| Catastrophic | Ometepec | 1782 and 1792 |
-| Catastrophic | Siberut | 1792 and 1802 |
-| Catastrophic | Towosaghy | 1806 and 1816 |
-| Catastrophic | Towosaghy | 1806 and 1816 |
-| Catastrophic | Pagai | 1827 and 1837 |
-| Special | Gallipoli | 1354 and 1364 |
+|  |  |
+| --- | --- |
+| ![Templates Information icon.png](https://central.paradoxwikis.com/images/thumb/8/8c/Templates_Information_icon.png/30px-Templates_Information_icon.png) | **This table is [automatically generated](/Europa_Universalis_5_Wiki%3AAutogeneration "Europa Universalis 5 Wiki:Autogeneration") and should not be edited directly.**  Instead, suggest changes on the **[talk page](/index.php?title=Talk:Location&action=edit&redlink=1 "Talk:Location (page does not exist)")**. |
+
+| Region | Location | Date range | Severity |
+| --- | --- | --- | --- |
+| Pontic Steppe | Lusta | 1338-1346 | Minor |
+| Balkans | Constantinople | 1338.6.1-1365.6.10 | Special |
+| Italy | Udine | 1343-1352 | Minor |
+| Southern Germany | Basel | 1351-1361 | Minor |
+| Iberia | Lisbon | 1351-1361 | Catastrophic |
+| Iberia | Sevilla | 1351-1361 | Catastrophic |
+| Balkans | Gallipoli | 1354.3.1-1364.3.1 | Special |
+| Britain | Canterbury | 1377-1387 | Minor |
+| Iberia | Vic | 1377-1387 | Minor |
+| Italy | Ariano | 1451-1461 | Major |
+| Balkans | Ródos | 1476-1486 | Major |
+| Japan | Fuchi | 1493-1503 | Catastrophic |
+| Hindustan | Yanal Densa | 1500-1510 | Catastrophic |
+| Balkans | Constantinople | 1504-1514 | Major |
+| Iberia | Lisbon | 1526-1536 | Minor |
+| West China | Líntóng | 1551-1561 | Catastrophic |
+| Italy | Ferrara | 1565-1575 | Minor |
+| Andes | Pikunwijimapu | 1570-1580 | Catastrophic |
+| Alaska | Unimax | 1580-1590 | Catastrophic |
+| Japan | Gujō | 1581-1591 | Major |
+| Andes | Chaucalana | 1599-1609 | Catastrophic |
+| Japan | Shida | 1600-1610 | Major |
+| South China | Qióngshān | 1600-1610 | Major |
+| Japan | Kuji | 1606-1616 | Catastrophic |
+| West China | Níngxià | 1617-1627 | Major |
+| Maghreb | Fez | 1619-1629 | Minor |
+| Indonesia | Banda | 1624-1634 | Catastrophic |
+| Persia | Tabrīz | 1633-1643 | Minor |
+| Italy | Monteleone | 1633-1643 | Major |
+| Canada | Ondaonnentakwi | 1658-1668 | Major |
+| Caucasus | Şamaxi | 1662-1672 | Minor |
+| Balkans | Dubrovnik | 1662-1672 | Major |
+| North China | Gégōu | 1663-1673 | Catastrophic |
+| Anatolia | Lâdik | 1663-1673 | Catastrophic |
+| Indonesia | Tifu | 1669-1679 | Minor |
+| Japan | Isumi | 1672-1682 | Catastrophic |
+| Andes | Ica | 1682-1692 | Catastrophic |
+| Italy | Avellino | 1683-1693 | Major |
+| Andes | Tolombon | 1687-1697 | Major |
+| Caribbean | Maynoa | 1687-1697 | Major |
+| Italy | Catania | 1688-1698 | Major |
+| North China | Línfén | 1690-1700 | Major |
+| Italy | Melfi | 1691-1699 | Minor |
+| Indonesia | Banten | 1694-1704 | Major |
+| West Coast | Tillamook | 1695-1705 | Catastrophic |
+| Italy | Spoleto | 1698-1708 | Minor |
+| Italy | Aquila | 1698-1708 | Minor |
+| Japan | Kamakura | 1698-1708 | Catastrophic |
+| Italy | Sulmona | 1701-1711 | Minor |
+| Japan | Hidaka | 1702-1712 | Catastrophic |
+| West China | Yìnglǐ | 1704-1714 | Major |
+| Maghreb | Arzew | 1711-1721 | Major |
+| West China | Fúqiāng | 1713-1723 | Major |
+| Persia | Tabrīz | 1716-1726 | Major |
+| North China | Dàdū | 1725-1735 | Minor |
+| Andes | Mawlen | 1725-1735 | Catastrophic |
+| Italy | Ariano | 1727-1737 | Minor |
+| East Siberia | Achava | 1732-1742 | Catastrophic |
+| West China | Dìngyuǎn | 1734-1744 | Catastrophic |
+| Andes | Chancay | 1741-1751 | Catastrophic |
+| Andes | Lafkenmapu | 1746-1756 | Catastrophic |
+| Maghreb | Fez | 1750-1760 | Major |
+| Iberia | Lisbon | 1750-1760 | Catastrophic |
+| East Coast | Naumkeag | 1750-1760 | Minor |
+| Crescent | Nawa | 1754-1764 | Major |
+| Iberia | Lisbon | 1756-1766 | Catastrophic |
+| Indochina | Chittagong | 1757-1767 | Catastrophic |
+| Carpathia | Komárom | 1758-1768 | Minor |
+| Balkans | Constantinople | 1761-1769 | Major |
+| Colombia | Turuepano | 1761-1771 | Minor |
+| Caribbean | Haniguayagua | 1765-1775 | Major |
+| Central America | Cuauhtemallan | 1768-1778 | Major |
+| Persia | Tabrīz | 1775-1785 | Major |
+| Italy | Monteleone | 1778-1788 | Minor |
+| Tibet | Dartsedo | 1781-1791 | Major |
+| Mesoamerica | Ometepec | 1782-1792 | Catastrophic |
+| Andes | Waranka | 1792-1802 | Major |
+| Indonesia | Siberut | 1792-1802 | Catastrophic |
+| Carpathia | Covasna | 1797-1807 | Major |
+| Balkans | Candia | 1805-1810 | Major |
+| Great Plains | Towosaghy | 1806-1816 | Catastrophic |
+| Great Plains | Towosaghy | 1806-1816 | Catastrophic |
+| Great Plains | Towosaghy | 1807-1817 | Major |
+| Colombia | Caracas | 1807-1817 | Major |
+| West Coast | Yaanga | 1807-1817 | Major |
+| West Coast | Ineseno | 1807-1817 | Major |
+| Western India | Morvi | 1814-1824 | Major |
+| Polynesia | Kona | 1818-1828 | Major |
+| Hindustan | Kathmandu | 1827-1837 | Major |
+| Indonesia | Pagai | 1827-1837 | Catastrophic |
+| West Coast | Suisin | 1831-1837 | Minor |
 
 ## References
 

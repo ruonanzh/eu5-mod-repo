@@ -1,95 +1,74 @@
-# EU5 mod repo — docs/wiki/scripts 现状与整改计划
+# EU5 mod repo — docs/wiki/scripts 整改记录与剩余待办
 
-> 工作文档：盘点 `docs/` 三层内容与 `scripts/` 的现状，提出整理方案。整理执行完成后本文件归档或删除。
-> 日期：2026-09-09
+> 工作文档：记录 `docs/` 与 `scripts/` 的整理决策与执行结果。全部整改完成后归档或删除。
+> 更新：2026-09-09
 
-## 1. 现状盘点
-
-### 1.1 整体结构
+## 1. 当前结构（整改后）
 
 ```
 eu5-mod-repo/
-├── mod-repo.json                  # pdx-script 声明 ✅
-├── AGENTS.md / README.md          # ⚠️ 仍是 Fake Game 中文占位（M5 未做）
-├── lefthook.yml                   # ⚠️ json 占位（未核对）
-├── .gitignore                     # ⚠️ 当前 ignore 掉 docs/mod-wiki/
+├── mod-repo.json                  # ✅ pdx-script 声明
+├── AGENTS.md / README.md          # ⚠️ 仍是 Fake Game 占位（M5 待做）
+├── lefthook.yml                   # ⚠️ json 占位
+├── .gitignore                     # ✅ ignore: __pycache__/ + .gamer-agent.local.json + game-scripts/
 ├── .pi/
-│   ├── extensions/                # ✅ mod-lint.ts(validate_mod)；⚠️ runtime-check/install/mod-install 仍 json 占位
+│   ├── extensions/
+│   │   ├── mod-lint.ts            # ✅ validate_mod（语法/约定 linter）
+│   │   ├── runtime-check.ts       # ✅ check_runtime（三目录探测，Windows-only）
+│   │   ├── runtime-install.ts     # ✅ install_runtime（无依赖，永远 PASS）
+│   │   ├── sync-game-scripts.ts   # ✅ sync_game_scripts（vanilla 脚本镜像，增量）
+│   │   └── mod-install.ts         # ⚠️ install_mod 仍 json 占位
 │   └── skills/mod-authoring/SKILL.md  # ⚠️ Fake Game 占位
 ├── docs/
-│   ├── INDEX.md                   # ✅ docs 地图（但未纳入 mod-wiki）
+│   ├── INDEX.md                   # ✅ docs 地图（⚠️ 未纳入 mod-wiki）
 │   ├── game.md                    # ✅ EU5 概览（英文）
 │   ├── eu5-modding-conventions.md # ✅ 约定 cheat-sheet（英文）
-│   ├── data_types/                # ✅ 语义 dumps 3.0M（游戏生成）
-│   ├── script_docs/               # ✅ 语义 dumps 1.9M（游戏生成）
-│   └── mod-wiki/                  # ⚠️ 31M / 462 页 / 30 目录（当前被 ignore）
-├── reference/example_mod/         # ⚠️ 仍是 json 占位（content.json/manifest.json）
+│   ├── data_types/                # ✅ 语义 dumps 3.0M（游戏导出，进 repo）
+│   ├── script_docs/               # ✅ 语义 dumps 1.9M（同上）
+│   └── mod-wiki/                  # ✅ 118 页 mod API/机制（9.2M，进 repo）
+├── game-scripts/                  # ✅ vanilla 脚本镜像（git-ignore，428M，玩家端生成）
+├── reference/example_mod/         # ⚠️ 仍是 json 占位
 ├── scripts/
-│   ├── crawl_eu5_wiki.py          # ✅ 全站抓取工具（合规）
-│   └── __pycache__/               # ⚠️ 垃圾（Python 编译缓存）
+│   └── crawl_eu5_wiki.py          # ✅ 全站抓取（⚠️ 范围未限制，见待办 1）
 └── specs/mod-spec.md              # ✅ 英文，与 validate_mod 一致
 ```
 
-### 1.2 docs/ 三层的职责与体量
+## 2. 知识层决策（已定）
 
-| 层 | 目录 | 体量 | 职责 | 玩家是否需要 |
-|---|---|---|---|---|
-| 精选知识层 | `game.md` + `eu5-modding-conventions.md` + `INDEX.md` | ~20K | agent 做 mod 时直接读的「为什么」与约定 | ✅ 必须 |
-| 语义 dumps | `data_types/` + `script_docs/` | 4.9M | 精确 effect/trigger/modifier/scope/datatype 清单（游戏导出，权威） | ✅ 必须（D1 已定进 repo） |
-| wiki 全站快照 | `mod-wiki/` | 31M / 462 页 | 完整 wiki 参考（30 分类目录） | ❓ 待定（本次整改核心） |
+### 2.1 mod-wiki（wiki 快照）—— 已改名 + 精简
 
-### 1.3 mod-wiki 快照的现状
+- **改名**：`eu5-wiki` → `mod-wiki`（进 repo）。
+- **范围标准**：只保留「agent 写 mod 会查的 API/机制」页；砍「攻略/列表/消歧义/元页」。
+- **保留 9 目录 118 页（9.2M）**：`Modding/` 53（mod API 核心）、`Game_concepts/` 29（script 引用的 concept）、`Estates/` 8、`Economy/` 7、`Laws/` 6、`Ages/` 6、`Government/` 4、`Modding_tools/` 3、`Interface/` 2。
+- **砍 344 页**：`Countries/` 189（各国攻略）、`_uncategorized/` 90（消歧义 stub + 列表 + 攻略）、`Events/` 15 与 `Scripted_content/` 10（各国 `*_content` 攻略，非 modding 机制）、`Patches/`、`Military/`、`Religion/`、`Flags/`、`Wiki/`、`Community_Mod_Framework/` 等。
+- **验证依据**：三个真实问题实测（伊斯坦布尔特产 / 意大利局势结束条件 / 专制时代法律）——`game-scripts` 能精确回答（can_end 的 50 年、`current_age` 限制），wiki 攻略页不能；wiki 的价值在「机制概念」，mod API 全在 `Modding/`。
 
-- 462 个 `.md`，31M，30 个分类目录（已按主题分类 + `_uncategorized/`）
-- 分类分布：Countries 189、_uncategorized 90、Modding 53、Game_concepts 29、Events 15、Scripted_content 10、Patches 8、Estates 8、Economy 7、Laws 6、其余小类
-- `categories.json`：完整 title→分类索引
-- `.revisions.json`：增量同步缓存
-- 生成器 `scripts/crawl_eu5_wiki.py` 支持全站/分类/显式列表抓取 + 增量 + 15s 合规限速
+### 2.2 game-scripts（vanilla 脚本镜像）—— 保留，本地生成
 
-### 1.4 问题清单（混乱点）
+- **定位**：**精确数据源**（agent grep vanilla 对象/字段/条件），是写 mod 的核心事实来源，必须保留。
+- **不进 repo**：428M 本地缓存（git-ignore），由 `sync_game_scripts` 工具在玩家端生成。
+- **排除缓存目录**：`gfx/map/map_objects/generated`、`sound/banks`、`terrain_cache`、`binaries`（生成数据非脚本）。
 
-1. **`docs/mod-wiki/` 被 `.gitignore` 忽略** —— 但这是维护者已整理好的知识资产，玩家自整理成本高，应进 repo。
-2. **docs/ 三层职责未显式分离** —— `INDEX.md` 没说明精选层 / dumps / wiki 快照的关系与取舍。
-3. **31M 体积 vs 玩家价值未决** —— Countries(189)/Patches(8) 是攻略/数据页，对 mod 开发价值低但占大头；全进会让 clone 变大。
-4. **M4/M5 未完成** —— runtime-check/install/mod-install 仍是 json 占位；AGENTS/README/SKILL/reference 仍是 Fake Game 占位。
-5. **垃圾文件** —— `scripts/__pycache__/`、可能残留的旧产物。
-6. **`.revisions.json` 处置未定** —— 若 wiki 进 repo，这个缓存是否也提交（方便他人增量更新）。
+### 2.3 运行时工具（M4 完成 3/4）
 
-## 2. 整改计划
+| 工具 | 状态 |
+|---|---|
+| `check_runtime` | ✅ 探测 gameDir/workshopDir/modInstallDir（Steam libraryfolders.vdf + 注册表 + installDirHint，Windows-only），写 `.gamer-agent.local.json` |
+| `install_runtime` | ✅ 永远 PASS（无依赖，提示游戏需玩家自装） |
+| `sync_game_scripts` | ✅ 增量拉取 vanilla 文本 → `game-scripts/`（KEEP_SUFFIXES allowlist + 排除缓存目录 + 删 stale） |
+| `install_mod` | ⚠️ 仍 json 占位 |
 
-### 2.1 决策点（需确认）
+## 3. 剩余待办
 
-- **D-wiki-1：wiki 快照范围**。三选一：
-  - A. 462 页全进 repo（31M，最全，clone 慢）
-  - B. 只进 modding 相关分类（Modding/Game_concepts/Events/Scripted_content/Estates/Economy/Laws/Interface/Modding_tools 等 ≈ 120 页 ≈ 8M），Countries/Patches/攻略页不进
-  - C. 逐页筛选（人工过一遍 462 页，最精确但最费劲）
-- **D-wiki-2：`_uncategorized/` 90 页**。人工筛 or 暂留（玩家可按需查）or 删。
-- **D-wiki-3：`.revisions.json` 是否提交**。提交（他人 clone 后可增量更新）vs 忽略（纯机器状态）。
-
-### 2.2 目标结构（整改后）
-
-```
-docs/
-├── INDEX.md                       # 总地图：精选层 + dumps + wiki 快照的导航与取舍
-├── game.md / eu5-modding-conventions.md   # 精选层（不变）
-├── data_types/ + script_docs/     # 语义 dumps（不变）
-└── mod-wiki/                      # wiki 快照（进 repo，范围按 D-wiki-1）
-    ├── <分类目录>/
-    ├── categories.json
-    └── .revisions.json            # 按 D-wiki-3
-```
-
-### 2.3 分步行动
-
-| 步 | 内容 | 依赖 |
+| # | 事项 | 说明 |
 |---|---|---|
-| **P0 清理** | 删 `scripts/__pycache__/`、旧残留；`.gitignore` 去掉 `docs/mod-wiki/` | 无 |
-| **P1 定 wiki 范围** | 按 D-wiki-1/2/3 决定 mod-wiki 保留哪些，删掉不要的分类 | D-wiki-1/2/3 |
-| **P2 INDEX 更新** | `INDEX.md` 写明三层职责 + mod-wiki 导航 + 取舍说明 | P1 |
-| **P3 补 M4/M5** | runtime-check/install/mod-install 三个工具；AGENTS/README/SKILL/reference 英文重写 | 无（与 P0-P2 并行） |
-| **P4 收尾** | 全 repo 英文一致性检查、`.revisions.json` 处置、`git add` 提交 wiki | P1/P2/P3 |
+| 1 | ✅ crawler 范围限制 | 已改：默认只 sync `KEEP_TOPICS`（9 分类 118 页），`--all-content` 才全站；`.revisions.json`/`categories.json` 已清理到 118 页 |
+| 2 | **mod-install.ts** | install_mod 工具：复制 `your_mods/<name>/` → `modInstallDir`（幂等覆盖，目标未发现 → FAIL + NEXT: check_runtime） |
+| 3 | **M5 提示词** | AGENTS.md（短地图）+ README + SKILL.md（操作手册，说明 check_runtime/sync_game_scripts/validate_mod 用法）+ reference/example_mod 样例（英文） |
+| 4 | **INDEX.md 更新** | 纳入 mod-wiki 导航 + 三层职责（精选层 / dumps / mod-wiki）说明 |
+| 5 | **全 repo 英文一致性** | AGENTS/README/SKILL/reference 仍 Fake Game 中文占位 |
 
-## 3. 附：crawler 抓取过程中已修的问题（记录）
+## 4. crawler 抓取过程中已修的问题（记录）
 
 1. `find_repo_root` 靠 `mod/` 目录识别根 → 改用 `mod-repo.json` 标记。
 2. `allpages&aprop=categories` 在此 wiki 失效 → 两阶段（allpages 标题 + `prop=categories` 批量）。

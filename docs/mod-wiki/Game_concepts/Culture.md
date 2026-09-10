@@ -1,4 +1,4 @@
-<!-- source: https://eu5.paradoxwikis.com/Culture revid: 35597 fetched: 2026-09-09 -->
+<!-- source: https://eu5.paradoxwikis.com/Culture revid: 37006 fetched: 2026-09-10 -->
 # Culture
 
 Please help with verifying or updating older sections of this article.
@@ -86,7 +86,7 @@ The only way to improve cultural opinion is to perform the "Improve Cultural Opi
 | Armenian | Armenian |  | Caucasian |  |
 | Aromanian | Romanian |  | Romanian |  |
 | Arpitan | French (Arpitan Dialect) |  | French, Swiss |  |
-| Arvanite | Albanian |  | - |  |
+| Arvanite | Albanian | Integrated to Albanian in Patch 1.2 | - |  |
 | Ashalaho | Apsáalooke-Hiraacá |  | Apsaalooke-Hiraaca |  |
 | Ashkenazi | German (Yiddish Dialect) |  | German, Jewish |  |
 | Ashshipite | Apsáalooke-Hiraacá |  | Apsaalooke-Hiraaca |  |

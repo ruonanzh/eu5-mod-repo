@@ -7,9 +7,9 @@ actually changed, the `markitdown` converter:
 
     uv run --with markitdown python scripts/crawl_eu5_wiki.py
 
-Default scope is the **whole wiki content namespace** (all ~460 articles),
-so maintainers can review everything and then decide per-page what to keep
-in docs/. Narrower scopes are available via --pages-file / --category.
+Default scope is the **kept mod-API topics** (KEEP_TOPICS — the directories committed
+under docs/mod-wiki/, see docs-organization.md). Pass --all-content for the whole
+wiki; --pages-file / --category narrow further.
 
 Compliance (eu5.paradoxwikis.com robots.txt asks `Crawl-delay: 15`; MediaWiki
 API etiquette asks for maxlag + an identifiable User-Agent):
@@ -28,11 +28,10 @@ API etiquette asks for maxlag + an identifiable User-Agent):
   round immediately (no retry), records ``blocked_until`` (Retry-After or
   300s default), and exits 3. The next run refuses to start until then.
 
-Modes: default = incremental full-wiki sync; ``--check-only`` = report changed
-pages (one request, no downloads); ``--full`` = force re-download of every
-page; ``--pages-file`` = sync only listed titles; ``--category`` = sync one
-category's members; ``--discover`` = list Category:Modding members (nothing
-saved).
+Modes: default = incremental keep-topics sync; ``--all-content`` = whole wiki; ``--check-only`` = report changed
+pages (one request, no downloads); ``--full`` = force re-download of every in-scope
+page; ``--pages-file`` = sync only listed titles; ``--category`` = sync one category's
+members; ``--discover`` = list Category:Modding members (nothing saved).
 """
 
 from __future__ import annotations
@@ -322,6 +321,14 @@ def topic_category(categories: list[str]) -> str | None:
     return None
 
 
+# 保留的 wiki 主题分类（mod API/机制目录，见 docs-organization.md §2.1）。
+# 默认 scope 只 sync 这些分类；--all-content 才全站。
+KEEP_TOPICS = frozenset({
+    "Modding", "Game_concepts", "Estates", "Economy", "Laws",
+    "Ages", "Government", "Interface", "Modding_tools",
+})
+
+
 def save_categories_index(out_dir: Path, pages: dict[str, list[str]]) -> None:
     tmp = out_dir / "categories.json.tmp"
     tmp.write_text(json.dumps(pages, indent=1, sort_keys=True), encoding="utf-8")
@@ -394,6 +401,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", help="output dir (default: <repo>/docs/mod-wiki)")
     parser.add_argument("--pages-file", help="file with one article title per line (narrow scope)")
     parser.add_argument("--category", help="sync only this category's direct members (narrow scope)")
+    parser.add_argument("--all-content", action="store_true",
+                        help="sync the whole wiki content namespace (instead of the default KEEP_TOPICS)")
     parser.add_argument("--min-interval", type=float, default=MIN_INTERVAL_S,
                         help="seconds between requests; clamped to >= %(default)s (robots.txt Crawl-delay)")
     parser.add_argument("--timeout", type=float, default=30.0, help="per-request timeout seconds")
@@ -448,8 +457,10 @@ def main(argv: list[str] | None = None) -> int:
             pages = {t: [] for t in titles}
         else:
             pages = query_all_content(gate, host, args.timeout)
+            if not args.all_content:
+                pages = {t: cats for t, cats in pages.items() if topic_category(cats) in KEEP_TOPICS}
             titles = list(pages)
-            print(f"Full-wiki scope: {len(titles)} article(s) on {host}")
+            print(f"{'Keep-topics' if not args.all_content else 'All-content'} scope: {len(titles)} article(s) on {host}")
         if not titles:
             sys.stderr.write("Empty scope; nothing to fetch.\n")
             return 2
@@ -532,7 +543,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[saved] {subdir}/{_slug(title)} (revid {remote[title]})")
         save_categories_index(out_dir, pages)
 
-        print(f"\nDone: {synced}/{len(stale)} page(s) synced; output: {out_dir} (git-ignored)")
+        print(f"\nDone: {synced}/{len(stale)} page(s) synced; output: {out_dir}")
         return 0
 
     except BlockedError as e:

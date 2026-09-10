@@ -1,4 +1,4 @@
-<!-- source: https://eu5.paradoxwikis.com/Scripted_gui revid: 36962 fetched: 2026-09-09 -->
+<!-- source: https://eu5.paradoxwikis.com/Scripted_gui revid: 36996 fetched: 2026-09-10 -->
 # Scripted gui
 
 This article has been verified for the current [version](/Europa_Universalis_5_Wiki%3AVersioning "Europa Universalis 5 Wiki:Versioning") (1.3) of the game.
@@ -112,6 +112,254 @@ List of ScriptedGui functions
 | Self |  | ScriptedGui |  |
 
 `GuiScope` returns a "TopScope" type which has its own set of [promotes and functions](/GUI_script "GUI script").
+
+List of TopScope functions
+
+| Function | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AccessSelf |  | TopScope |  |
+| End |  | TopScope |  |
+| GetFlagName | 1. unknown | CString |  |
+| GetLocalVariable | 1. unknown | unknown |  |
+| GetRootScope |  | unknown |  |
+| GetScriptValueDesc | 1. unknown | CString |  |
+| GetValue | 1. unknown | CFixedPoint |  |
+| ScriptValue | 1. unknown | CFixedPoint |  |
+| Self |  | TopScope |  |
+| sActiveResolution | 1. unknown | unknown |  |
+| sAdvanceType | 1. unknown | unknown |  |
+| sAge | 1. unknown | unknown |  |
+| sArea | 1. unknown | unknown |  |
+| sArtist | 1. unknown | unknown |  |
+| sAudioCulture | 1. unknown | unknown |  |
+| sAvatar | 1. unknown | unknown |  |
+| sBuildingType | 1. unknown | unknown |  |
+| sCabinet | 1. unknown | unknown |  |
+| sCabinetAction | 1. unknown | unknown |  |
+| sCardinal | 1. unknown | unknown |  |
+| sCasusBelli | 1. unknown | unknown |  |
+| sCharacter | 1. unknown | unknown |  |
+| sCharacterInteraction | 1. unknown | unknown |  |
+| sChildEducation | 1. unknown | unknown |  |
+| sClimate | 1. unknown | unknown |  |
+| sColonialCharter | 1. unknown | unknown |  |
+| sCombat | 1. unknown | unknown |  |
+| sCombatSide | 1. unknown | unknown |  |
+| sContinent | 1. unknown | unknown |  |
+| sCountry | 1. unknown | unknown |  |
+| sCountryInteraction | 1. unknown | unknown |  |
+| sCountryRank | 1. unknown | unknown |  |
+| sCulture | 1. unknown | unknown |  |
+| sDialect | 1. unknown | unknown |  |
+| sDisaster | 1. unknown | unknown |  |
+| sDisasterType | 1. unknown | unknown |  |
+| sDisease | 1. unknown | unknown |  |
+| sDiseaseOutbreak | 1. unknown | unknown |  |
+| sDynasty | 1. unknown | unknown |  |
+| sEmploymentSystem | 1. unknown | unknown |  |
+| sEstate | 1. unknown | unknown |  |
+| sEstatePrivilege | 1. unknown | unknown |  |
+| sEstateType | 1. unknown | unknown |  |
+| sEthnicity | 1. unknown | unknown |  |
+| sExploration | 1. unknown | unknown |  |
+| sFormableCountry | 1. unknown | unknown |  |
+| sGenericAction | 1. unknown | unknown |  |
+| sGod | 1. unknown | unknown |  |
+| sGoods | 1. unknown | unknown |  |
+| sGoodsDemand | 1. unknown | unknown |  |
+| sGovernmentReform | 1. unknown | unknown |  |
+| sGovernmentType | 1. unknown | unknown |  |
+| sGraphicalCulture | 1. unknown | unknown |  |
+| sHegemony | 1. unknown | unknown |  |
+| sHeirSelection | 1. unknown | unknown |  |
+| sHolySite | 1. unknown | unknown |  |
+| sHolySiteDefinition | 1. unknown | unknown |  |
+| sHolySiteType | 1. unknown | unknown |  |
+| sInstitution | 1. unknown | unknown |  |
+| sInternationalOrganization | 1. unknown | unknown |  |
+| sInternationalOrganizationType | 1. unknown | unknown |  |
+| sLandOwnershipRule | 1. unknown | unknown |  |
+| sLanguage | 1. unknown | unknown |  |
+| sLanguageFamily | 1. unknown | unknown |  |
+| sLaw | 1. unknown | unknown |  |
+| sLevySetup | 1. unknown | unknown |  |
+| sLoan | 1. unknown | unknown |  |
+| sLocation | 1. unknown | unknown |  |
+| sLocationRank | 1. unknown | unknown |  |
+| sMarket | 1. unknown | unknown |  |
+| sMercenary | 1. unknown | unknown |  |
+| sMissionDefinition | 1. unknown | unknown |  |
+| sMissionTaskDefinition | 1. unknown | unknown |  |
+| sParliamentAgenda | 1. unknown | unknown |  |
+| sParliamentIssue | 1. unknown | unknown |  |
+| sParliamentType | 1. unknown | unknown |  |
+| sPayment | 1. unknown | unknown |  |
+| sPolicy | 1. unknown | unknown |  |
+| sPop | 1. unknown | unknown |  |
+| sPopType | 1. unknown | unknown |  |
+| sPrice | 1. unknown | unknown |  |
+| sPrivateer | 1. unknown | unknown |  |
+| sProductionMethod | 1. unknown | unknown |  |
+| sProvince | 1. unknown | unknown |  |
+| sProvinceDefinition | 1. unknown | unknown |  |
+| sRebel | 1. unknown | unknown |  |
+| sRecruitmentMethod | 1. unknown | unknown |  |
+| sRegencyType | 1. unknown | unknown |  |
+| sRegion | 1. unknown | unknown |  |
+| sRelationType | 1. unknown | unknown |  |
+| sReligion | 1. unknown | unknown |  |
+| sReligionGroup | 1. unknown | unknown |  |
+| sReligiousAspect | 1. unknown | unknown |  |
+| sReligiousFaction | 1. unknown | unknown |  |
+| sReligiousFigure | 1. unknown | unknown |  |
+| sReligiousFocus | 1. unknown | unknown |  |
+| sReligiousSchool | 1. unknown | unknown |  |
+| sResolution | 1. unknown | unknown |  |
+| sRoadType | 1. unknown | unknown |  |
+| sScriptableHintDefinition | 1. unknown | unknown |  |
+| sScriptedPeaceTreatyType | 1. unknown | unknown |  |
+| sSiege | 1. unknown | unknown |  |
+| sSituation | 1. unknown | unknown |  |
+| sSocietalValue | 1. unknown | unknown |  |
+| sSpecialStatus | 1. unknown | unknown |  |
+| sSubContinent | 1. unknown | unknown |  |
+| sSubUnit | 1. unknown | unknown |  |
+| sSubUnitCategory | 1. unknown | unknown |  |
+| sSubjectMilitaryStance | 1. unknown | unknown |  |
+| sSubjectType | 1. unknown | unknown |  |
+| sTopography | 1. unknown | unknown |  |
+| sTrade | 1. unknown | unknown |  |
+| sTrait | 1. unknown | unknown |  |
+| sUnit | 1. unknown | unknown |  |
+| sUnitAbility | 1. unknown | unknown |  |
+| sUnitType | 1. unknown | unknown |  |
+| sVegetation | 1. unknown | unknown |  |
+| sWar | 1. unknown | unknown |  |
+| sWeatherSystem | 1. unknown | unknown |  |
+| sWorkOfArt | 1. unknown | unknown |  |
+| sWorkOfArtType | 1. unknown | unknown |  |
+
+List of TopScope promotes
+
+| Promote | Arguments | Output | Description |
+| --- | --- | --- | --- |
+| AddList | 1. unknown 2. unknown | TopScope |  |
+| AddScope | 1. unknown 2. unknown | TopScope |  |
+| GetLocalVariable | 1. unknown | Scope |  |
+| GetRootScope |  | Scope |  |
+| SetRoot | 1. unknown | TopScope |  |
+| sActiveResolution | 1. unknown | ActiveResolution |  |
+| sAdvanceType | 1. unknown | AdvanceDefinition |  |
+| sAge | 1. unknown | Age |  |
+| sArea | 1. unknown | Area |  |
+| sArtist | 1. unknown | Artist |  |
+| sAudioCulture | 1. unknown | AudioCultureType |  |
+| sAvatar | 1. unknown | Avatar |  |
+| sBuildingType | 1. unknown | BuildingType |  |
+| sCabinet | 1. unknown | Cabinet |  |
+| sCabinetAction | 1. unknown | CabinetAction |  |
+| sCardinal | 1. unknown | Cardinal |  |
+| sCasusBelli | 1. unknown | CasusBelli |  |
+| sCharacter | 1. unknown | Character |  |
+| sCharacterInteraction | 1. unknown | CharacterInteraction |  |
+| sChildEducation | 1. unknown | ChildEducation |  |
+| sClimate | 1. unknown | Climate |  |
+| sColonialCharter | 1. unknown | ColonialCharter |  |
+| sCombat | 1. unknown | Combat |  |
+| sCombatSide | 1. unknown | CombatSide |  |
+| sContinent | 1. unknown | Continent |  |
+| sCountry | 1. unknown | Country |  |
+| sCountryInteraction | 1. unknown | CountryInteraction |  |
+| sCountryRank | 1. unknown | CountryRank |  |
+| sCulture | 1. unknown | Culture |  |
+| sDialect | 1. unknown | Dialect |  |
+| sDisaster | 1. unknown | Disaster |  |
+| sDisasterType | 1. unknown | DisasterType |  |
+| sDisease | 1. unknown | Disease |  |
+| sDiseaseOutbreak | 1. unknown | DiseaseOutbreak |  |
+| sDynasty | 1. unknown | Dynasty |  |
+| sEmploymentSystem | 1. unknown | EmploymentSystem |  |
+| sEstate | 1. unknown | Estate |  |
+| sEstatePrivilege | 1. unknown | EstatePrivilege |  |
+| sEstateType | 1. unknown | EstateType |  |
+| sEthnicity | 1. unknown | Ethnicity |  |
+| sExploration | 1. unknown | Exploration |  |
+| sFormableCountry | 1. unknown | FormableCountry |  |
+| sGenericAction | 1. unknown | GenericAction |  |
+| sGod | 1. unknown | God |  |
+| sGoods | 1. unknown | Goods |  |
+| sGoodsDemand | 1. unknown | GoodsDemand |  |
+| sGovernmentReform | 1. unknown | GovernmentReform |  |
+| sGovernmentType | 1. unknown | GovernmentType |  |
+| sGraphicalCulture | 1. unknown | GraphicalCultureType |  |
+| sHegemony | 1. unknown | Hegemony |  |
+| sHeirSelection | 1. unknown | HeirSelection |  |
+| sHolySite | 1. unknown | HolySite |  |
+| sHolySiteDefinition | 1. unknown | HolySiteDefinition |  |
+| sHolySiteType | 1. unknown | HolySiteType |  |
+| sInstitution | 1. unknown | Institution |  |
+| sInternationalOrganization | 1. unknown | InternationalOrganization |  |
+| sInternationalOrganizationType | 1. unknown | InternationalOrganizationType |  |
+| sLandOwnershipRule | 1. unknown | LandOwnershipRule |  |
+| sLanguage | 1. unknown | Language |  |
+| sLanguageFamily | 1. unknown | LanguageFamily |  |
+| sLaw | 1. unknown | Law |  |
+| sLevySetup | 1. unknown | LevySetup |  |
+| sLoan | 1. unknown | Loan |  |
+| sLocation | 1. unknown | Location |  |
+| sLocationRank | 1. unknown | LocationRank |  |
+| sMarket | 1. unknown | Market |  |
+| sMercenary | 1. unknown | Mercenary |  |
+| sMissionDefinition | 1. unknown | MissionDefinition |  |
+| sMissionTaskDefinition | 1. unknown | MissionTaskDefinition |  |
+| sParliamentAgenda | 1. unknown | ParliamentAgenda |  |
+| sParliamentIssue | 1. unknown | ParliamentIssue |  |
+| sParliamentType | 1. unknown | ParliamentType |  |
+| sPayment | 1. unknown | Payment |  |
+| sPolicy | 1. unknown | Policy |  |
+| sPop | 1. unknown | Pop |  |
+| sPopType | 1. unknown | PopType |  |
+| sPrice | 1. unknown | Price |  |
+| sPrivateer | 1. unknown | Privateer |  |
+| sProductionMethod | 1. unknown | ProductionMethod |  |
+| sProvince | 1. unknown | Province |  |
+| sProvinceDefinition | 1. unknown | ProvinceDefinition |  |
+| sRebel | 1. unknown | Rebel |  |
+| sRecruitmentMethod | 1. unknown | RecruitmentMethod |  |
+| sRegencyType | 1. unknown | RegencyType |  |
+| sRegion | 1. unknown | Region |  |
+| sRelationType | 1. unknown | ScriptedRelationType |  |
+| sReligion | 1. unknown | Religion |  |
+| sReligionGroup | 1. unknown | ReligionGroup |  |
+| sReligiousAspect | 1. unknown | ReligiousAspect |  |
+| sReligiousFaction | 1. unknown | ReligiousFaction |  |
+| sReligiousFigure | 1. unknown | ReligiousFigure |  |
+| sReligiousFocus | 1. unknown | ReligiousFocus |  |
+| sReligiousSchool | 1. unknown | ReligiousSchool |  |
+| sResolution | 1. unknown | Resolution |  |
+| sRoadType | 1. unknown | RoadType |  |
+| sScriptableHintDefinition | 1. unknown | ScriptableHintDefinition |  |
+| sScriptedPeaceTreatyType | 1. unknown | ScriptedPeaceTreatyType |  |
+| sSiege | 1. unknown | Siege |  |
+| sSituation | 1. unknown | Situation |  |
+| sSocietalValue | 1. unknown | SocietalValue |  |
+| sSpecialStatus | 1. unknown | SpecialStatus |  |
+| sSubContinent | 1. unknown | SubContinent |  |
+| sSubUnit | 1. unknown | SubUnit |  |
+| sSubUnitCategory | 1. unknown | SubUnitCategory |  |
+| sSubjectMilitaryStance | 1. unknown | SubjectMilitaryStance |  |
+| sSubjectType | 1. unknown | SubjectType |  |
+| sTopography | 1. unknown | Topography |  |
+| sTrade | 1. unknown | Trade |  |
+| sTrait | 1. unknown | Trait |  |
+| sUnit | 1. unknown | Unit |  |
+| sUnitAbility | 1. unknown | UnitAbility |  |
+| sUnitType | 1. unknown | SubUnitType |  |
+| sVegetation | 1. unknown | Vegetation |  |
+| sWar | 1. unknown | War |  |
+| sWeatherSystem | 1. unknown | WeatherSystem |  |
+| sWorkOfArt | 1. unknown | WorkOfArt |  |
+| sWorkOfArtType | 1. unknown | WorkOfArtType |  |
 
 ## Saved scopes
 

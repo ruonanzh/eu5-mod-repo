@@ -1,11 +1,11 @@
-<!-- source: https://eu5.paradoxwikis.com/List_of_GUI_script_functions revid: 32998 fetched: 2026-09-09 -->
+<!-- source: https://eu5.paradoxwikis.com/List_of_GUI_script_functions revid: 36989 fetched: 2026-09-10 -->
 # List of GUI script functions
 
 *Main article: [GUI script](/GUI_script "GUI script")*
 
 This page lists all of the GUI script functions, as the list is too large to directly include on the GUI script main page.
 
-To update any of these tables, use [Module:GUI script/Functions/Updates](/Module%3AGUI_script/Functions/Updates "Module:GUI script/Functions/Updates") (for global functions) or the per-section updates modules (e.g. [Module:GUI script/Functions/A-D/Updates](/Module%3AGUI_script/Functions/A-D/Updates "Module:GUI script/Functions/A-D/Updates")).
+To update any of these tables, use [Module:GUI script/Functions/Global](/Module%3AGUI_script/Functions/Global "Module:GUI script/Functions/Global") or the per-section modules (e.g. [Module:GUI script/Functions/A-D](/Module%3AGUI_script/Functions/A-D "Module:GUI script/Functions/A-D")).
 
 List of global functions
 
@@ -25,7 +25,7 @@ List of global functions
 | AddTextIf | 1. unknown 2. unknown | CString |  |
 | Add\_CFixedPoint | 1. unknown 2. unknown | CFixedPoint |  |
 | Add\_CVector2f | 1. unknown 2. unknown | CVector2f |  |
-| Add\_float | 1. float 2. float | float |  |
+| Add\_float | 1. unknown 2. unknown | float |  |
 | Add\_int32 | 1. unknown 2. unknown | int32 |  |
 | Add\_int64 | 1. unknown 2. unknown | int64 |  |
 | Add\_uint32 | 1. unknown 2. unknown | uint32 |  |

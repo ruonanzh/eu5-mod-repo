@@ -435,7 +435,7 @@ export default function (pi: ExtensionAPI) {
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
       "Use validate_mod after writing a mod to check it passes the spec.",
-      "Fix all ERRORs before declaring a mod done; WARNs are advisory.",
+      "Fix all validate_mod ERRORs before declaring a mod done; WARNs are advisory.",
     ],
     parameters: Type.Object({
       modDir: Type.String({ description: "Path to the mod directory (e.g. your_mods/<ModName>)" }),

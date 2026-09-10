@@ -97,7 +97,7 @@ export default function (pi: ExtensionAPI) {
               text: "PARTIAL: Europa Universalis V is Windows-only; no game files can be located on this platform. Run this on Windows.",
             },
           ],
-          details: { ok: false, status: "windows-only", errors: [] },
+          details: { ok: false, errors: [] },
         };
       }
 
@@ -188,7 +188,7 @@ export default function (pi: ExtensionAPI) {
       if (errors.some((e) => e.startsWith("FAIL"))) {
         return {
           content: [{ type: "text", text: errors.join("\n") + "\nNEXT: ask the player for the game install path and re-run check_runtime with gameDir." }],
-          details: { ...state, ok: false, status: "blocked", errors, nextAction: "GAME_DIRECTORY: ask the player for the install path." },
+          details: { ...state, ok: false, errors },
         };
       }
 
@@ -199,7 +199,7 @@ export default function (pi: ExtensionAPI) {
       ];
       return {
         content: [{ type: "text", text: lines.join("\n") }],
-        details: { ...state, ok: true, status: "ready", errors, nextAction: "Reuse this discovery result while the installation remains unchanged." },
+        details: { ...state, ok: true, errors },
       };
     },
   });

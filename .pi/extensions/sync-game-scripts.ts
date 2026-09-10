@@ -164,7 +164,7 @@ export default function (pi: ExtensionAPI) {
               text: "FAIL: game directory unknown. NEXT: run check_runtime first to locate the EU5 install, then re-run sync_game_scripts.",
             },
           ],
-          details: { ok: false, errors: ["gameDir unknown; run check_runtime first"], nextAction: "check_runtime" },
+          details: { ok: false, errors: ["gameDir unknown; run check_runtime first"] },
         };
       }
 

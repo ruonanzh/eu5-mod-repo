@@ -1,42 +1,81 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
+import { readFileSync, statSync, cpSync } from "node:fs";
+import { join } from "node:path";
 
 /**
- * install_mod — mod 安装契约（docs/mod-repo-guide.md §4.1）
- * json mod type 的 modInstall 为 null，无需安装，直接 PASS（modDir 不使用）。
- * 有 modInstall 的类型（如 csharp-dll / pdx-script）：
- *   - 从 params 取 modDir（your_mods/<ModName>）
- *   - 读 mod-repo.json 的 modInstall（relativeTo + path）解析目标
- *   - relativeTo ∈ { "gameDir" 游戏安装目录, "userDocuments" 用户文档目录 }
- *   - path 为字符串（平台无关）或 { "windows": …, "mac": … } 对象（多平台）
- *   - 目标路径由 check_runtime 写运行时状态文件（如 .gamer-agent.local.json），
- *     install_mod 不自己探测；目标未发现 → FAIL + "NEXT: run check_runtime first"
- *   - 把 your_mods/<ModName>/ 幂等覆盖式复制到目标（node:fs cpSync recursive）
- *   - 只负责「装」，不重复 validate_mod 的校验；只写游戏 mod 目录（workspace 外）
+ * install_mod — EU5 (pdx-script) 安装契约（mod-repo-guide §4.1）。
+ *
+ * 把 your_mods/<name>/ 幂等覆盖式复制到 Paradox launcher 的 mod 目录
+ * （.gamer-agent.local.json 的 modInstallDir，由 check_runtime 写入；install_mod 不自己探测）。
+ * 只负责「装」，不重复 validate_mod 的校验；只写游戏 mod 目录（workspace 外）。
  */
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "install_mod",
     label: "Install Mod",
-    description: "Copy a mod from your_mods/<name>/ into the game's mod folder (per modInstall in mod-repo.json)",
+    description:
+      "Copy a mod from your_mods/<name>/ into the Paradox launcher mod directory (modInstallDir from check_runtime's .gamer-agent.local.json). Idempotent overwrite; fails with NEXT: check_runtime when the target directory is unknown.",
     promptSnippet: "Install mod into the game",
     promptGuidelines: [
       "Use install_mod after validate_mod passes, to copy the mod into the game for testing.",
+      "If install_mod fails because the target directory is unknown, run check_runtime first.",
     ],
     parameters: Type.Object({
       modDir: Type.String({ description: "Mod directory to install, e.g. your_mods/<ModName>" }),
     }),
-    async execute(_toolCallId, { modDir }) {
-      // json modType: modInstall is null — nothing to install; modDir is unused here.
-      void modDir;
+    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      const repoRoot = ctx.cwd;
+      const modDir = params.modDir;
+      if (!modDir || typeof modDir !== "string" || !statSync(modDir, { throwIfNoEntry: false })?.isDirectory()) {
+        throw new Error(`INVALID_MOD_DIR: ${modDir ?? "(empty)"} is not a directory`);
+      }
+
+      // 目标目录来自 check_runtime 写的状态文件，install_mod 不自己探测
+      const stateFile = join(repoRoot, ".gamer-agent.local.json");
+      let state: Record<string, unknown> = {};
+      try {
+        state = JSON.parse(readFileSync(stateFile, "utf8"));
+      } catch {
+        state = {};
+      }
+      const modInstallDir = typeof state.modInstallDir === "string" && state.modInstallDir.trim() ? state.modInstallDir.trim() : "";
+
+      if (!modInstallDir) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "FAIL: mod install directory unknown. NEXT: run check_runtime first to locate the Paradox mod directory, then re-run install_mod.",
+            },
+          ],
+          details: { ok: false, errors: ["modInstallDir unknown; run check_runtime first"] },
+        };
+      }
+
+      const name = modDir.split(/[\\/]/).pop() || "mod";
+      const target = join(modInstallDir, name);
+      try {
+        cpSync(modDir, target, {
+          recursive: true,
+          force: true,
+          filter: (src) => !src.split(/[\\/]/).includes(".git"),
+        });
+      } catch (e) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `FAIL: copy failed: ${e instanceof Error ? e.message : String(e)}. NEXT: check write permission on ${modInstallDir}.`,
+            },
+          ],
+          details: { ok: false, errors: [e instanceof Error ? e.message : String(e)] },
+        };
+      }
+
       return {
-        content: [
-          {
-            type: "text",
-            text: `PASS: this modType (json) has no install target (modInstall: null); nothing to copy.\nNEXT: run the game to load the mod content directly.`,
-          },
-        ],
-        details: { ok: true },
+        content: [{ type: "text", text: `PASS: installed ${name} to ${target}` }],
+        details: { ok: true, target },
       };
     },
   });

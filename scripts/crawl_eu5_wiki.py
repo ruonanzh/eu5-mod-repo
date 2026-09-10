@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Incrementally sync the EU5 wiki into git-ignored docs/eu5-wiki/.
+"""Incrementally sync the EU5 wiki into docs/mod-wiki/ (committed to the repo).
 
 Feeds the local knowledge layer. Output is *not* committed - it is
 regenerated on demand and requires network access plus, only when pages
@@ -391,7 +391,7 @@ def save_revcache(path: Path, cache: dict) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Incremental, rate-limited EU5 wiki sync (full-wiki content by default).")
     parser.add_argument("--host", default=DEFAULT_HOST, help="wiki host (default: %(default)s)")
-    parser.add_argument("--out", help="output dir (default: <repo>/docs/eu5-wiki)")
+    parser.add_argument("--out", help="output dir (default: <repo>/docs/mod-wiki)")
     parser.add_argument("--pages-file", help="file with one article title per line (narrow scope)")
     parser.add_argument("--category", help="sync only this category's direct members (narrow scope)")
     parser.add_argument("--min-interval", type=float, default=MIN_INTERVAL_S,
@@ -409,7 +409,7 @@ def main(argv: list[str] | None = None) -> int:
 
     host = args.host
     repo_root = find_repo_root(Path(__file__).resolve().parent)
-    out_dir = Path(args.out) if args.out else repo_root / "docs" / "eu5-wiki"
+    out_dir = Path(args.out) if args.out else repo_root / "docs" / "mod-wiki"
 
     if args.reclassify:
         reclassify_local(out_dir)

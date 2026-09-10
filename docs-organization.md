@@ -12,17 +12,17 @@ eu5-mod-repo/
 ├── mod-repo.json                  # pdx-script 声明 ✅
 ├── AGENTS.md / README.md          # ⚠️ 仍是 Fake Game 中文占位（M5 未做）
 ├── lefthook.yml                   # ⚠️ json 占位（未核对）
-├── .gitignore                     # ⚠️ 当前 ignore 掉 docs/eu5-wiki/
+├── .gitignore                     # ⚠️ 当前 ignore 掉 docs/mod-wiki/
 ├── .pi/
 │   ├── extensions/                # ✅ mod-lint.ts(validate_mod)；⚠️ runtime-check/install/mod-install 仍 json 占位
 │   └── skills/mod-authoring/SKILL.md  # ⚠️ Fake Game 占位
 ├── docs/
-│   ├── INDEX.md                   # ✅ docs 地图（但未纳入 eu5-wiki）
+│   ├── INDEX.md                   # ✅ docs 地图（但未纳入 mod-wiki）
 │   ├── game.md                    # ✅ EU5 概览（英文）
 │   ├── eu5-modding-conventions.md # ✅ 约定 cheat-sheet（英文）
 │   ├── data_types/                # ✅ 语义 dumps 3.0M（游戏生成）
 │   ├── script_docs/               # ✅ 语义 dumps 1.9M（游戏生成）
-│   └── eu5-wiki/                  # ⚠️ 31M / 462 页 / 30 目录（当前被 ignore）
+│   └── mod-wiki/                  # ⚠️ 31M / 462 页 / 30 目录（当前被 ignore）
 ├── reference/example_mod/         # ⚠️ 仍是 json 占位（content.json/manifest.json）
 ├── scripts/
 │   ├── crawl_eu5_wiki.py          # ✅ 全站抓取工具（合规）
@@ -36,9 +36,9 @@ eu5-mod-repo/
 |---|---|---|---|---|
 | 精选知识层 | `game.md` + `eu5-modding-conventions.md` + `INDEX.md` | ~20K | agent 做 mod 时直接读的「为什么」与约定 | ✅ 必须 |
 | 语义 dumps | `data_types/` + `script_docs/` | 4.9M | 精确 effect/trigger/modifier/scope/datatype 清单（游戏导出，权威） | ✅ 必须（D1 已定进 repo） |
-| wiki 全站快照 | `eu5-wiki/` | 31M / 462 页 | 完整 wiki 参考（30 分类目录） | ❓ 待定（本次整改核心） |
+| wiki 全站快照 | `mod-wiki/` | 31M / 462 页 | 完整 wiki 参考（30 分类目录） | ❓ 待定（本次整改核心） |
 
-### 1.3 eu5-wiki 快照的现状
+### 1.3 mod-wiki 快照的现状
 
 - 462 个 `.md`，31M，30 个分类目录（已按主题分类 + `_uncategorized/`）
 - 分类分布：Countries 189、_uncategorized 90、Modding 53、Game_concepts 29、Events 15、Scripted_content 10、Patches 8、Estates 8、Economy 7、Laws 6、其余小类
@@ -48,7 +48,7 @@ eu5-mod-repo/
 
 ### 1.4 问题清单（混乱点）
 
-1. **`docs/eu5-wiki/` 被 `.gitignore` 忽略** —— 但这是维护者已整理好的知识资产，玩家自整理成本高，应进 repo。
+1. **`docs/mod-wiki/` 被 `.gitignore` 忽略** —— 但这是维护者已整理好的知识资产，玩家自整理成本高，应进 repo。
 2. **docs/ 三层职责未显式分离** —— `INDEX.md` 没说明精选层 / dumps / wiki 快照的关系与取舍。
 3. **31M 体积 vs 玩家价值未决** —— Countries(189)/Patches(8) 是攻略/数据页，对 mod 开发价值低但占大头；全进会让 clone 变大。
 4. **M4/M5 未完成** —— runtime-check/install/mod-install 仍是 json 占位；AGENTS/README/SKILL/reference 仍是 Fake Game 占位。
@@ -73,7 +73,7 @@ docs/
 ├── INDEX.md                       # 总地图：精选层 + dumps + wiki 快照的导航与取舍
 ├── game.md / eu5-modding-conventions.md   # 精选层（不变）
 ├── data_types/ + script_docs/     # 语义 dumps（不变）
-└── eu5-wiki/                      # wiki 快照（进 repo，范围按 D-wiki-1）
+└── mod-wiki/                      # wiki 快照（进 repo，范围按 D-wiki-1）
     ├── <分类目录>/
     ├── categories.json
     └── .revisions.json            # 按 D-wiki-3
@@ -83,9 +83,9 @@ docs/
 
 | 步 | 内容 | 依赖 |
 |---|---|---|
-| **P0 清理** | 删 `scripts/__pycache__/`、旧残留；`.gitignore` 去掉 `docs/eu5-wiki/` | 无 |
-| **P1 定 wiki 范围** | 按 D-wiki-1/2/3 决定 eu5-wiki 保留哪些，删掉不要的分类 | D-wiki-1/2/3 |
-| **P2 INDEX 更新** | `INDEX.md` 写明三层职责 + eu5-wiki 导航 + 取舍说明 | P1 |
+| **P0 清理** | 删 `scripts/__pycache__/`、旧残留；`.gitignore` 去掉 `docs/mod-wiki/` | 无 |
+| **P1 定 wiki 范围** | 按 D-wiki-1/2/3 决定 mod-wiki 保留哪些，删掉不要的分类 | D-wiki-1/2/3 |
+| **P2 INDEX 更新** | `INDEX.md` 写明三层职责 + mod-wiki 导航 + 取舍说明 | P1 |
 | **P3 补 M4/M5** | runtime-check/install/mod-install 三个工具；AGENTS/README/SKILL/reference 英文重写 | 无（与 P0-P2 并行） |
 | **P4 收尾** | 全 repo 英文一致性检查、`.revisions.json` 处置、`git add` 提交 wiki | P1/P2/P3 |
 

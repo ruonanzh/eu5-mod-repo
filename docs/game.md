@@ -10,8 +10,7 @@ the game is **Windows-only**.
   `%USERPROFILE%\Documents\Paradox Interactive\Europa Universalis V\mod\<name>\`, loaded by the
   Paradox launcher.
 - Directory structure: `.metadata/metadata.json` (required) + `in_game/` (in-game content) +
-  `main_menu/` (main-menu) + optional `loading_screen/` (full shape in
-  [`../.pi/skills/mod-authoring/SKILL.md`](../.pi/skills/mod-authoring/SKILL.md)).
+  `main_menu/` (main-menu) + optional `loading_screen/`.
 - At load time, mod files are layered on top of the base game: same-name files overwrite, same-name
   top-level objects override per the folder's keyword rules (`INJECT:`/`REPLACE:` family), and load
   order is ASCII by filename + subfolders after parents.
@@ -24,7 +23,6 @@ the game is **Windows-only**.
 | Concepts / how-to (mod API mechanics) | [`mod-wiki/`](mod-wiki/) (curated wiki snapshot, 118 pages) |
 | Exact effect/trigger/modifier names and scopes | [`script_docs/`](script_docs/) (game-generated, authoritative) |
 | GUI/script datatype promotes and function signatures | [`data_types/`](data_types/) (game-generated, authoritative; no wiki equivalent) |
-| The hands-on authoring playbook | [`../.pi/skills/mod-authoring/SKILL.md`](../.pi/skills/mod-authoring/SKILL.md) |
 
 ## Key reminders
 

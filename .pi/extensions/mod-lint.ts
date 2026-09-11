@@ -163,7 +163,7 @@ function checkLocalization(modRoot: string): Finding[] {
       findings.push({ severity: "error", rel, message: "filename must end with '_l_<language>.yml'" });
     }
 
-    const lines = text.split("\n");
+    const lines = text.split(/\r?\n/);
     let headerSeen = false;
     const seenKeys = new Map<string, number>();
     for (let i = 0; i < lines.length; i += 1) {

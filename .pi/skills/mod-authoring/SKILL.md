@@ -24,6 +24,12 @@ The same repo serves two roles; which one applies is set by the session role, no
   the structure of `reference/example_mod/`. Writes are limited to the mod directory bound to the
   current session; with no binding, call `create_mod_folder` with a `lower_snake_case` name. Do not
   create a second binding if one already exists.
+- **Installing (after validate_mod passes):** `install_mod` copies the mod into the Paradox mod
+  directory (target comes from `check_runtime`'s discovery, it does not probe itself). Re-running for
+  the same mod updates it in place. If the target directory is already taken by a **different** mod it
+  installs as `<id>_pimod` and rewrites that copy's `metadata.json` `id` to match (`id` must equal the
+  directory name); the existing directory is left untouched. When that happens, tell the player which
+  id it now installs as — the in-game title (`name`) is unchanged.
 
 ## Mod artifact structure
 

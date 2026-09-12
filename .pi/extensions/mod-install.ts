@@ -154,7 +154,7 @@ export default function (pi: ExtensionAPI) {
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      if (!params.modDir.trim())
+      if (!params.modDir?.trim())
         throw new Error(
           "INVALID_MOD_DIR: Provide a mod directory, e.g. your_mods/my_mod.",
         );

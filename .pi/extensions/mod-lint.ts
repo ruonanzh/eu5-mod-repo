@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 
 /**
  * validate_mod — EU5 mod 校验工具（pdx-script 类型）。
@@ -19,14 +19,21 @@ import { join, relative, sep } from "node:path";
 const UTF8_BOM = Buffer.from([0xef, 0xbb, 0xbf]);
 const PDX_SUFFIXES = new Set([".txt", ".gui", ".gfx", ".asset"]);
 const CONTENT_ROOT_MARKERS = ["/in_game/", "/main_menu/"];
-const STANDARD_METADATA_FIELDS = ["name", "id", "version", "supported_game_version", "tags"];
+const STANDARD_METADATA_FIELDS = [
+  "name",
+  "id",
+  "version",
+  "supported_game_version",
+  "tags",
+];
 const IMAGE_EXTS = new Set([".png", ".dds", ".jpg", ".jpeg", ".tga"]);
 const SEMVER_RE = /^\d+\.\d+(\.\d+)?$/;
 const PUA_RE = /[\ue000-\uf8ff]/;
 const LOC_KEY_RE = /^\s+(?<key>[^\s:#][^:]*):(?<ver>\d*)\s*(?<rest>.*?)\s*$/;
 const LOC_HEADER_RE = /^\ufeff?\s*l_(?<lang>[a-z_]+):(?<tail>.*)$/;
 const OVERRIDE_KEYWORD_RE = /(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?:/;
-const TOPLEVEL_KEY_RE = /(?<kw>(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?:)?(?<key>[A-Za-z0-9_.\-]+)\s*=\s*\{/;
+const TOPLEVEL_KEY_RE =
+  /(?<kw>(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?:)?(?<key>[A-Za-z0-9_.\-]+)\s*=\s*\{/;
 
 type Severity = "error" | "warn";
 interface Finding {
@@ -72,7 +79,8 @@ function expectedLanguageFromPath(rel: string): string | null {
   if (idx < 0) return null;
   const tail = parts.slice(idx + 1, -1);
   if (tail.length === 0) return null;
-  if (tail[0].toLowerCase() === "replace" && tail.length >= 2) return tail[1].toLowerCase();
+  if (tail[0].toLowerCase() === "replace" && tail.length >= 2)
+    return tail[1].toLowerCase();
   return tail[0].toLowerCase();
 }
 
@@ -138,18 +146,46 @@ function checkLocalization(modRoot: string): Finding[] {
       continue;
     }
     if (!raw.subarray(0, 3).equals(UTF8_BOM)) {
-      findings.push({ severity: "error", rel, message: "missing UTF-8 BOM (game ignores localization files without a BOM)" });
+      findings.push({
+        severity: "error",
+        rel,
+        message:
+          "missing UTF-8 BOM (game ignores localization files without a BOM)",
+      });
     }
     const { text, err } = decodeUtf8(raw);
     if (text === null) {
-      findings.push({ severity: "error", rel, message: err ?? "not valid UTF-8" });
+      findings.push({
+        severity: "error",
+        rel,
+        message: err ?? "not valid UTF-8",
+      });
       continue;
     }
-    if (text.includes("\ufffd")) findings.push({ severity: "warn", rel, message: "contains U+FFFD replacement character (file may be damaged)" });
-    if (PUA_RE.test(text)) findings.push({ severity: "warn", rel, message: "contains Unicode private-use character(s) U+E000-U+F8FF" });
+    if (text.includes("\ufffd"))
+      findings.push({
+        severity: "warn",
+        rel,
+        message: "contains U+FFFD replacement character (file may be damaged)",
+      });
+    if (PUA_RE.test(text))
+      findings.push({
+        severity: "warn",
+        rel,
+        message: "contains Unicode private-use character(s) U+E000-U+F8FF",
+      });
     const relLower = rel.toLowerCase();
-    if ((relLower.includes("/simp_chinese/") || relLower.includes("_simp_chinese")) && simpChineseMojibakeHint(text)) {
-      findings.push({ severity: "warn", rel, message: "possible simplified-Chinese mojibake (euro sign / rare ext ideographs); verify in-game" });
+    if (
+      (relLower.includes("/simp_chinese/") ||
+        relLower.includes("_simp_chinese")) &&
+      simpChineseMojibakeHint(text)
+    ) {
+      findings.push({
+        severity: "warn",
+        rel,
+        message:
+          "possible simplified-Chinese mojibake (euro sign / rare ext ideographs); verify in-game",
+      });
     }
 
     const expectedLang = expectedLanguageFromPath(rel);
@@ -157,10 +193,18 @@ function checkLocalization(modRoot: string): Finding[] {
     const stem = name.endsWith(".yml") ? name.slice(0, -4) : name;
     if (expectedLang) {
       if (!stem.endsWith(`_l_${expectedLang}`)) {
-        findings.push({ severity: "error", rel, message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization folder` });
+        findings.push({
+          severity: "error",
+          rel,
+          message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization folder`,
+        });
       }
     } else if (!/_l_[a-z_]+$/.test(stem)) {
-      findings.push({ severity: "error", rel, message: "filename must end with '_l_<language>.yml'" });
+      findings.push({
+        severity: "error",
+        rel,
+        message: "filename must end with '_l_<language>.yml'",
+      });
     }
 
     const lines = text.split(/\r?\n/);
@@ -174,13 +218,21 @@ function checkLocalization(modRoot: string): Finding[] {
       const headerMatch = LOC_HEADER_RE.exec(line);
       if (!headerSeen) {
         if (!headerMatch) {
-          findings.push({ severity: "error", rel, message: `line ${lineNo}: expected a language header 'l_<lang>:' as the first content line` });
+          findings.push({
+            severity: "error",
+            rel,
+            message: `line ${lineNo}: expected a language header 'l_<lang>:' as the first content line`,
+          });
           headerSeen = true;
         } else {
           headerSeen = true;
           const lang = headerMatch.groups?.lang;
           if (expectedLang && lang !== expectedLang) {
-            findings.push({ severity: "error", rel, message: `line ${lineNo}: header 'l_${lang}:' does not match folder language '${expectedLang}'` });
+            findings.push({
+              severity: "error",
+              rel,
+              message: `line ${lineNo}: header 'l_${lang}:' does not match folder language '${expectedLang}'`,
+            });
           }
           continue;
         }
@@ -188,18 +240,34 @@ function checkLocalization(modRoot: string): Finding[] {
       if (headerMatch) continue; // 后续语言头行允许
       const m = LOC_KEY_RE.exec(line);
       if (!m) {
-        findings.push({ severity: "error", rel, message: `line ${lineNo}: malformed localization line (expected '  key: \"value\"' or '  key:0 \"value\"')` });
+        findings.push({
+          severity: "error",
+          rel,
+          message: `line ${lineNo}: malformed localization line (expected '  key: \"value\"' or '  key:0 \"value\"')`,
+        });
         continue;
       }
       const rest = m.groups?.rest ?? "";
       if (!rest.startsWith('"')) {
-        findings.push({ severity: "error", rel, message: `line ${lineNo}: value must be double-quoted` });
+        findings.push({
+          severity: "error",
+          rel,
+          message: `line ${lineNo}: value must be double-quoted`,
+        });
       } else if (!localizationValueQuoteOk(rest)) {
-        findings.push({ severity: "error", rel, message: `line ${lineNo}: unbalanced '\"' in value` });
+        findings.push({
+          severity: "error",
+          rel,
+          message: `line ${lineNo}: unbalanced '\"' in value`,
+        });
       }
       const key = (m.groups?.key ?? "").trim();
       if (seenKeys.has(key)) {
-        findings.push({ severity: "error", rel, message: `line ${lineNo}: duplicate key '${key}' (first seen line ${seenKeys.get(key)})` });
+        findings.push({
+          severity: "error",
+          rel,
+          message: `line ${lineNo}: duplicate key '${key}' (first seen line ${seenKeys.get(key)})`,
+        });
       } else {
         seenKeys.set(key, lineNo);
       }
@@ -215,45 +283,90 @@ function checkMetadata(modRoot: string): Finding[] {
   const meta = join(modRoot, ".metadata", "metadata.json");
   const rel = ".metadata/metadata.json";
   if (!existsSync(meta)) {
-    findings.push({ severity: "error", rel, message: "missing .metadata/metadata.json" });
+    findings.push({
+      severity: "error",
+      rel,
+      message: "missing .metadata/metadata.json",
+    });
     return findings;
   }
   let raw: Buffer;
   try {
     raw = readFileSync(meta);
   } catch {
-    findings.push({ severity: "error", rel, message: "cannot read metadata.json" });
+    findings.push({
+      severity: "error",
+      rel,
+      message: "cannot read metadata.json",
+    });
     return findings;
   }
   const { text, err } = decodeUtf8(raw);
   if (text === null) {
-    findings.push({ severity: "error", rel, message: err ?? "cannot decode metadata.json" });
+    findings.push({
+      severity: "error",
+      rel,
+      message: err ?? "cannot decode metadata.json",
+    });
     return findings;
   }
   let data: unknown;
   try {
     data = JSON.parse(text);
   } catch (e) {
-    findings.push({ severity: "error", rel, message: `invalid JSON (${e instanceof Error ? e.message : String(e)})` });
+    findings.push({
+      severity: "error",
+      rel,
+      message: `invalid JSON (${e instanceof Error ? e.message : String(e)})`,
+    });
     return findings;
   }
   if (typeof data !== "object" || data === null || Array.isArray(data)) {
-    findings.push({ severity: "error", rel, message: "metadata.json top-level value must be an object" });
+    findings.push({
+      severity: "error",
+      rel,
+      message: "metadata.json top-level value must be an object",
+    });
     return findings;
   }
   const obj = data as Record<string, unknown>;
   for (const field of STANDARD_METADATA_FIELDS) {
-    if (!(field in obj)) findings.push({ severity: "warn", rel, message: `missing expected field '${field}' (EU5 wiki metadata.json standard structure)` });
+    if (!(field in obj))
+      findings.push({
+        severity: "warn",
+        rel,
+        message: `missing expected field '${field}' (EU5 wiki metadata.json standard structure)`,
+      });
   }
-  if (typeof obj.version === "string" && obj.version !== "" && !SEMVER_RE.test(obj.version)) {
-    findings.push({ severity: "error", rel, message: `version '${obj.version}' is not semver x.x or x.x.x` });
+  if (
+    typeof obj.version === "string" &&
+    obj.version !== "" &&
+    !SEMVER_RE.test(obj.version)
+  ) {
+    findings.push({
+      severity: "error",
+      rel,
+      message: `version '${obj.version}' is not semver x.x or x.x.x`,
+    });
   }
   const picture = obj.picture;
   if (!picture) {
-    findings.push({ severity: "warn", rel, message: "missing 'picture' entry (expects e.g. \"thumbnail.png\")" });
+    findings.push({
+      severity: "warn",
+      rel,
+      message: "missing 'picture' entry (expects e.g. \"thumbnail.png\")",
+    });
   } else if (typeof picture === "string") {
-    const candidates = [join(modRoot, picture), join(modRoot, ".metadata", picture)];
-    if (!candidates.some((c) => existsSync(c) && statSync(c, { throwIfNoEntry: false })?.isFile())) {
+    const candidates = [
+      join(modRoot, picture),
+      join(modRoot, ".metadata", picture),
+    ];
+    if (
+      !candidates.some(
+        (c) =>
+          existsSync(c) && statSync(c, { throwIfNoEntry: false })?.isFile(),
+      )
+    ) {
       const versioned = [modRoot, join(modRoot, ".metadata")]
         .filter((b) => existsSync(b))
         .flatMap((b) => {
@@ -266,10 +379,17 @@ function checkMetadata(modRoot: string): Finding[] {
         .filter((f) => {
           const dot = f.lastIndexOf(".");
           if (dot < 0) return false;
-          return IMAGE_EXTS.has(f.slice(dot).toLowerCase()) && statSync(f, { throwIfNoEntry: false })?.isFile();
+          return (
+            IMAGE_EXTS.has(f.slice(dot).toLowerCase()) &&
+            statSync(f, { throwIfNoEntry: false })?.isFile()
+          );
         });
       if (versioned.length > 0) {
-        findings.push({ severity: "warn", rel, message: `picture '${picture}' not found, but other image files are versioned here (possible filename mismatch)` });
+        findings.push({
+          severity: "warn",
+          rel,
+          message: `picture '${picture}' not found, but other image files are versioned here (possible filename mismatch)`,
+        });
       }
     }
   }
@@ -326,11 +446,23 @@ function checkBraceQuoteBalance(cleaned: string): BalanceResult {
       depth += 1;
     } else if (ch === "}") {
       depth -= 1;
-      if (depth < 0) return { ok: false, message: `line ${line}: unexpected '}' (more closing than opening braces)` };
+      if (depth < 0)
+        return {
+          ok: false,
+          message: `line ${line}: unexpected '}' (more closing than opening braces)`,
+        };
     }
   }
-  if (inString) return { ok: false, message: `line ${stringStartLine}: unbalanced '\"' (unterminated string)` };
-  if (depth > 0) return { ok: false, message: `unbalanced braces: ${depth} '{' never closed` };
+  if (inString)
+    return {
+      ok: false,
+      message: `line ${stringStartLine}: unbalanced '\"' (unterminated string)`,
+    };
+  if (depth > 0)
+    return {
+      ok: false,
+      message: `unbalanced braces: ${depth} '{' never closed`,
+    };
   if (depth < 0) return { ok: false, message: "unbalanced braces: extra '}'" };
   return { ok: true };
 }
@@ -378,7 +510,11 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
       if (hasKw && depth > 0) {
-        findings.push({ severity: "error", rel: "", message: `line ${line}: '${m.groups.kw}' override keyword must be at a top-level block, not nested` });
+        findings.push({
+          severity: "error",
+          rel: "",
+          message: `line ${line}: '${m.groups.kw}' override keyword must be at a top-level block, not nested`,
+        });
       }
       // 跳过整个 `[KEYWORD:]key = {` 到 '{'，让下一轮对 '{' 计数。
       i += m[0].length - 1;
@@ -387,7 +523,11 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     // 只匹配到裸关键字（如 `REPLACE:` 后不是 `key = {`）→ 格式错。
     const kw = OVERRIDE_KEYWORD_RE.exec(cleaned.slice(i, i + 40));
     if (kw && kw.index === 0) {
-      findings.push({ severity: "error", rel: "", message: `line ${line}: malformed override '${kw[0]}' (expected '${kw[0]}key = {')` });
+      findings.push({
+        severity: "error",
+        rel: "",
+        message: `line ${line}: malformed override '${kw[0]}' (expected '${kw[0]}key = {')`,
+      });
     }
     i += 1;
   }
@@ -411,12 +551,17 @@ function checkPdxScript(modRoot: string): Finding[] {
     }
     const { text, err } = decodeUtf8(raw);
     if (text === null) {
-      findings.push({ severity: "error", rel, message: err ?? "not valid UTF-8" });
+      findings.push({
+        severity: "error",
+        rel,
+        message: err ?? "not valid UTF-8",
+      });
       continue;
     }
     const cleaned = stripLineComments(text);
     const bal = checkBraceQuoteBalance(cleaned);
-    if (!bal.ok && bal.message) findings.push({ severity: "error", rel, message: bal.message });
+    if (!bal.ok && bal.message)
+      findings.push({ severity: "error", rel, message: bal.message });
     for (const f of checkOverrideKeywords(cleaned)) {
       findings.push({ severity: "error", rel, message: f.message });
     }
@@ -438,32 +583,52 @@ export default function (pi: ExtensionAPI) {
       "Fix all validate_mod ERRORs before declaring a mod done; WARNs are advisory.",
     ],
     parameters: Type.Object({
-      modDir: Type.String({ description: "Path to the mod directory (e.g. your_mods/<ModName>)" }),
+      modDir: Type.String({
+        description: "Path to the mod directory (e.g. your_mods/<ModName>)",
+      }),
     }),
-    async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
-      const modDir = params.modDir;
-      if (!modDir || typeof modDir !== "string" || !statSync(modDir, { throwIfNoEntry: false })?.isDirectory()) {
-        throw new Error(`INVALID_MOD_DIR: ${modDir ?? "(empty)"} is not a directory`);
+    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      // 相对路径按 workspace（ctx.cwd）解析：agent 传的是 your_mods/<name>，
+      // 不能依赖进程自身 cwd —— 与 install_mod / check_runtime 的做法一致。
+      const modDir = params.modDir ? resolve(ctx.cwd, params.modDir) : "";
+      if (
+        !params.modDir ||
+        typeof params.modDir !== "string" ||
+        !statSync(modDir, { throwIfNoEntry: false })?.isDirectory()
+      ) {
+        throw new Error(
+          `INVALID_MOD_DIR: ${params.modDir ?? "(empty)"} is not a directory`,
+        );
       }
 
-      const findings = [...checkMetadata(modDir), ...checkLocalization(modDir), ...checkPdxScript(modDir)];
+      const findings = [
+        ...checkMetadata(modDir),
+        ...checkLocalization(modDir),
+        ...checkPdxScript(modDir),
+      ];
       const errors = findings.filter((f) => f.severity === "error");
       const warnings = findings.filter((f) => f.severity === "warn");
 
       const name = modDir.split(/[\\/]/).pop() || modDir;
       const lines: string[] = [];
       if (errors.length === 0) {
-        lines.push(`PASS: ${name} is valid${warnings.length > 0 ? ` (${warnings.length} warning(s))` : ""}`);
+        lines.push(
+          `PASS: ${name} is valid${warnings.length > 0 ? ` (${warnings.length} warning(s))` : ""}`,
+        );
         for (const w of warnings.slice(0, MAX_CONTENT_LINES)) {
           lines.push(`WARN: ${w.rel}: ${w.message}`);
         }
       } else {
-        lines.push(`FAIL: ${name} has ${errors.length} error(s), ${warnings.length} warning(s)`);
+        lines.push(
+          `FAIL: ${name} has ${errors.length} error(s), ${warnings.length} warning(s)`,
+        );
         for (const e of errors.slice(0, MAX_CONTENT_LINES)) {
           lines.push(`ERROR: ${e.rel}: ${e.message}`);
         }
         if (errors.length > MAX_CONTENT_LINES) {
-          lines.push(`... ${errors.length - MAX_CONTENT_LINES} more error(s) omitted`);
+          lines.push(
+            `... ${errors.length - MAX_CONTENT_LINES} more error(s) omitted`,
+          );
         }
         lines.push(`NEXT: fix the errors above and re-run validate_mod.`);
       }

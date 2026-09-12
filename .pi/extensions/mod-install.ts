@@ -1,81 +1,116 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { basename, join, resolve } from "node:path";
 
 /**
  * install_mod — EU5 (pdx-script) 安装契约（mod-repo-guide §4.1）。
  *
  * 把 your_mods/<id>/ 复制到 Paradox launcher 的 mod 目录
- * （.gamer-agent.local.json 的 modInstallDir，由 check_runtime 写入；install_mod 不自己探测）。
- * 只负责「装」，不重复 validate_mod 的校验；只写游戏 mod 目录（workspace 外）。
+ * （.gamer-agent.local.json 的 modInstallDir，由 check_runtime 写入；不自己探测）。
  *
- * 身份与冲突：
- * 本类型的 mod 身份 = `.metadata/metadata.json` 的 `id`，且约定 **id 必须等于目录名**。
- * 所以：
- * - 装完在目标目录写 `.pi-mod.json`（id = `<modType>:<metadata id>` 等），用于识别「这是本 mod」；
- * - 重装/升级：先按 id 扫 mod 根下的标记找到上次装到哪 → 就地更新（目录名不漂移）；
- * - 目标目录被**别的 mod** 占用（无标记 / 标记 id 不同）→ **改名安装**到 `<id>_pimod`（再撞顺延
- *   `_pimod2`…），并**同步把副本里的 metadata id 改成新目录名**——因为 id 必须 = 目录名，不一起改
- *   装出来的副本自身就不合法。原目录内容一字不动。
- * 「两个 mod 在游戏里身份相同」本身是 mod 冲突问题，不属安装职责；这里做到的是装得进去 + 身份自洽 + 如实告知。
+ * 同名冲突：目标目录被**别的 mod** 占用时**改名安装**到 `<id>_pimod`（再撞顺延 _pimod2…）——
+ * **绝不覆盖别人的内容**，也不阻塞安装。
+ * 「两个 mod 在游戏里身份相同」是 mod 冲突问题，不属安装职责：安装只复制文件，**不改副本里的
+ * metadata.json 等 mod 内容**。
+ *
+ * 目标目录里的 `.pi-mod.json`（只记 name）用来识别「这是我上次装的」：
+ * 命中 → 就地更新（重装幂等）；不在 → 换一个不冲突的目录名。
  */
 
 /** 作者本地的东西，不装进游戏 */
 const EXCLUDED_DIRS = new Set([".git", "node_modules"]);
-const EXCLUDED_FILES = new Set([".DS_Store"]);
+const EXCLUDED_FILES = new Set([".DS_Store", ".pi-mod.json"]);
 
-export interface PdxModIdentity {
-  id: string;
-  name: string;
-  version: string;
-  metadataPath: string;
-}
-
-/** 读 mod 身份：`.metadata/metadata.json` 的 id（= 目录名约定） */
-export function readModIdentity(modDir: string): PdxModIdentity | null {
+/** 读 mod 身份：`.metadata/metadata.json` 的 id（本类型约定 id = 目录名） */
+export function readModIdentity(
+  modDir: string,
+): { name: string; version: string } | null {
   const metadataPath = join(modDir, ".metadata", "metadata.json");
   if (!existsSync(metadataPath)) return null;
-  let parsed: Record<string, unknown>;
   try {
-    parsed = JSON.parse(readFileSync(metadataPath, "utf8")) as Record<string, unknown>;
+    const parsed = JSON.parse(readFileSync(metadataPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return null;
+    const id = typeof parsed.id === "string" ? parsed.id.trim() : "";
+    if (!id) return null;
+    return {
+      name: id,
+      version: typeof parsed.version === "string" ? parsed.version.trim() : "",
+    };
   } catch {
     return null;
   }
-  if (!parsed || typeof parsed !== "object") return null;
-  const id = typeof parsed.id === "string" ? parsed.id.trim() : "";
-  if (!id) return null;
-  return {
-    id,
-    name: typeof parsed.name === "string" && parsed.name.trim() ? parsed.name.trim() : id,
-    version: typeof parsed.version === "string" ? parsed.version.trim() : "",
-    metadataPath,
-  };
 }
 
-export function readInstalledMarker(dir: string): { id?: string } | null {
+/** 这个目录是不是本 mod 上次装的 */
+export function readMarkerName(dir: string): string | null {
   const markerPath = join(dir, ".pi-mod.json");
   if (!existsSync(markerPath)) return null;
   try {
-    const parsed = JSON.parse(readFileSync(markerPath, "utf8")) as { id?: unknown };
-    return typeof parsed.id === "string" ? { id: parsed.id } : {};
+    const parsed = JSON.parse(readFileSync(markerPath, "utf8")) as {
+      name?: unknown;
+    };
+    return typeof parsed.name === "string" ? parsed.name : null;
   } catch {
-    return {};
+    return null; // 坏文件当作「不是我们的」，宁可另装一个目录也不覆盖
   }
 }
 
-/** 扫 mod 根，按 id 找本 mod 上次装到哪个目录（升级定位，避免目录名漂移） */
-export function findInstalledDirByModId(modRoot: string, id: string): string | null {
-  if (!existsSync(modRoot)) return null;
-  for (const entry of readdirSync(modRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const dir = join(modRoot, entry.name);
-    if (readInstalledMarker(dir)?.id === id) return dir;
+/**
+ * 选落地目录：优先 <id>；被别的 mod 占了就顺延 <id>_pimod、_pimod2…
+ * 同一个 mod 重装时命中自己的标记 → 原地更新（不漂移）。
+ */
+export function pickInstallDir(
+  modRoot: string,
+  modName: string,
+): {
+  dir: string;
+  renamed: boolean;
+  occupiedBy: string | null;
+  reused: boolean;
+} {
+  const primary = join(modRoot, modName);
+  const free = (dir: string) =>
+    !existsSync(dir) || readMarkerName(dir) === modName;
+  if (free(primary))
+    return {
+      dir: primary,
+      renamed: false,
+      occupiedBy: null,
+      reused: existsSync(primary),
+    };
+
+  const occupiedBy = readMarkerName(primary);
+  for (let suffix = 1; ; suffix += 1) {
+    const candidate = join(
+      modRoot,
+      `${modName}_pimod${suffix === 1 ? "" : suffix}`,
+    );
+    if (free(candidate))
+      return {
+        dir: candidate,
+        renamed: true,
+        occupiedBy,
+        reused: existsSync(candidate),
+      };
   }
-  return null;
 }
 
-/** 复制 mod 数据文件（跳过作者本地文件） */
+/** 复制 mod 文件（跳过作者本地文件） */
 export function copyModFiles(from: string, to: string): number {
   let count = 0;
   const walk = (srcDir: string, destDir: string) => {
@@ -86,7 +121,12 @@ export function copyModFiles(from: string, to: string): number {
         walk(join(srcDir, entry.name), join(destDir, entry.name));
         continue;
       }
-      if (EXCLUDED_FILES.has(entry.name) || entry.name.endsWith("~") || entry.name.endsWith(".swp")) continue;
+      if (
+        EXCLUDED_FILES.has(entry.name) ||
+        entry.name.endsWith("~") ||
+        entry.name.endsWith(".swp")
+      )
+        continue;
       cpSync(join(srcDir, entry.name), join(destDir, entry.name));
       count += 1;
     }
@@ -95,57 +135,56 @@ export function copyModFiles(from: string, to: string): number {
   return count;
 }
 
-/** 把副本的 metadata id 改成新目录名（本类型约定 id 必须 = 目录名） */
-export function retargetMetadataId(installedDir: string, newId: string): void {
-  const metadataPath = join(installedDir, ".metadata", "metadata.json");
-  const parsed = JSON.parse(readFileSync(metadataPath, "utf8")) as Record<string, unknown>;
-  parsed.id = newId;
-  writeFileSync(metadataPath, `${JSON.stringify(parsed, null, 2)}\n`);
-}
-
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "install_mod",
     label: "Install Mod",
     description:
-      "Copy a mod from your_mods/<id>/ into the Paradox launcher mod directory (modInstallDir from check_runtime's .gamer-agent.local.json). Re-installing the same mod updates it in place. If the target directory is taken by another mod it installs under <id>_pimod instead of overwriting. Does not validate or compile.",
+      "Copy a mod from your_mods/<id>/ into the Paradox launcher mod directory (modInstallDir from check_runtime's .gamer-agent.local.json). Re-installing the same mod updates it in place. If the target directory is taken by another mod it installs as <id>_pimod instead of overwriting it. Does not validate or compile, and does not edit mod content.",
     promptSnippet: "Install mod into the Paradox launcher mod directory",
     promptGuidelines: [
       "Use install_mod after validate_mod passes, so the player can enable the mod in the launcher.",
-      "If install_mod reports the mod was renamed to <id>_pimod, tell the player: its metadata id was changed to keep 'id = directory name'; the other mod in that directory was left untouched.",
+      "If install_mod reports the mod was installed as <id>_pimod, tell the player: the other mod in that directory was left untouched; this mod's files (including its metadata id) are unchanged.",
     ],
     parameters: Type.Object({
-      modDir: Type.String({ minLength: 1, description: "Mod directory, absolute or relative to the workspace root, e.g. your_mods/my_mod" }),
+      modDir: Type.String({
+        minLength: 1,
+        description:
+          "Mod directory, absolute or relative to the workspace root, e.g. your_mods/my_mod",
+      }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      const repoRoot = ctx.cwd;
-      if (!params.modDir.trim()) throw new Error("INVALID_MOD_DIR: Provide a mod directory, e.g. your_mods/my_mod.");
-
-      let modType: string;
-      try {
-        const cfg = JSON.parse(readFileSync(join(repoRoot, "mod-repo.json"), "utf8")) as { modType?: unknown };
-        if (typeof cfg.modType !== "string" || !cfg.modType.trim()) {
-          throw new Error("no modType");
-        }
-        modType = cfg.modType;
-      } catch {
-        throw new Error("INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json (modType required). Reopen or update the game workspace; do not edit its maintainer configuration.");
-      }
-
-      const modDir = resolve(repoRoot, params.modDir);
+      if (!params.modDir.trim())
+        throw new Error(
+          "INVALID_MOD_DIR: Provide a mod directory, e.g. your_mods/my_mod.",
+        );
+      const modDir = resolve(ctx.cwd, params.modDir);
       if (!statSync(modDir, { throwIfNoEntry: false })?.isDirectory()) {
-        throw new Error(`INVALID_MOD_DIR: ${modDir} is not a directory. Check the session's bound path or build the mod first.`);
+        throw new Error(
+          `INVALID_MOD_DIR: ${modDir} is not a directory. Check the session's bound path or build the mod first.`,
+        );
       }
 
       // 目标目录来自 check_runtime 的发现结果（install_mod 不自己探测）
       let modRoot: string | null = null;
       try {
-        const state = JSON.parse(readFileSync(join(repoRoot, ".gamer-agent.local.json"), "utf8")) as { modInstallDir?: unknown };
-        if (typeof state.modInstallDir === "string" && state.modInstallDir.trim()) modRoot = state.modInstallDir.trim();
+        const state = JSON.parse(
+          readFileSync(join(ctx.cwd, ".gamer-agent.local.json"), "utf8"),
+        ) as {
+          modInstallDir?: unknown;
+        };
+        if (
+          typeof state.modInstallDir === "string" &&
+          state.modInstallDir.trim()
+        )
+          modRoot = state.modInstallDir.trim();
       } catch {
         modRoot = null;
       }
-      if (!modRoot || !statSync(modRoot, { throwIfNoEntry: false })?.isDirectory()) {
+      if (
+        !modRoot ||
+        !statSync(modRoot, { throwIfNoEntry: false })?.isDirectory()
+      ) {
         return {
           content: [
             {
@@ -170,53 +209,21 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      const id = `${modType}:${identity.id}`;
-      const previousDir = findInstalledDirByModId(modRoot, id);
-      const primaryDir = join(modRoot, identity.id);
-
-      let occupiedBy: string | null = null;
-      let installDir = previousDir ?? primaryDir;
-      if (!previousDir && existsSync(installDir)) {
-        const marker = readInstalledMarker(installDir);
-        if (marker?.id !== id) {
-          occupiedBy = marker?.id ?? null;
-          let suffix = 1;
-          do {
-            installDir = join(modRoot, `${identity.id}_pimod${suffix === 1 ? "" : suffix}`);
-            suffix += 1;
-          } while (existsSync(installDir) && readInstalledMarker(installDir)?.id !== id);
-        }
-      }
-
-      const renamed = installDir !== primaryDir;
-      const installedId = basename(installDir);
+      const {
+        dir: installDir,
+        renamed,
+        occupiedBy,
+        reused,
+      } = pickInstallDir(modRoot, identity.name);
 
       const staging = `${installDir}.staging-${process.pid}`;
       rmSync(staging, { recursive: true, force: true });
       let files = 0;
       try {
         files = copyModFiles(modDir, staging);
-        // 本类型约定 id = 目录名：改名安装时必须一起改，否则副本自身不合法
-        if (renamed && installedId !== identity.id) retargetMetadataId(staging, installedId);
         writeFileSync(
           join(staging, ".pi-mod.json"),
-          `${JSON.stringify(
-            {
-              schemaVersion: 1,
-              id,
-              modType,
-              name: identity.name,
-              metadataId: installedId,
-              version: identity.version,
-              source: `your_mods/${basename(modDir)}`,
-              installedDir: installedId,
-              ...(renamed ? { renamedFrom: identity.id } : {}),
-              installedAt: new Date().toISOString(),
-              installedBy: "pi-desktop",
-            },
-            null,
-            2,
-          )}\n`,
+          `${JSON.stringify({ name: identity.name }, null, 2)}\n`,
         );
         rmSync(installDir, { recursive: true, force: true });
         renameSync(staging, installDir);
@@ -234,19 +241,27 @@ export default function (pi: ExtensionAPI) {
       }
 
       const note = renamed
-        ? `\nNOTE: ${basename(primaryDir)} was already taken by ${occupiedBy ? `another mod (${occupiedBy})` : "content this tool did not install"}, ` +
-          `so the mod was installed as ${installedId} and its metadata id was changed to match ("id = directory name"); that directory was left untouched.` +
-          `\nNEXT: tell the player the mod now installs as ${installedId} (in-game title "${identity.name}" is unchanged), then let them enable it in the launcher.`
+        ? `\nNOTE: ${identity.name} was already taken by ${occupiedBy ? `another mod (${occupiedBy})` : "content this tool did not install"}, ` +
+          `so it went to ${basename(installDir)} instead; that directory was left untouched and the mod's own files (including its metadata id) were not modified.` +
+          `\nNEXT: tell the player it installs as ${basename(installDir)}, then let them enable it in the launcher.`
         : `\nNEXT: ask the player to enable the mod in the Paradox launcher (and restart the game if it was running).`;
 
       return {
         content: [
           {
             type: "text",
-            text: `PASS: ${identity.id}${identity.version ? ` ${identity.version}` : ""} installed to ${installDir} (${files} files).${note}`,
+            text: `PASS: ${identity.name}${identity.version ? ` ${identity.version}` : ""} installed to ${installDir} (${files} files).${note}`,
           },
         ],
-        details: { ok: true, id, metadataId: installedId, targetDir: installDir, updated: Boolean(previousDir), renamed, occupiedBy, files },
+        details: {
+          ok: true,
+          modName: identity.name,
+          targetDir: installDir,
+          updated: reused,
+          renamed,
+          occupiedBy,
+          files,
+        },
       };
     },
   });

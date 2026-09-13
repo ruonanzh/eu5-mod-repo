@@ -71,12 +71,15 @@ export function readMarkerName(dir: string): string | null {
 }
 
 /**
- * 选落地目录：优先 <id>；被别的 mod 占了就顺延 <id>_pimod、_pimod2…
- * 同一个 mod 重装时命中自己的标记 → 原地更新（不漂移）。
+ * 选落地目录。两个名字各司其职：
+ * - `modName`：候选目录名（用 your_mods 的目录名，单层、已校验）→ 决定装到哪
+ * - `modIdentity`：判断"目标目录是不是我这个 mod 上次装的"（比 `.pi-mod.json` 里记的身份）
+ * 命中自己的标记 → 覆盖更新（不留下两份）；被别的 mod 占了 → 顺延 `<名>_pimod`、`_pimod2`…
  */
 export function pickInstallDir(
   modRoot: string,
   modName: string,
+  modIdentity: string = modName,
 ): {
   dir: string;
   renamed: boolean;
@@ -85,7 +88,7 @@ export function pickInstallDir(
 } {
   const primary = join(modRoot, modName);
   const free = (dir: string) =>
-    !existsSync(dir) || readMarkerName(dir) === modName;
+    !existsSync(dir) || readMarkerName(dir) === modIdentity;
   if (free(primary))
     return {
       dir: primary,
@@ -209,15 +212,34 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      const {
-        dir: installDir,
-        renamed,
-        occupiedBy,
-        reused,
-      } = pickInstallDir(modRoot, identity.name);
+      // 安装目录名 = your_mods 下的**目录名**（不是 metadata 里的 id）：
+      // · basename 一定是单层名字 → 构造上不可能越界（旧版用 metadata 的 id 拼路径，id 带 ../ 就能写到安装根之外）
+      // · 目录名在 create_mod_folder 时已按规则校验过（小写蛇形、长度、保留名）
+      // · 玩家在启动器里看到的与工作区里的目录名一致，便于对号入座
+      const modName = basename(modDir);
+
+      // 上次替换在「旧版本挪开、新版本换入」之间崩溃 → 目标缺失但旁边留着 .previous-*
+      // （与 pi-desktop 的 L01 同类教训：绝不能把这种残局当垃圾删掉，先恢复）
+      for (const entry of readdirSync(modRoot)) {
+        if (entry.startsWith(`${modName}.previous-`) && !existsSync(join(modRoot, modName))) {
+          renameSync(join(modRoot, entry), join(modRoot, modName));
+        }
+      }
+
+      const { dir: installDir, renamed, occupiedBy, reused } = pickInstallDir(modRoot, modName, identity.name);
+
+      // 同一个 mod（marker 里的身份相同）曾以别的目录名装过 → 只提示，不删它
+      let duplicateDir: string | null = null;
+      const installedName = basename(installDir);
+      for (const entry of readdirSync(modRoot, { withFileTypes: true })) {
+        if (!entry.isDirectory() || entry.name === installedName) continue;
+        if (readMarkerName(join(modRoot, entry.name)) === identity.name) duplicateDir = entry.name;
+      }
 
       const staging = `${installDir}.staging-${process.pid}`;
+      const previous = `${installDir}.previous-${process.pid}`;
       rmSync(staging, { recursive: true, force: true });
+      rmSync(previous, { recursive: true, force: true });
       let files = 0;
       try {
         files = copyModFiles(modDir, staging);
@@ -225,32 +247,55 @@ export default function (pi: ExtensionAPI) {
           join(staging, ".pi-mod.json"),
           `${JSON.stringify({ name: identity.name }, null, 2)}\n`,
         );
-        rmSync(installDir, { recursive: true, force: true });
-        renameSync(staging, installDir);
+        // 事务化替换：旧版本先 rename 到旁边（**不删**）→ 换入新版本 → 成功后才删旧的；
+        // 换入失败就把旧版本挪回来。旧版是「先 rmSync 再 rename」，中间失败会让新旧两份都丢。
+        const hadPrevious = existsSync(installDir);
+        if (hadPrevious) renameSync(installDir, previous);
+        try {
+          renameSync(staging, installDir);
+        } catch (error) {
+          if (hadPrevious) renameSync(previous, installDir);
+          throw error;
+        }
+        if (hadPrevious) rmSync(previous, { recursive: true, force: true });
       } catch (error) {
         rmSync(staging, { recursive: true, force: true });
         return {
           content: [
             {
               type: "text",
-              text: `FAIL: copy failed: ${error instanceof Error ? error.message : String(error)}\nNEXT: check write permission on ${modRoot}.`,
+              text: `FAIL: copy failed: ${error instanceof Error ? error.message : String(error)}\nNEXT: check write permission on ${modRoot}. The previously installed copy (if any) was left in place.`,
             },
           ],
           details: { ok: false, reason: "COPY_FAILED" },
         };
       }
 
+      const mismatched = identity.name !== modName;
+      const notes: string[] = [];
+      if (mismatched) {
+        notes.push(
+          `\nNOTE: the installed folder is named ${modName} (the your_mods directory name), while the mod declares id ${identity.name} — the launcher matches the metadata id, so run validate_mod and make them match.`,
+        );
+      }
+      if (duplicateDir) {
+        notes.push(
+          `\nNOTE: the same mod (id ${identity.name}) is also installed as ${duplicateDir}; this tool did not touch it — tell the player which one to enable, and remove the other manually if it is stale.`,
+        );
+      }
+      const extraNotes = notes.join("");
       const note = renamed
         ? `\nNOTE: ${identity.name} was already taken by ${occupiedBy ? `another mod (${occupiedBy})` : "content this tool did not install"}, ` +
           `so it went to ${basename(installDir)} instead; that directory was left untouched and the mod's own files (including its metadata id) were not modified.` +
           `\nNEXT: tell the player it installs as ${basename(installDir)}, then let them enable it in the launcher.`
         : `\nNEXT: ask the player to enable the mod in the Paradox launcher (and restart the game if it was running).`;
+      const noteWithExtras = `${extraNotes}${note}`;
 
       return {
         content: [
           {
             type: "text",
-            text: `PASS: ${identity.name}${identity.version ? ` ${identity.version}` : ""} installed to ${installDir} (${files} files).${note}`,
+            text: `PASS: ${identity.name}${identity.version ? ` ${identity.version}` : ""} installed to ${installDir} (${files} files).${noteWithExtras}`,
           },
         ],
         details: {

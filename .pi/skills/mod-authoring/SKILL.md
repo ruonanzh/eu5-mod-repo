@@ -56,7 +56,7 @@ The same repo serves two roles; which one applies is set by the session role, no
 | Field | Rule |
 |---|---|
 | `name` | non-empty string (human-readable mod title) |
-| `id` | non-empty string, `lower_snake_case` (matches dir name) |
+| `id` | non-empty string. 游戏只要求它**能识别这个 mod**（EU5 wiki）。**本仓库建议**（不是游戏要求）：用小写蛇形、并让它与 `your_mods/<目录名>` 一致 —— 安装用的目录名就是它，一致了玩家更好对号入座；`validate_mod` 现在**不会**因为不一致而报错 |
 | `version` | `x.x` or `x.x.x` (two- or three-part semver) |
 | `supported_game_version` | `1.*` form |
 | `short_description` | one-line summary — the field is **`short_description`**, not `description` |

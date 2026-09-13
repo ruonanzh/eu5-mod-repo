@@ -330,23 +330,11 @@ function checkMetadata(modRoot: string): Finding[] {
     return findings;
   }
   const obj = data as Record<string, unknown>;
-  // id 必须等于 your_mods 下的目录名（SKILL 的规则：非空、lower_snake_case、matches dir name）。
-  // 安装到游戏里的目录名用的是目录名，而启动器按 metadata 的 id 匹配 —— 两者不一致时装了也加载不了。
-  const dirName = basename(modRoot);
+  // id：只按**游戏规则**检查 —— EU5 wiki 的 metadata 说明里 id 是「Id of the mod for recognition」，
+  // 只要求提供；没有"必须小写蛇形"或"必须等于目录名"的硬要求（官方例子 `testmod`、社区模版 `[modname].dev`
+  // 含点即证）。本仓库曾经的"等于目录名/lower_snake_case"是我们自己的约定，已从校验器移除，只作为 SKILL 建议。
   if (typeof obj.id !== "string" || obj.id.trim() === "") {
     findings.push({ severity: "error", rel, message: "metadata.id must be a non-empty string" });
-  } else if (obj.id !== dirName) {
-    findings.push({
-      severity: "error",
-      rel,
-      message: `metadata.id (${obj.id}) must equal the mod directory name (${dirName})`,
-    });
-  } else if (!/^[a-z][a-z0-9_]*$/.test(obj.id)) {
-    findings.push({
-      severity: "error",
-      rel,
-      message: `metadata.id (${obj.id}) must be lower_snake_case: start with a lowercase letter, then a-z, 0-9 or _`,
-    });
   }
   for (const field of STANDARD_METADATA_FIELDS) {
     if (!(field in obj))

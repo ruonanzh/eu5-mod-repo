@@ -17,7 +17,7 @@ export default function (pi: ExtensionAPI) {
     promptSnippet: "Install mod runtime",
     promptGuidelines: [
       "Use install_runtime only when a missing runtime is suspected; for EU5 it always reports no dependencies.",
-      "A missing game directory is NOT a runtime problem — use check_runtime (ask the player for the install path), not install_runtime.",
+      "A missing game directory is NOT a runtime problem - use check_runtime (ask the player for the install path), not install_runtime.",
     ],
     parameters: Type.Object({}),
     async execute() {

@@ -180,3 +180,24 @@ For "does X exist / what is vanilla's exact value?", follow the lookup hierarchy
 - Knowledge-layer navigation (what to load when): `docs/INDEX.md`.
 - Game overview (mechanics): `docs/game.md`.
 - Authoring rules (single source of truth): `docs/eu5-modding-conventions.md`.
+
+## 路径工具（gameDir / workshopDir / modInstallDir）
+
+三个工具分工不同，**别混用**（判据是同一份实现，见 `.pi/lib/game-paths.ts`）：
+
+| 工具 | 什么时候用 | 副作用 |
+|---|---|---|
+| `check_game_paths` | **只验**：玩家给了一个路径，或想确认已记住的路径还对不对 | **无**（只读、不扫描、不写状态）|
+| `try_set_game_paths` | 位置**未知或已变**：扫 Steam（注册表 + `libraryfolders.vdf` 各库）并记录 | 写运行时状态 |
+| `check_runtime` | 一次跑全流程：发现 + 校验 + 记录 | 写运行时状态 |
+| `install_mod` | 安装（复用同一判据；目标目录不存在时会**创建**，这是全新机器的正常状态）| 写安装目标 |
+
+要点：
+
+- **EU5 是 Windows-only**：非 Windows 上 `try_set_game_paths` 返回 `PARTIAL`，不假装能找到。
+- **mod 安装目录与游戏安装位置无关**：它在 Paradox 启动器目录（`~/Documents/Paradox Interactive/Europa Universalis V/mod`），
+  所以判据是**形状校验**（绝对路径、不是文件、以 `mod-repo.json` 声明的相对路径结尾），
+  而不是"向上找游戏目录"。
+- **发现 ≠ 信任**：候选目录必须含 `game/` 或 `.metadata/`。
+- **验 ≠ 改**：`check_game_paths` 从不写状态；要"记录"用 `try_set_game_paths`。
+- FAIL 先读 `NEXT:` 行 —— 多是要玩家提供游戏目录（Steam → 库 → 右键游戏 → 管理 → 浏览本地文件）。

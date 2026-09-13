@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { join, relative, resolve, sep, basename } from "node:path";
 
 /**
  * validate_mod — EU5 mod 校验工具（pdx-script 类型）。
@@ -330,6 +330,24 @@ function checkMetadata(modRoot: string): Finding[] {
     return findings;
   }
   const obj = data as Record<string, unknown>;
+  // id 必须等于 your_mods 下的目录名（SKILL 的规则：非空、lower_snake_case、matches dir name）。
+  // 安装到游戏里的目录名用的是目录名，而启动器按 metadata 的 id 匹配 —— 两者不一致时装了也加载不了。
+  const dirName = basename(modRoot);
+  if (typeof obj.id !== "string" || obj.id.trim() === "") {
+    findings.push({ severity: "error", rel, message: "metadata.id must be a non-empty string" });
+  } else if (obj.id !== dirName) {
+    findings.push({
+      severity: "error",
+      rel,
+      message: `metadata.id (${obj.id}) must equal the mod directory name (${dirName})`,
+    });
+  } else if (!/^[a-z][a-z0-9_]*$/.test(obj.id)) {
+    findings.push({
+      severity: "error",
+      rel,
+      message: `metadata.id (${obj.id}) must be lower_snake_case: start with a lowercase letter, then a-z, 0-9 or _`,
+    });
+  }
   for (const field of STANDARD_METADATA_FIELDS) {
     if (!(field in obj))
       findings.push({

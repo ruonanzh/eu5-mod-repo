@@ -71,8 +71,8 @@ export default function (pi: ExtensionAPI) {
 
       if (!gameDir) {
         const triedText = tried.length
-          ? tried.map((t) => `  · ${t.path} — ${t.reason ?? "未通过验证"}`).join("\n")
-          : "  （没有可用的候选路径：注册表/各 Steam 库都没有找到游戏）";
+          ? tried.map((t) => `  - ${t.path} - ${t.reason ?? "did not pass validation"}`).join("\n")
+          : "  (no usable candidate paths: neither the registry nor the Steam libraries have the game)";
         const errors = [
           `FAIL: GAME_DIRECTORY_NOT_FOUND (${cfg.game?.name ?? GAME_FOLDER_NAME}). Ask the player for the installed game directory and re-run check_runtime with gameDir, or install the game first.`,
         ];
@@ -90,7 +90,7 @@ export default function (pi: ExtensionAPI) {
 
       if (problems.length) {
         return {
-          content: [{ type: "text", text: `${problems.join("\n")}\nNOTE: 未写入状态。` }],
+          content: [{ type: "text", text: `${problems.join("\n")}\nNOTE: nothing was written.` }],
           details: { ...state, ok: false, errors: problems },
         };
       }
@@ -102,7 +102,7 @@ export default function (pi: ExtensionAPI) {
       ];
       if (modInstallDir && !existsSync(modInstallDir)) {
         lines.push(
-          "WARN: that mod directory does not exist yet — normal on a first install (install_mod creates it). If the player moved their Documents folder (e.g. OneDrive), this path may be wrong: confirm with the player where the game expects mods.",
+          "WARN: that mod directory does not exist yet - normal on a first install (install_mod creates it). If the player moved their Documents folder (e.g. OneDrive), this path may be wrong: confirm with the player where the game expects mods.",
         );
       }
 

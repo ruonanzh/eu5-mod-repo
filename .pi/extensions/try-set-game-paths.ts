@@ -32,8 +32,8 @@ export default function (pi: ExtensionAPI) {
     promptSnippet: "Find and record the game/mod directories (writes state)",
     promptGuidelines: [
       "Use try_set_game_paths when the game location is unknown: it scans the known candidates and records what it verifies.",
-      "try_set_game_paths writes .gamer-agent.local.json — do not use it to re-check an already remembered path; use check_game_paths for that (read-only).",
-      "If try_set_game_paths fails, ask the player for the game install directory (Steam → Library → right-click the game → Manage → Browse local files), then call it again with that gameDir, or verify it first with check_game_paths.",
+      "try_set_game_paths writes .gamer-agent.local.json - do not use it to re-check an already remembered path; use check_game_paths for that (read-only).",
+      "If try_set_game_paths fails, ask the player for the game install directory (Steam -> Library -> right-click the game -> Manage -> Browse local files), then call it again with that gameDir, or verify it first with check_game_paths.",
       "After try_set_game_paths succeeds, install_mod can install with the recorded paths; no need to call check_runtime just to refresh them.",
     ],
     parameters: Type.Object({
@@ -71,8 +71,8 @@ export default function (pi: ExtensionAPI) {
       }
 
       const triedText = tried.length
-        ? tried.map((t) => `  · ${t.path} — ${t.reason ?? "未通过验证"}`).join("\n")
-        : "  （没有可用的候选路径：注册表/各 Steam 库都没有找到游戏）";
+        ? tried.map((t) => `  - ${t.path} - ${t.reason ?? "did not pass validation"}`).join("\n")
+        : "  (no usable candidate paths: neither the registry nor the Steam libraries have the game)";
 
       if (!gameDir) {
         return {
@@ -80,11 +80,11 @@ export default function (pi: ExtensionAPI) {
             {
               type: "text",
               text:
-                "FAIL: GAME_DIRECTORY_NOT_FOUND — could not find the Europa Universalis V install directory.\n" +
+                "FAIL: GAME_DIRECTORY_NOT_FOUND - could not find the Europa Universalis V install directory.\n" +
                 `Tried:\n${triedText}\n` +
                 "Each candidate was checked for game/ or .metadata/.\n" +
-                "NOTE: nothing was written — the remembered paths (if any) were left untouched and may be stale.\n" +
-                "NEXT: ask the player for the game install directory (Steam → Library → right-click the game → Manage → Browse local files), then call try_set_game_paths with that gameDir (or verify it first with check_game_paths). If the game is not installed at all, install it first.",
+                "NOTE: nothing was written - the remembered paths (if any) were left untouched and may be stale.\n" +
+                "NEXT: ask the player for the game install directory (Steam -> Library -> right-click the game -> Manage -> Browse local files), then call try_set_game_paths with that gameDir (or verify it first with check_game_paths). If the game is not installed at all, install it first.",
             },
           ],
           details: { ok: false, reason: "GAME_DIRECTORY_NOT_FOUND", wroteState: false, tried },
@@ -97,7 +97,7 @@ export default function (pi: ExtensionAPI) {
           content: [
             {
               type: "text",
-              text: `${notes.join("\n")}\nNOTE: nothing was written.\nNEXT: 重开或更新这个游戏工作区（不要手改维护者配置）。`,
+              text: `${notes.join("\n")}\nNOTE: nothing was written.\nNEXT: Reopen or update this game workspace (do not edit the maintainer configuration).`,
             },
           ],
           details: { ok: false, reason: "INVALID_WORKSPACE_CONFIG", wroteState: false },

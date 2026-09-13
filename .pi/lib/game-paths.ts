@@ -86,20 +86,20 @@ export function modInstallDirFor(cfg: ModRepoConfig): string | null {
   return join(os.homedir(), "Documents", rel);
 }
 
-const NEXT_STEAM = "玩家可在 Steam → 库 → 右键游戏 → 管理 → 浏览本地文件 里核对游戏目录。";
+const NEXT_STEAM = "The player can find it in Steam -> Library -> right-click the game -> Manage -> Browse local files.";
 
 /** 判据 1：这个目录是不是 EU5 的安装目录（看 game/ 或 .metadata/） */
 export function checkGameDir(dir: string | null | undefined): PathVerdict {
   const p = dir ? expandHome(dir) : null;
   if (!p)
-    return { ok: false, path: null, code: "GAME_DIRECTORY_NOT_FOUND", reason: "没有给出游戏目录", next: `让玩家提供游戏安装目录，带上 gameDir 重新验证；${NEXT_STEAM}` };
+    return { ok: false, path: null, code: "GAME_DIRECTORY_NOT_FOUND", reason: "no game directory was given", next: `Ask the player for the game install directory, then re-run this with gameDir. ${NEXT_STEAM}` };
   if (GAME_DIR_MARKERS.every((m) => !existsSync(join(p, m))))
     return {
       ok: false,
       path: p,
       code: "GAME_DIRECTORY_NOT_FOUND",
-      reason: `该目录下既没有 game/ 也没有 .metadata/（不像 EU5 的安装目录）`,
-      next: `确认这是游戏的安装目录，而不是存档或其它版本目录；${NEXT_STEAM}`,
+      reason: `neither game/ nor .metadata/ exists under this directory (not an EU5 install directory)`,
+      next: `Confirm this is the game install directory, not a save folder or another version. ${NEXT_STEAM}`,
     };
   return { ok: true, path: p };
 }
@@ -108,13 +108,13 @@ export function checkGameDir(dir: string | null | undefined): PathVerdict {
 export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepoConfig): PathVerdict {
   const p = dir ? expandHome(dir) : null;
   if (!p)
-    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "没有给出 mod 安装目录", next: "先运行 try_set_game_paths 定位，或让玩家提供游戏安装目录后重新验证。" };
+    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "no mod install directory was given", next: "Run try_set_game_paths to locate it, or ask the player for the game install directory and verify again." };
   if (!isAbsolute(p))
-    return { ok: false, path: p, code: "TARGET_INVALID", reason: "不是绝对路径", next: "运行 try_set_game_paths 重新派生出绝对路径，或让玩家提供。" };
+    return { ok: false, path: p, code: "TARGET_INVALID", reason: "not an absolute path", next: "Run try_set_game_paths to derive an absolute path, or ask the player." };
   // 先做**与配置无关**的校验（顺序很重要：跳过形状校验时这些也必须生效）
   const st = statSync(p, { throwIfNoEntry: false });
   if (st && !st.isDirectory())
-    return { ok: false, path: p, code: "TARGET_INVALID", reason: "该路径存在，但不是目录（是个文件）", next: "让玩家检查该位置是否有同名文件；删除或改名后再试。" };
+    return { ok: false, path: p, code: "TARGET_INVALID", reason: "this path exists but is not a directory (it is a file)", next: "Ask the player to check for a file with that name; rename or remove it and try again." };
   const rel = cfg?.modInstall?.path;
   // 形状校验是"我们对 Paradox 目录约定的意见"，不是游戏硬规则 → 配置读不到或没写 modInstall.path 时**跳过**
   // （配置缺字段由 try_set_game_paths / check_runtime 负责报出来）。
@@ -125,20 +125,20 @@ export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepo
       ok: false,
       path: p,
       code: "TARGET_INVALID",
-      reason: `路径不以 mod-repo.json 声明的 ${rel} 结尾（Paradox 启动器只看那个位置）`,
-      next: "让玩家确认 Paradox 启动器的 mod 目录位置；可用 try_set_game_paths 重新派生，或省略该参数。",
+      reason: `the path does not end with ${rel} as declared in mod-repo.json (the Paradox launcher only looks there)`,
+      next: "Ask the player to confirm the Paradox launcher mod directory; try_set_game_paths can re-derive it, or omit this argument.",
     };
-  // 目录不存在 = 全新机器的正常状态（安装时会创建）
+  // the directory does not exist = 全新机器的正常状态（安装时会创建）
   return { ok: true, path: p };
 }
 
 /** 判据 3：Steam Workshop 内容目录（只读参考；必须是 …/steamapps/workshop/content/<appId>） */
 export function checkWorkshopDir(dir: string | null | undefined, appId: string): PathVerdict {
   const p = dir ? expandHome(dir) : null;
-  if (!p) return { ok: false, path: null, code: "WORKSHOP_NOT_FOUND", reason: "没有给出 Workshop 目录（可选）", next: "省略即可；它只用于读取 Workshop 内容做参考。" };
-  if (!existsSync(p)) return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: "目录不存在", next: "省略该参数即可（Workshop 目录是可选的只读参考）。" };
+  if (!p) return { ok: false, path: null, code: "WORKSHOP_NOT_FOUND", reason: "no Workshop directory was given (optional)", next: "Omit it; it is only used to read Workshop content for reference." };
+  if (!existsSync(p)) return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: "the directory does not exist", next: "Omit this argument (the Workshop directory is an optional read-only reference)." };
   if (!p.replace(/\\/g, "/").replace(/\/+$/, "").endsWith(`/workshop/content/${appId}`))
-    return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: `路径不以 workshop/content/${appId} 结尾（appid 见 mod-repo.json）`, next: "确认这是这个游戏的 Workshop 内容目录；不确定时可省略该参数。" };
+    return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: `the path does not end with workshop/content/${appId} (see the appid in mod-repo.json)`, next: "Confirm this is the Workshop content directory for this game; omit it if unsure." };
   return { ok: true, path: p };
 }
 
@@ -239,9 +239,9 @@ export function pathsFor(
 ): { modInstallDir: string | null; workshopDir: string | null; notes: string[] } {
   const notes: string[] = [];
   const modInstallDir = modInstallDirFor(cfg);
-  if (!modInstallDir) notes.push("FAIL: INVALID_WORKSPACE_CONFIG: mod-repo.json 缺少 modInstall.path");
+  if (!modInstallDir) notes.push("FAIL: INVALID_WORKSPACE_CONFIG: mod-repo.json has no modInstall.path");
   const workshopDir = workshopDirFor(gameDir, cfg);
-  if (!workshopDir && cfg.game?.steamAppId) notes.push("NOTE: Workshop 目录不存在，未记入状态（可选、只读参考）。");
+  if (!workshopDir && cfg.game?.steamAppId) notes.push("NOTE: the Workshop directory does not exist, so it was not recorded (optional, read-only reference).");
   return { modInstallDir, workshopDir, notes };
 }
 

@@ -15,6 +15,10 @@ All paths below are relative to the workspace root (not the skill directory).
 
 The same repo serves two roles; which one applies is set by the session role, not chosen here:
 
+This skill provides domain method only and **grants no permissions**: reading it does not authorise
+creating directories, checking/installing runtimes, or modifying source files (those stay gated by the
+session role and its bound directory).
+
 - **Q&A / consultation (read-only):** answer game-mechanics or mod-API questions by reading the
   knowledge layer. Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source
   (mod-wiki for concepts, `script_docs/`/`data_types/` for exact names, `eu5-modding-conventions.md`

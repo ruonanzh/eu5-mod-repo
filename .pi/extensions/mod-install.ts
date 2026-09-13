@@ -11,7 +11,8 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { basename, isAbsolute, join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
+import { checkModInstallDir, readModRepoConfig } from "../lib/game-paths";
 
 /**
  * install_mod — EU5 (pdx-script) 安装契约（mod-repo-guide §4.1）。
@@ -199,24 +200,27 @@ export default function (pi: ExtensionAPI) {
       // 由下面的 mkdirSync(destDir, { recursive: true }) 连缺失的父级一起创建。
       // 旧行为要求「必须已存在」：check_runtime 报可安装 → install 因目标不存在失败 → 再 check 仍不创建 → 死循环（B18）。
       // 仍然拒绝的只有两种：路径不是绝对路径 / 路径存在但不是目录（此时继续只会在 cp·rename 阶段抛出更难懂的错）。
-      const targetStat = statSync(modRoot, { throwIfNoEntry: false });
-      if (!isAbsolute(modRoot) || (targetStat && !targetStat.isDirectory())) {
+      // 目标路径的判据与 check_game_paths / try_set_game_paths 共用一份（lib/game-paths）：
+      // EU5 的 mod 目录在 Paradox 启动器目录、与游戏安装位置无关 → 形状校验（绝对路径、不是文件、
+      // 以 mod-repo.json 声明的相对路径结尾）。目录不存在仍是正常状态（安装时创建）。
+      // 形状校验需要 mod-repo.json；读不到就降级（只做绝对路径/非文件校验），不让安装因此失败。
+      let cfgForPaths;
+      try {
+        cfgForPaths = readModRepoConfig(ctx.cwd);
+      } catch {
+        cfgForPaths = undefined;
+      }
+      const targetVerdict = checkModInstallDir(modRoot, cfgForPaths);
+      if (!targetVerdict.ok) {
+        const code = targetVerdict.code ?? "TARGET_INVALID";
         return {
           content: [
-            {
-              type: "text",
-              text:
-                `FAIL: TARGET_INVALID: ${modRoot} ` +
-                (targetStat
-                  ? "exists but is not a directory."
-                  : "is not an absolute path.") +
-                "\nNEXT: run check_runtime again to re-derive the Paradox mod directory; if it still looks wrong, ask the player where their mod folder is.",
-            },
+            { type: "text", text: `FAIL: ${code}: ${targetVerdict.reason}\nNEXT: ${targetVerdict.next}` },
           ],
-          details: { ok: false, reason: "TARGET_INVALID" },
+          details: { ok: false, reason: code },
         };
       }
-      const targetWasMissing = !targetStat;
+      const targetWasMissing = !statSync(modRoot, { throwIfNoEntry: false });
 
       const identity = readModIdentity(modDir);
       if (!identity) {

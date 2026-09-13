@@ -25,11 +25,17 @@ The same repo serves two roles; which one applies is set by the session role, no
   current session; with no binding, call `create_mod_folder` with a `lower_snake_case` name. Do not
   create a second binding if one already exists.
 - **Installing (after validate_mod passes):** `install_mod` copies the mod into the Paradox mod
-  directory (target comes from `check_runtime`'s discovery, it does not probe itself). Re-running for
-  the same mod updates it in place. If the target directory is already taken by a **different** mod it
-  installs as `<id>_pimod`; the existing directory is left untouched and the copy's `metadata.json`
-  is **not** modified (only a `.pi-mod.json` marker is added). When that happens, tell the player
-  which directory it now installs as — the in-game title (`name`) and `id` are unchanged.
+  directory (target comes from `check_runtime`'s discovery, it does not probe itself).
+  - The installed folder name is the **`your_mods/` directory name** (which must equal
+    `metadata.id`), so the name stays a single safe path segment and the folder the player sees in the
+    launcher matches the one in the workspace.
+  - Re-running for the same mod updates it in place (recognised by the `.pi-mod.json` marker inside
+    the installed folder). If the target directory belongs to a **different** mod it installs as
+    `<directory>_pimod` instead, leaving that directory untouched and adding only the marker — the
+    copy's `metadata.json` is **not** modified. When that happens, tell the player which directory it
+    installs as (the in-game title `name` and `id` are unchanged).
+  - Replacement is transactional: the previously installed copy is moved aside (not deleted) and only
+    removed after the new one is in place; if the swap fails the old copy stays.
 
 ## Mod artifact structure
 

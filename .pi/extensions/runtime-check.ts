@@ -166,6 +166,9 @@ export default function (pi: ExtensionAPI) {
       state.gameDir = gameDir ?? null;
       state.workshopDir = workshopDir ?? null;
       state.modInstallDir = modInstallDir;
+      // 目标目录尚不存在是全新机器的正常状态（install_mod 会创建）；但若玩家把「文档」目录挪过位置，
+      // 这里算出来的路径就是错的 → 只提醒、不失败（把判断交回 agent/玩家）。
+      const modInstallDirExists = existsSync(modInstallDir);
       try {
         mkdirSync(repoRoot, { recursive: true });
         writeFileSync(stateFile, `${JSON.stringify(state, null, 2)}\n`);
@@ -196,6 +199,11 @@ export default function (pi: ExtensionAPI) {
         `PASS: gameDir ${gameDir}`,
         workshopDir ? `workshopDir ${workshopDir}` : "workshopDir (not found; optional)",
         `modInstallDir ${modInstallDir}`,
+        ...(modInstallDirExists
+          ? []
+          : [
+              "WARN: that mod directory does not exist yet — normal on a first install (install_mod creates it). If the player moved their Documents folder (e.g. OneDrive), this path may be wrong: confirm with the player where the game expects mods.",
+            ]),
       ];
       return {
         content: [{ type: "text", text: lines.join("\n") }],

@@ -28,6 +28,7 @@ session role and its bound directory).
   the structure of `reference/example_mod/`. Writes are limited to the mod directory bound to the
   current session; with no binding, call `create_mod_folder` with a `lower_snake_case` name. Do not
   create a second binding if one already exists.
+- **Directory name (our rule, enforced by `create_mod_folder`)**: starts with a lowercase letter, then only lowercase letters/digits/underscores, max 40 characters, and not a Windows reserved device name (con/prn/aux/nul/com1-9/lpt1-9). This and the `info.ini` name above are **two independent rules**: the directory name is what the workspace and the game's `Mods/` folder use, the name is how the game loads the DLL. Do not derive one from the other.
 - **Installing (after validate_mod passes):** `install_mod` copies the mod into the Paradox mod
   directory (target comes from `check_runtime`'s discovery, it does not probe itself).
   - The installed folder name is the **`your_mods/` directory name** (which must equal

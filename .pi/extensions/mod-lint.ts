@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { isValidModId } from "../lib/mod-identity";
 import { Type } from "typebox";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, resolve, sep, basename } from "node:path";
@@ -333,7 +334,7 @@ function checkMetadata(modRoot: string): Finding[] {
   // id：只按**游戏规则**检查 —— EU5 wiki 的 metadata 说明里 id 是「Id of the mod for recognition」，
   // 只要求提供；没有"必须小写蛇形"或"必须等于目录名"的硬要求（官方例子 `testmod`、社区模版 `[modname].dev`
   // 含点即证）。本仓库曾经的"等于目录名/lower_snake_case"是我们自己的约定，已从校验器移除，只作为 SKILL 建议。
-  if (typeof obj.id !== "string" || obj.id.trim() === "") {
+  if (!isValidModId(obj.id)) {
     findings.push({ severity: "error", rel, message: "metadata.id must be a non-empty string" });
   }
   for (const field of STANDARD_METADATA_FIELDS) {

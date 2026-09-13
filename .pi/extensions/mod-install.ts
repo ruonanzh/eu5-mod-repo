@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { checkModInstallDir, readModRepoConfig } from "../lib/game-paths";
+import { readModIdentity } from "../lib/mod-identity";
 
 /**
  * install_mod — EU5 (pdx-script) 安装契约（mod-repo-guide §4.1）。
@@ -34,28 +35,6 @@ const EXCLUDED_DIRS = new Set([".git", "node_modules"]);
 const EXCLUDED_FILES = new Set([".DS_Store", ".pi-mod.json"]);
 
 /** 读 mod 身份：`.metadata/metadata.json` 的 id（本类型约定 id = 目录名） */
-export function readModIdentity(
-  modDir: string,
-): { name: string; version: string } | null {
-  const metadataPath = join(modDir, ".metadata", "metadata.json");
-  if (!existsSync(metadataPath)) return null;
-  try {
-    const parsed = JSON.parse(readFileSync(metadataPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
-      return null;
-    const id = typeof parsed.id === "string" ? parsed.id.trim() : "";
-    if (!id) return null;
-    return {
-      name: id,
-      version: typeof parsed.version === "string" ? parsed.version.trim() : "",
-    };
-  } catch {
-    return null;
-  }
-}
 
 /** 这个目录是不是本 mod 上次装的 */
 export function readMarkerName(dir: string): string | null {

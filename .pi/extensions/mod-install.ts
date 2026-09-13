@@ -34,7 +34,7 @@ import { readModIdentity } from "../lib/mod-identity";
 const EXCLUDED_DIRS = new Set([".git", "node_modules"]);
 const EXCLUDED_FILES = new Set([".DS_Store", ".pi-mod.json"]);
 
-/** 读 mod 身份：`.metadata/metadata.json` 的 id（本类型约定 id = 目录名） */
+/** 读 mod 身份：`.metadata/metadata.json` 的 id（游戏规则只要求非空字符串；`lower_snake_case` 是建议） */
 
 /** 这个目录是不是本 mod 上次装的 */
 export function readMarkerName(dir: string): string | null {
@@ -296,7 +296,7 @@ export default function (pi: ExtensionAPI) {
       }
       if (mismatched) {
         notes.push(
-          `\nNOTE: the installed folder is named ${modName} (the your_mods directory name), while the mod declares id ${identity.name} - the launcher matches the metadata id, so run validate_mod and make them match.`,
+          `\nNOTE: the installed folder is named ${modName} (the your_mods directory name), while the mod declares id ${identity.name} - that difference is fine: the launcher matches mods by the declared id, not by the folder name.`,
         );
       }
       if (duplicateDir) {

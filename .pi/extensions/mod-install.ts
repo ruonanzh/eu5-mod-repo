@@ -12,7 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, join, resolve } from "node:path";
-import { checkModInstallDir, readModRepoConfig } from "../lib/game-paths";
+import { checkModInstallDir, readModRepoConfig, readState } from "../lib/game-paths";
 import { readModIdentity } from "../lib/mod-identity";
 
 /**
@@ -149,21 +149,10 @@ export default function (pi: ExtensionAPI) {
       }
 
       // 目标目录来自 check_runtime 的发现结果（install_mod 不自己探测）
-      let modRoot: string | null = null;
-      try {
-        const state = JSON.parse(
-          readFileSync(join(ctx.cwd, ".gamer-agent.local.json"), "utf8"),
-        ) as {
-          modInstallDir?: unknown;
-        };
-        if (
-          typeof state.modInstallDir === "string" &&
-          state.modInstallDir.trim()
-        )
-          modRoot = state.modInstallDir.trim();
-      } catch {
-        modRoot = null;
-      }
+      // 状态读取走 lib（与 check_game_paths / try_set_game_paths 同一个读法，别自己 JSON.parse）
+      const remembered = readState(ctx.cwd).modInstallDir;
+      let modRoot: string | null =
+        typeof remembered === "string" && remembered.trim() ? remembered.trim() : null;
       if (!modRoot) {
         return {
           content: [

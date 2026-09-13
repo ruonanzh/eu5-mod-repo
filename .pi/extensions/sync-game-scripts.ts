@@ -1,7 +1,8 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { existsSync, readFileSync, mkdirSync, copyFileSync, statSync, readdirSync, unlinkSync, rmdirSync } from "node:fs";
+import { existsSync, mkdirSync, copyFileSync, statSync, readdirSync, unlinkSync, rmdirSync } from "node:fs";
 import { join, relative, resolve, dirname, sep } from "node:path";
+import { checkGameDir, checkWorkshopDir, readModRepoConfig, readState } from "../lib/game-paths";
 
 /**
  * sync_game_scripts — 把 vanilla 的 game/workshop 文本/定义脚本镜像到 workspace 的 game-scripts/，
@@ -161,28 +162,28 @@ export default function (pi: ExtensionAPI) {
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const repoRoot = ctx.cwd;
-      const stateFile = join(repoRoot, ".gamer-agent.local.json");
-
-      let state: Record<string, unknown> = {};
-      try {
-        state = JSON.parse(readFileSync(stateFile, "utf8"));
-      } catch {
-        /* no state yet */
-      }
-
-      const gameDir = typeof state.gameDir === "string" ? state.gameDir : null;
-      const workshopDir = typeof state.workshopDir === "string" ? state.workshopDir : null;
-
-      if (!gameDir || !existsSync(gameDir)) {
+      // 状态读取与"游戏目录是否可用"的判据都走 lib（与 check_game_paths / try_set_game_paths /
+      // install_mod 同一份）：这里原本自己 JSON.parse + 只 existsSync，等于又实现了一遍同一判据。
+      const state = readState(repoRoot);
+      const gameVerdict = checkGameDir(typeof state.gameDir === "string" ? state.gameDir : null);
+      if (!gameVerdict.ok) {
         return {
           content: [
             {
               type: "text",
-              text: "FAIL: game directory unknown. NEXT: run check_runtime first to locate the EU5 install, then re-run sync_game_scripts.",
+              text: `FAIL: ${gameVerdict.reason}. NEXT: run check_runtime first to locate the EU5 install, then re-run sync_game_scripts.`,
             },
           ],
-          details: { ok: false, errors: ["gameDir unknown; run check_runtime first"] },
+          details: { ok: false, errors: [gameVerdict.code ?? "GAME_DIRECTORY_NOT_FOUND"] },
         };
+      }
+      const gameDir = gameVerdict.path as string;
+      const workshopDir = typeof state.workshopDir === "string" ? state.workshopDir : null;
+      let steamAppId = "";
+      try {
+        steamAppId = String(readModRepoConfig(repoRoot).game?.steamAppId ?? "");
+      } catch {
+        /* 配置读不到：下面的 workshop 形状校验会因此失败，按拒绝处理 */
       }
 
       const destRoot = join(repoRoot, "game-scripts");
@@ -191,19 +192,24 @@ export default function (pi: ExtensionAPI) {
       // "当前游戏内容"继续给 agent 参考（B20）。但要与"路径未知"区分开：
       //   · 路径已知但已不存在 → 源消失 → 清掉镜像并如实说明
       //   · 路径未知（没跑过 check_runtime）→ 不动镜像（可能是先前跑出来的有效镜像）
+      const wsVerdict = checkWorkshopDir(workshopDir, steamAppId);
       const workshopGone = typeof workshopDir === "string" && !existsSync(workshopDir);
-      const w =
-        typeof workshopDir === "string" && existsSync(workshopDir)
-          ? syncTree(workshopDir, join(destRoot, "workshop"))
-          : workshopGone
-            ? pruneTree(join(destRoot, "workshop"))
-            : { copied: 0, staleRemoved: 0 };
+      const w = wsVerdict.ok
+        ? syncTree(wsVerdict.path as string, join(destRoot, "workshop"))
+        : workshopGone
+          ? pruneTree(join(destRoot, "workshop"))
+          : { copied: 0, staleRemoved: 0 };
 
       const lines = [
         `PASS: mirrored ${g.copied + w.copied} text/definition file(s) into ${toPosix(relative(repoRoot, destRoot))}/ (game: ${g.copied}, workshop: ${w.copied})`,
       ];
       if (g.staleRemoved + w.staleRemoved > 0) {
         lines.push(`removed ${g.staleRemoved + w.staleRemoved} stale file(s) no longer present in the source.`);
+      }
+      if (workshopDir && !wsVerdict.ok && !workshopGone) {
+        lines.push(
+          `NOTE: the workshop directory was rejected (${wsVerdict.reason}); the existing mirror under game-scripts/workshop was left untouched.`,
+        );
       }
       if (workshopGone) {
         lines.push(

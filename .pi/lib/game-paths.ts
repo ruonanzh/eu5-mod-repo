@@ -137,7 +137,8 @@ export function checkWorkshopDir(dir: string | null | undefined, appId: string):
   const p = dir ? expandHome(dir) : null;
   if (!p) return { ok: false, path: null, code: "WORKSHOP_NOT_FOUND", reason: "no Workshop directory was given (optional)", next: "Omit it; it is only used to read Workshop content for reference." };
   if (!existsSync(p)) return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: "the directory does not exist", next: "Omit this argument (the Workshop directory is an optional read-only reference)." };
-  if (!p.replace(/\\/g, "/").replace(/\/+$/, "").endsWith(`/workshop/content/${appId}`))
+  // appid 未知（mod-repo.json 读不到）时只校验存在性：形状校验是"当我们知道规则"时才有意义
+  if (appId && !p.replace(/\\/g, "/").replace(/\/+$/, "").endsWith(`/workshop/content/${appId}`))
     return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: `the path does not end with workshop/content/${appId} (see the appid in mod-repo.json)`, next: "Confirm this is the Workshop content directory for this game; omit it if unsure." };
   return { ok: true, path: p };
 }

@@ -128,7 +128,7 @@ export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepo
       reason: `the path does not end with ${rel} as declared in mod-repo.json (the Paradox launcher only looks there)`,
       next: "Ask the player to confirm the Paradox launcher mod directory; try_set_game_paths can re-derive it, or omit this argument.",
     };
-  // the directory does not exist = 全新机器的正常状态（安装时会创建）
+  // 目录不存在 = 全新机器的正常状态（安装时会创建）
   return { ok: true, path: p };
 }
 

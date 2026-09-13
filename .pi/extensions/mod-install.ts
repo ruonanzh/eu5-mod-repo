@@ -178,10 +178,10 @@ export default function (pi: ExtensionAPI) {
       // 目标目录「不存在」是全新机器的正常状态（Paradox 启动器/游戏还没跑过）→ **不是错误**：继续往下走，
       // 由下面的 mkdirSync(destDir, { recursive: true }) 连缺失的父级一起创建。
       // 旧行为要求「必须已存在」：check_runtime 报可安装 → install 因目标不存在失败 → 再 check 仍不创建 → 死循环（B18）。
-      // 仍然拒绝的只有两种：路径not an absolute path / 路径存在但不是目录（此时继续只会在 cp·rename 阶段抛出更难懂的错）。
+      // 仍然拒绝的只有两种：路径不是绝对路径 / 路径存在但不是目录（否则继续只会在 cp/rename 阶段抛出更难懂的错）。
       // 目标路径的判据与 check_game_paths / try_set_game_paths 共用一份（lib/game-paths）：
       // EU5 的 mod 目录在 Paradox 启动器目录、与游戏安装位置无关 → 形状校验（绝对路径、不是文件、
-      // 以 mod-repo.json 声明的相对路径结尾）。the directory does not exist仍是正常状态（安装时创建）。
+      // 以 mod-repo.json 声明的相对路径结尾）。目录不存在仍是正常状态（安装时创建）。
       // 形状校验需要 mod-repo.json；读不到就降级（只做绝对路径/非文件校验），不让安装因此失败。
       let cfgForPaths;
       try {

@@ -130,6 +130,23 @@ function syncTree(srcRoot: string, dstRoot: string): { copied: number; staleRemo
   return { copied, staleRemoved };
 }
 
+/** 源不存在时：把这份镜像整体清掉（旧的参考内容不该继续冒充"当前游戏内容"） */
+function pruneTree(dstRoot: string): { copied: number; staleRemoved: number } {
+  let removed = 0;
+  if (existsSync(dstRoot)) {
+    for (const { abs } of walkFiles(dstRoot)) {
+      try {
+        unlinkSync(abs);
+        removed += 1;
+      } catch {
+        /* ignore */
+      }
+    }
+    removeEmptyDirsUnder(dstRoot);
+  }
+  return { copied: 0, staleRemoved: removed };
+}
+
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "sync_game_scripts",
@@ -170,7 +187,17 @@ export default function (pi: ExtensionAPI) {
 
       const destRoot = join(repoRoot, "game-scripts");
       const g = syncTree(gameDir, join(destRoot, "game"));
-      const w = workshopDir && existsSync(workshopDir) ? syncTree(workshopDir, join(destRoot, "workshop")) : { copied: 0, staleRemoved: 0 };
+      // Workshop 源可能消失（玩家取消订阅、目录被删）→ **不能静默留着旧镜像**：它会被当成
+      // "当前游戏内容"继续给 agent 参考（B20）。但要与"路径未知"区分开：
+      //   · 路径已知但已不存在 → 源消失 → 清掉镜像并如实说明
+      //   · 路径未知（没跑过 check_runtime）→ 不动镜像（可能是先前跑出来的有效镜像）
+      const workshopGone = typeof workshopDir === "string" && !existsSync(workshopDir);
+      const w =
+        typeof workshopDir === "string" && existsSync(workshopDir)
+          ? syncTree(workshopDir, join(destRoot, "workshop"))
+          : workshopGone
+            ? pruneTree(join(destRoot, "workshop"))
+            : { copied: 0, staleRemoved: 0 };
 
       const lines = [
         `PASS: mirrored ${g.copied + w.copied} text/definition file(s) into ${toPosix(relative(repoRoot, destRoot))}/ (game: ${g.copied}, workshop: ${w.copied})`,
@@ -178,9 +205,14 @@ export default function (pi: ExtensionAPI) {
       if (g.staleRemoved + w.staleRemoved > 0) {
         lines.push(`removed ${g.staleRemoved + w.staleRemoved} stale file(s) no longer present in the source.`);
       }
+      if (workshopGone) {
+        lines.push(
+          `NOTE: the workshop source is gone (unsubscribed or removed); its mirrored copy under game-scripts/workshop was cleared (${w.staleRemoved} file(s)) instead of being left behind.`,
+        );
+      }
       return {
         content: [{ type: "text", text: lines.join("\n") }],
-        details: { ok: true, copied: g.copied + w.copied, staleRemoved: g.staleRemoved + w.staleRemoved },
+        details: { ok: true, copied: g.copied + w.copied, staleRemoved: g.staleRemoved + w.staleRemoved, workshopSourceMissing: workshopGone },
       };
     },
   });

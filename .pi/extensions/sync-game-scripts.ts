@@ -162,7 +162,7 @@ export default function (pi: ExtensionAPI) {
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const repoRoot = ctx.cwd;
-      // 状态读取与"游戏目录是否可用"的判据都走 lib（与 check_game_paths / try_set_game_paths /
+      // 状态读取与"游戏目录是否可用"的判据都走 lib（与 check_game_paths / set_game_paths /
       // install_mod 同一份）：这里原本自己 JSON.parse + 只 existsSync，等于又实现了一遍同一判据。
       const state = readState(repoRoot);
       const gameVerdict = checkGameDir(typeof state.gameDir === "string" ? state.gameDir : null);

@@ -17,7 +17,7 @@ import {
  *
  * 拆分后的分工（本工具只做**编排**；判据与发现都在 .pi/lib/game-paths.ts）：
  *   · check_game_paths     只验给定/已记住的路径（只读）
- *   · try_set_game_paths   位置未知时扫 Steam 去找并落库
+ *   · set_game_paths   位置未知时扫 Steam 去找并落库
  *   · check_runtime        发现 + 校验 + 落库 + 汇总   ← 本工具
  *   · install_mod          安装（同一份判据；目标不存在则创建）
  *
@@ -28,7 +28,7 @@ export default function (pi: ExtensionAPI) {
     name: "check_runtime",
     label: "Check Runtime",
     description:
-      "One-stop runtime check for EU5: locates the game (explicit gameDir, remembered path, platform hint, then each Steam library from the registry and libraryfolders.vdf), verifies game/ or .metadata/ exists, derives the Paradox launcher mod directory and the Steam Workshop content dir, and records them in .gamer-agent.local.json. EU5 is Windows-only: on other platforms it reports PARTIAL. No SDK or compilation is involved. For a read-only path check use check_game_paths; to only locate and record the game use try_set_game_paths.",
+      "One-stop runtime check for EU5: locates the game (explicit gameDir, remembered path, platform hint, then each Steam library from the registry and libraryfolders.vdf), verifies game/ or .metadata/ exists, derives the Paradox launcher mod directory and the Steam Workshop content dir, and records them in .gamer-agent.local.json. EU5 is Windows-only: on other platforms it reports PARTIAL. No SDK or compilation is involved. For a read-only path check use check_game_paths; to only locate and record the game use set_game_paths.",
     promptSnippet: "Check game/mod directory locations when they are unknown or changed",
     promptGuidelines: [
       "Use check_runtime when the game/mod directory locations are unknown or may have changed: it locates them, verifies them and records them in one go.",

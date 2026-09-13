@@ -108,16 +108,16 @@ export function checkGameDir(dir: string | null | undefined): PathVerdict {
 export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepoConfig): PathVerdict {
   const p = dir ? expandHome(dir) : null;
   if (!p)
-    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "no mod install directory was given", next: "Run try_set_game_paths to locate it, or ask the player for the game install directory and verify again." };
+    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "no mod install directory was given", next: "Run check_runtime to locate it, or ask the player for the game install directory and verify it with check_game_paths." };
   if (!isAbsolute(p))
-    return { ok: false, path: p, code: "TARGET_INVALID", reason: "not an absolute path", next: "Run try_set_game_paths to derive an absolute path, or ask the player." };
+    return { ok: false, path: p, code: "TARGET_INVALID", reason: "not an absolute path", next: "Run check_runtime to derive an absolute path, or ask the player." };
   // 先做**与配置无关**的校验（顺序很重要：跳过形状校验时这些也必须生效）
   const st = statSync(p, { throwIfNoEntry: false });
   if (st && !st.isDirectory())
     return { ok: false, path: p, code: "TARGET_INVALID", reason: "this path exists but is not a directory (it is a file)", next: "Ask the player to check for a file with that name; rename or remove it and try again." };
   const rel = cfg?.modInstall?.path;
   // 形状校验是"我们对 Paradox 目录约定的意见"，不是游戏硬规则 → 配置读不到或没写 modInstall.path 时**跳过**
-  // （配置缺字段由 try_set_game_paths / check_runtime 负责报出来）。
+  // （配置缺字段由 set_game_paths / check_runtime 负责报出来）。
   if (typeof rel !== "string" || !rel.trim()) return { ok: true, path: p };
   const norm = (v: string) => v.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
   if (!norm(p).endsWith(norm(rel)))
@@ -126,7 +126,7 @@ export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepo
       path: p,
       code: "TARGET_INVALID",
       reason: `the path does not end with ${rel} as declared in mod-repo.json (the Paradox launcher only looks there)`,
-      next: "Ask the player to confirm the Paradox launcher mod directory; try_set_game_paths can re-derive it, or omit this argument.",
+      next: "Ask the player to confirm the Paradox launcher mod directory; check_runtime can re-derive it, or omit this argument.",
     };
   // 目录不存在 = 全新机器的正常状态（安装时会创建）
   return { ok: true, path: p };

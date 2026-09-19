@@ -17,5 +17,6 @@
     "relativeTo": "userDocuments",
     "path": "Paradox Interactive/Europa Universalis V/mod"
   },
-  "compile": null
+  "compile": null,
+  "workshop": { "supported": true }
 }

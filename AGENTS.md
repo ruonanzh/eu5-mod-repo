@@ -16,7 +16,7 @@ PDXScript text files — no compilation, no runtime SDK. The game is **Windows-o
 - `.pi/extensions/` — tools (`check_runtime`, `install_runtime`, `validate_mod`, `install_mod`,
   `sync_game_scripts`); trust the capabilities/side-effects each tool declares.
 - `reference/example_mod/` — a runnable sample that passes `validate_mod`.
-- `mod-repo.json` — machine-readable game and environment declaration.
+- `mod-repo.json` — machine-readable game and environment declaration. 其中 `workshop.supported` 声明本游戏**有没有创意工坊**；`workshopDir` 只是只读参考（不参与安装），判定规则见 SKILL 的「路径工具」段。
 
 ## Session roles and write boundary
 

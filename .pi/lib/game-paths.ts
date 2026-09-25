@@ -23,6 +23,17 @@ export const GAME_DIR_MARKERS = ["game", ".metadata"];
 export interface ModRepoConfig {
   game?: { name?: string; steamAppId?: string | number; installDirHint?: Record<string, string> };
   modInstall?: { path?: string; relativeTo?: string };
+  /** 这个游戏**有没有创意工坊**（U29/U30）。缺失 = 未知 —— **不是** false。 */
+  workshop?: { supported?: boolean };
+}
+
+/**
+ * 契约里声明的「有没有创意工坊」：`true` / `false` / `null`（未声明 = 未知）。
+ * 全仓库只留这一份判据：消费者不要再自己读 `cfg.workshop`。
+ */
+export function workshopSupported(cfg: ModRepoConfig): boolean | null {
+  const value = cfg.workshop?.supported;
+  return typeof value === "boolean" ? value : null;
 }
 
 export interface RuntimeState {

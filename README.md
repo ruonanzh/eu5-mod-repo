@@ -6,4 +6,4 @@ authoring rules, produce mods under `your_mods/<ModName>/`, and check them with 
 tool.
 
 Structure and roles: see [`AGENTS.md`](AGENTS.md). Hands-on authoring/Q&A playbook: see
-[`.pi/skills/mod-authoring/SKILL.md`](.pi/skills/mod-authoring/SKILL.md).
+[`.pi/skills/（三份：`setup-workspace` / `mod-creator` / `mod-installer`）`](.pi/skills/（三份：`setup-workspace` / `mod-creator` / `mod-installer`）).

@@ -1,46 +1,29 @@
 ---
-name: mod-authoring
-description: Authoring, modifying, and Q&A for EU5 (pdx-script) mods: metadata.json fields, localization YAML (UTF-8 BOM, _l_<language> filename, l_<lang>: header, key format), PDXScript/GUI syntax, INJECT:/REPLACE: overrides, load order, and validate_mod troubleshooting. Read when a task touches any of these. Q&A/consultation is read-only (no file writes); actual writes depend on session role and binding.
+name: mod-creator
+description: Authoring and modifying EU5 (pdx-script) mods: artifact structure, metadata.json fields, localization YAML (UTF-8 BOM, `_l_<language>` filename, `l_<lang>:` header, key format), PDXScript/GUI syntax, INJECT:/REPLACE: overrides, load order & naming, validate_mod troubleshooting, and the semantic lookup path. Read when a task touches any of these. Q&A/consultation is read-only; writing depends on session role and binding.
 ---
 
 # Authoring EU5 mods (pdx-script)
 
-An EU5 mod is a directory of **pure PDXScript text files** (`.txt` / `.gui` / `.gfx` / `.asset` /
-`.yml`) — no compilation, no runtime SDK. Author under `your_mods/<ModName>/`, then check with the
-`validate_mod` tool. The game is **Windows-only**.
-
+An EU5 mod is a directory of **pure PDXScript text files** (`.txt` / `.gui` / `.gfx` / `.asset` / `.yml`) — no
+compilation, no runtime SDK. Author under `your_mods/<ModName>/`, then check with the `validate_mod` tool.
 All paths below are relative to the workspace root (not the skill directory).
+
+This skill provides domain method only and **grants no permissions**: reading it does not authorise creating
+directories, checking/installing runtimes, or modifying source files (those stay gated by the session role and
+its bound directory).
 
 ## Usage modes (two roles)
 
-The same repo serves two roles; which one applies is set by the session role, not chosen here:
-
-This skill provides domain method only and **grants no permissions**: reading it does not authorise
-creating directories, checking/installing runtimes, or modifying source files (those stay gated by the
-session role and its bound directory).
-
-- **Q&A / consultation (read-only):** answer game-mechanics or mod-API questions by reading the
-  knowledge layer. Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source
-  (mod-wiki for concepts, `script_docs/`/`data_types/` for exact names, `eu5-modding-conventions.md`
-  for authoring rules). Do **not** create files or check the runtime unless the player explicitly
-  asks about their environment.
-- **Authoring / modifying (writes):** produce or change a mod under `your_mods/<ModName>/`. Reuse
-  the structure of `reference/example_mod/`. Writes are limited to the mod directory bound to the
-  current session; with no binding, call `create_mod_folder` with a `lower_snake_case` name. Do not
-  create a second binding if one already exists.
-- **Directory name (our rule, enforced by `create_mod_folder`)**: starts with a lowercase letter, then only lowercase letters/digits/underscores, max 40 characters, and not a Windows reserved device name (con/prn/aux/nul/com1-9/lpt1-9).
-- **Installing (after validate_mod passes):** `install_mod` copies the mod into the Paradox mod
-  directory (target comes from `check_runtime`'s discovery, it does not probe itself).
-  - The installed folder name is the **`your_mods/` directory name** (which must equal
-    `metadata.id`), so the name stays a single safe path segment and the folder the player sees in the
-    launcher matches the one in the workspace.
-  - Re-running for the same mod updates it in place (recognised by the `.pi-mod.json` marker inside
-    the installed folder). If the target directory belongs to a **different** mod it installs as
-    `<directory>_pimod` instead, leaving that directory untouched and adding only the marker — the
-    copy's `metadata.json` is **not** modified. When that happens, tell the player which directory it
-    installs as (the in-game title `name` and `id` are unchanged).
-  - Replacement is transactional: the previously installed copy is moved aside (not deleted) and only
-    removed after the new one is in place; if the swap fails the old copy stays.
+- **Q&A / consultation (read-only):** answer game-mechanics or mod-API questions by reading the knowledge layer.
+  Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source. Do **not** create files or check the runtime
+  unless the player explicitly asks about their environment.
+- **Authoring / modifying (writes):** produce or change a mod under `your_mods/<ModName>/`. Reuse the structure of
+  `reference/example_mod/`. Writes are limited to the mod directory bound to the current session; with no binding,
+  call `create_mod_folder` with a `lower_snake_case` name. Do not create a second binding if one already exists.
+- **Directory name (our rule, enforced by `create_mod_folder`)**: starts with a lowercase letter, then only
+  lowercase letters/digits/underscores, max 40 characters, and not a Windows reserved device name
+  (con/prn/aux/nul/com1-9/lpt1-9).
 
 ## Mod artifact structure
 
@@ -182,19 +165,7 @@ For "does X exist / what is vanilla's exact value?", follow the lookup hierarchy
 - Game overview (mechanics): `docs/game.md`.
 - Authoring rules (single source of truth): `docs/eu5-modding-conventions.md`.
 
-## 路径工具（gameDir / workshopDir / modInstallDir）
+## Related skills
 
-**必填与附加（U29）**：`gameDir` 必填；契约声明了 `modInstall`（非 null）时 `modInstallDir` 也必填 —— 任一不正确 = `FAIL`。
-`workshopDir` 只是**只读参考**（读创意工坊里现成的脚本/数据用），**不参与安装**：它**永不产 FAIL**，最多 `WARN`；
-契约 `workshop.supported: false` 时**完全不看**（不检查、也不出现在结果里）。
-
-
-三个工具分工不同，**别混用**（判据是同一份实现，见 `.pi/lib/game-paths.ts`）：
-
-| 工具 | 什么时候用 | 副作用 |
-|---|---|---|
-| `check_game_paths` | **只验**：玩家给了路径、或想确认已记住的还对不对 | **无**（只读、不扫描、不写状态）|
-| `set_game_dir` / `set_workshop_dir` / `set_mod_install_dir` | 玩家给了**具体路径** → 记住它（先过判据；不过则内部发现/派生，返回 WARN）| 写运行时状态 |
-| `set_game_paths` | 一次给多条路径（至少一条）| 写运行时状态 |
-| `check_runtime` | 一次跑全流程：发现 + 校验 + 记录 | 写运行时状态 |
-| `install_mod` | 安装（目标不存在会创建；全新机器的正常状态）| 写安装目标 |
+- Paths/runtime not ready → `setup-workspace`.
+- Getting the artifact into the game (Paradox mod directory) → `mod-installer`.

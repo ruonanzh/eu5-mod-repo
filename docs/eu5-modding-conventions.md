@@ -7,10 +7,10 @@ anything.
 
 - Enforcement lives in `.pi/extensions/mod-lint.ts` (the `validate_mod` tool).
 - This document is the **single source of truth** for authoring language rules — `AGENTS.md` and
-  `.pi/skills/mod-authoring/SKILL.md` reference it rather than repeating the rules.
+  `.pi/skills/mod-creator/SKILL.md` reference it rather than repeating the rules.
 - Boundaries and the mandatory validate step live in [`AGENTS.md`](../AGENTS.md); the hands-on
   playbook (product shapes, validate_mod usage) is in
-  [`../.pi/skills/mod-authoring/SKILL.md`](../.pi/skills/mod-authoring/SKILL.md).
+  [`../.pi/skills/mod-creator/SKILL.md`](../.pi/skills/mod-creator/SKILL.md).
 - Exact semantic names (effects/triggers/modifiers/scope-links/datatypes) are authoritative in the
   game-generated dumps: [`script_docs/`](script_docs/) and [`data_types/`](data_types/).
 

@@ -37,17 +37,58 @@ const EXCLUDED_FILES = new Set([".DS_Store", ".pi-mod.json"]);
 /** 读 mod 身份：`.metadata/metadata.json` 的 id（游戏规则只要求非空字符串；`lower_snake_case` 是建议） */
 
 /** 这个目录是不是本 mod 上次装的 */
-export function readMarkerName(dir: string): string | null {
-  const markerPath = join(dir, ".pi-mod.json");
-  if (!existsSync(markerPath)) return null;
+export interface ModInstallRecord {
+  name?: string;
+  installedDir?: string;
+}
+
+const RECORD_FILE = ".pi-mod.json";
+
+/**
+ * 安装记录（**工作区侧**）：`your_mods/<mod名>/.pi-mod.json`
+ * `{ "name": <mod 身份>, "installedDir": <装到哪个目录名> }`
+ *
+ * 见 duckov 同名实现的说明：归属/幂等看这份记录，游戏目录里不再放我们的文件；
+ * 记录指向的目录不存在时当作没装过（不做重建/对账）。
+ */
+export function readInstallRecord(modDir: string): ModInstallRecord | null {
+  const recordPath = join(modDir, RECORD_FILE);
+  if (!existsSync(recordPath)) return null;
   try {
-    const parsed = JSON.parse(readFileSync(markerPath, "utf8")) as {
-      name?: unknown;
-    };
-    return typeof parsed.name === "string" ? parsed.name : null;
+    const parsed = JSON.parse(readFileSync(recordPath, "utf8")) as ModInstallRecord;
+    return typeof parsed === "object" && parsed !== null ? parsed : null;
   } catch {
-    return null; // 坏文件当作「不是我们的」，宁可另装一个目录也不覆盖
+    return null;
   }
+}
+
+export function writeInstallRecord(modDir: string, name: string, installedDir: string): void {
+  const recordPath = join(modDir, RECORD_FILE);
+  const tmp = `${recordPath}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify({ name, installedDir }, null, 2)}\n`);
+  renameSync(tmp, recordPath);
+}
+
+/** 扫**工作区** your_mods/ 下其它 mod 的记录：谁记着「我装到 <目录名> 了」。 */
+export function workspaceOccupantOf(yourModsRoot: string, dirName: string): string | null {
+  for (const entry of existsSync(yourModsRoot) ? readdirSync(yourModsRoot, { withFileTypes: true }) : []) {
+    if (!entry.isDirectory()) continue;
+    if (readInstallRecord(join(yourModsRoot, entry.name))?.installedDir === dirName) return entry.name;
+  }
+  return null;
+}
+
+/** 扫**工作区**里其它 mod 的记录：有没有另一个 mod 自报的身份与它相同。 */
+export function workspaceSameIdentityAs(
+  yourModsRoot: string,
+  selfDirName: string,
+  identity: string,
+): string | null {
+  for (const entry of existsSync(yourModsRoot) ? readdirSync(yourModsRoot, { withFileTypes: true }) : []) {
+    if (!entry.isDirectory() || entry.name === selfDirName) continue;
+    if (readInstallRecord(join(yourModsRoot, entry.name))?.name === identity) return entry.name;
+  }
+  return null;
 }
 
 /**
@@ -59,7 +100,8 @@ export function readMarkerName(dir: string): string | null {
 export function pickInstallDir(
   modRoot: string,
   modName: string,
-  modIdentity: string = modName,
+  recordedDir: string | null,
+  yourModsRoot: string,
 ): {
   dir: string;
   renamed: boolean;
@@ -67,8 +109,9 @@ export function pickInstallDir(
   reused: boolean;
 } {
   const primary = join(modRoot, modName);
+  // 归属看**工作区记录**（不再读游戏目录里的文件）
   const free = (dir: string) =>
-    !existsSync(dir) || readMarkerName(dir) === modIdentity;
+    !existsSync(dir) || (recordedDir !== null && resolve(dir) === resolve(recordedDir));
   if (free(primary))
     return {
       dir: primary,
@@ -77,12 +120,9 @@ export function pickInstallDir(
       reused: existsSync(primary),
     };
 
-  const occupiedBy = readMarkerName(primary);
+  const occupiedBy = workspaceOccupantOf(yourModsRoot, basename(primary));
   for (let suffix = 1; ; suffix += 1) {
-    const candidate = join(
-      modRoot,
-      `${modName}_pimod${suffix === 1 ? "" : suffix}`,
-    );
+    const candidate = join(modRoot, `${modName}_pimod${suffix === 1 ? "" : suffix}`);
     if (free(candidate))
       return {
         dir: candidate,
@@ -218,20 +258,25 @@ export default function (pi: ExtensionAPI) {
           }
         }
 
-      const { dir: installDir, renamed, occupiedBy, reused } = pickInstallDir(modRoot, modName, identity.name);
+      const record = readInstallRecord(modDir);
+      const recordedDir =
+        typeof record?.installedDir === "string" && record.installedDir
+          ? join(modRoot, record.installedDir)
+          : null;
+      const yourModsRoot = join(ctx.cwd, "your_mods");
+      const { dir: installDir, renamed, occupiedBy, reused } = pickInstallDir(
+        modRoot,
+        modName,
+        recordedDir,
+        yourModsRoot,
+      );
 
       // 同一个 mod（marker 里的身份相同）曾以别的目录名装过 → 只提示，不删它
       // 只在「身份 ≠ 目录名」时才需要扫：两者相同时，上次安装用的目录名必然就是本次的目标目录名，
       // 重装/冲突都由 pickInstallDir 在目标目录上解决 → 不可能出现"同一个 mod 装在两个目录名"。
       // （这样常见路径上没有 O(n) 扫描，而"身份≠目录名"的类型仍能拿到那条提示。）
-      let duplicateDir: string | null = null;
-      if (identity.name !== modName) {
-        const installedName = basename(installDir);
-        for (const entry of existsSync(modRoot) ? readdirSync(modRoot, { withFileTypes: true }) : []) {
-          if (!entry.isDirectory() || entry.name === installedName) continue;
-          if (readMarkerName(join(modRoot, entry.name)) === identity.name) duplicateDir = entry.name;
-        }
-      }
+      const duplicateDir =
+        identity.name !== modName ? workspaceSameIdentityAs(yourModsRoot, modName, identity.name) : null;
 
       const staging = `${installDir}.staging-${process.pid}`;
       const previous = `${installDir}.previous-${process.pid}`;
@@ -248,10 +293,8 @@ export default function (pi: ExtensionAPI) {
         // · 关键约束：**存什么就拿什么比**（这里存身份、判断也用身份）。若改成存目录名，就等于放弃
         //   "同一 mod 换目录名后仍能识别为同一份安装"的能力（Duckov 这类身份≠目录名的类型会静默装成两份）。
         // · 若将来真的要实现"工作区侧的安装指南"，需另定文件名或明确优先级，不要复用这个文件。
-        writeFileSync(
-          join(staging, ".pi-mod.json"),
-          `${JSON.stringify({ name: identity.name }, null, 2)}\n`,
-        );
+                // 不再往安装副本写我们的文件：归属由工作区侧记录负责
+
         // 事务化替换：旧版本先 rename 到旁边（**不删**）→ 换入新版本 → 成功后才删旧的；
         // 换入失败就把旧版本挪回来。旧版是「先 rmSync 再 rename」，中间失败会让新旧两份都丢。
         const hadPrevious = existsSync(installDir);
@@ -263,6 +306,10 @@ export default function (pi: ExtensionAPI) {
           throw error;
         }
         if (hadPrevious) rmSync(previous, { recursive: true, force: true });
+      // 装成功后才写记录（记录不参与“装没装”的判定）
+      writeInstallRecord(modDir, identity.name, basename(installDir));
+      // 历史遗留：清掉安装副本里的旧标记
+      rmSync(join(installDir, ".pi-mod.json"), { force: true });
       } catch (error) {
         rmSync(staging, { recursive: true, force: true });
         return {

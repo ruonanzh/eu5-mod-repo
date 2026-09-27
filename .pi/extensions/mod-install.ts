@@ -26,8 +26,11 @@ import { readModIdentity } from "../lib/mod-identity";
  * 「两个 mod 在游戏里身份相同」是 mod 冲突问题，不属安装职责：安装只复制文件，**不改副本里的
  * metadata.json 等 mod 内容**。
  *
- * 目标目录里的 `.pi-mod.json`（只记 name）用来识别「这是我上次装的」：
- * 命中 → 就地更新（重装幂等）；不在 → 换一个不冲突的目录名。
+ * 归属与幂等看**工作区侧记录** `your_mods/<mod名>/.pi-mod.json`（`{ name, installedDir }`）：
+ *  · 记录里的 installedDir 存在 → 就地更新（重装幂等）；
+ *  · 记录没有/指向的目录不存在 → 当作没装过，按「your_mods 目录名」推算目标；
+ *  · 目标存在且不是记录里那个 → 视为别人占着 → 改名装 `<目录名>_pimod`，绝不覆盖。
+ * **游戏目录里不再放我们的文件**（归属信息都在工作区）。
  */
 
 /** 作者本地的东西，不装进游戏 */
@@ -92,10 +95,11 @@ export function workspaceSameIdentityAs(
 }
 
 /**
- * 选落地目录。两个名字各司其职：
+ * 选落地目录。
  * - `modName`：候选目录名（用 your_mods 的目录名，单层、已校验）→ 决定装到哪
- * - `modIdentity`：判断"目标目录是不是我这个 mod 上次装的"（比 `.pi-mod.json` 里记的身份）
- * 命中自己的标记 → 覆盖更新（不留下两份）；被别的 mod 占了 → 顺延 `<名>_pimod`、`_pimod2`…
+ * - `recordedDir`：本 mod **工作区记录**里的 installedDir（绝对路径，可能为 null）→ 判断"目标是不是我上次装的"
+ * - `yourModsRoot`：扫其它 mod 的记录，用于回答"目标被我的哪个 mod 占着"
+ * 命中记录 → 覆盖更新（不留两份）；被别的 mod 占了 → 顺延 `<名>_pimod`、`_pimod2`…
  */
 export function pickInstallDir(
   modRoot: string,
@@ -285,14 +289,8 @@ export default function (pi: ExtensionAPI) {
       let files = 0;
       try {
         files = copyModFiles(modDir, staging);
-        // `.pi-mod.json` 的来龙去脉（避免后来人误判它的用途）：
-        // · 最初的设计用意：一份**安装指南**，放在 mod 自己的工作区目录里（your_mods/<mod>/.pi-mod.json），
-        //   描述"这个 mod 该怎么装"（当时没沟通清楚，没实现成那个形态）。
-        // · 现在实际承担的角色：**归属标记**，写在**安装副本**里，内容只记 `{ "name": <mod 身份> }`,
-        //   用来回答"这个目标目录是不是我上次装的" → 命中就地更新，没命中则改名装 `<目录名>_pimod`。
-        // · 关键约束：**存什么就拿什么比**（这里存身份、判断也用身份）。若改成存目录名，就等于放弃
-        //   "同一 mod 换目录名后仍能识别为同一份安装"的能力（Duckov 这类身份≠目录名的类型会静默装成两份）。
-        // · 若将来真的要实现"工作区侧的安装指南"，需另定文件名或明确优先级，不要复用这个文件。
+        // 这里**不再**往安装副本写任何我们的文件（2026-09-26 起）：归属改由工作区侧记录
+        // `your_mods/<mod名>/.pi-mod.json`（`{ name, installedDir }`）负责；游戏目录里只留游戏自己的东西。
                 // 不再往安装副本写我们的文件：归属由工作区侧记录负责
 
         // 事务化替换：旧版本先 rename 到旁边（**不删**）→ 换入新版本 → 成功后才删旧的；

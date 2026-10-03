@@ -31,7 +31,7 @@ export default function (pi: ExtensionAPI) {
         content: [
           {
             type: "text",
-            text: "PASS: no runtime dependencies for EU5 (pure PDXScript; no SDK, no compile, nothing to install). The game itself must be installed by the player; run try_set_game_dir (no arguments) to locate gameDir/workshopDir/modInstallDir.",
+            text: "PASS: no runtime dependencies for EU5 (pure PDXScript; no SDK, no compile, nothing to install). The game itself must be installed by the player; run try_set_game_dir (no arguments) to record gameDir/workshopDir/modInstallDir.",
           },
         ],
         details: { ok: true },

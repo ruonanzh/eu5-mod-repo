@@ -12,8 +12,8 @@ export default function (pi: ExtensionAPI) {
     name: "install_runtime",
     label: "Install Runtime",
     description:
-      "EU5 mods are pure PDXScript with no runtime/SDK to install. Always succeeds and reminds the agent that the game itself must be installed by the player; use try_set_game_dir to locate game/workshop/mod directories.",
-    promptSnippet: "Install mod runtime",
+      "EU5 mods are pure PDXScript with no runtime/SDK to install. Always succeeds and reminds the agent that the game itself must be installed by the player; use try_set_game_dir to record game/workshop/mod directories.",
+    promptSnippet: "Install runtime (EU5: nothing to install)",
     promptGuidelines: [
       "Use install_runtime only when a missing runtime is suspected; for EU5 it always reports no dependencies.",
       "A missing game directory is NOT a runtime problem - use try_set_game_dir (no arguments) to locate and record it, not install_runtime.",
@@ -24,7 +24,7 @@ export default function (pi: ExtensionAPI) {
         content: [
           {
             type: "text",
-            text: "PASS: no runtime dependencies for EU5 (pure PDXScript; no SDK, no compile, nothing to install). The game itself must be installed by the player. Use try_set_game_dir to locate gameDir/workshopDir/modInstallDir; use sync_game_scripts to load the vanilla scripts (the authoring context).",
+            text: "PASS: no runtime dependencies for EU5 (pure PDXScript; no SDK, no compile, nothing to install). The game itself must be installed by the player. Use try_set_game_dir to record gameDir/workshopDir/modInstallDir; use sync_game_scripts to load the vanilla scripts (the authoring context).",
           },
         ],
         details: { ok: true },

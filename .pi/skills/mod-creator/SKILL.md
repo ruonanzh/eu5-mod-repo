@@ -19,7 +19,7 @@ its bound directory).
   Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source. Do **not** create files or prepare the
   environment (locate paths, sync vanilla scripts) unless the player explicitly asks about their environment.
 - **Authoring / modifying (writes):** first run `sync_game_scripts` to load the vanilla context into `game-scripts/`
-  (PDXScript has no self-describing API — without it you cannot write correct overrides/INJECT). Then produce or
+  (PDXScript has no self-describing API — without it you cannot write correct PDXScript). Then produce or
   change a mod under `your_mods/<ModName>/`. Reuse the structure of `reference/example_mod/`. Writes are limited to
   the mod directory bound to the current session; with no binding, call `create_mod_folder` with a `lower_snake_case`
   name. Do not create a second binding if one already exists.

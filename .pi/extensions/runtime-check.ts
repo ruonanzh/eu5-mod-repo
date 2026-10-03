@@ -1,114 +1,40 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { existsSync } from "node:fs";
-import {
-  discoverGameDir,
-  pathsFor,
-  readModRepoConfig,
-  readState,
-  resolveUserPath,
-  writeState,
-  GAME_FOLDER_NAME,
-  type ModRepoConfig,
-} from "../lib/game-paths";
 
 /**
- * check_runtime — 运行时契约（docs/mod-repo-guide.md §4）的一次跑完入口。
+ * check_runtime —— **只报运行时前提**：EU5 是纯 PDXScript，无 SDK / 无编译 / 无第三方运行时，所以恒为「无依赖」。
  *
- * 拆分后的分工（本工具只做**编排**；判据与发现都在 .pi/lib/game-paths.ts）：
- *   · check_game_paths     只验给定/已记住的路径（只读）
- *   · set_game_paths   位置未知时扫 Steam 去找并落库
- *   · check_runtime        发现 + 校验 + 落库 + 汇总   ← 本工具
- *   · install_mod          安装（同一份判据；目标不存在则创建）
- *
- * EU5 没有 SDK/编译链（纯 PDXScript），所以这里只做环境与路径，没有 dotnet 那一步。
+ * 职责边界（一个工具只干一件事）：
+ *   · check_runtime      **只报运行时前提**（本工具）—— EU5 无依赖；不找游戏、不碰三条路径
+ *   · try_set_game_dir  **确保游戏目录已就绪**（无参、幂等）：自己找并记录，连带记录派生的两条
+ *   · set_game_dir      **记录一个具体的游戏安装目录**（玩家给的或自己找到的）
+ *   · check_game_paths   只**验证**给定/已记住的路径（只读、不扫描、不写状态）
+ *   · install_runtime    只报「无依赖 / 无需安装」（不执行安装）
+ *   · sync_game_scripts  镜像 vanilla 脚本到 game-scripts/（写 mod 前的上下文）
+ *   · install_mod        安装（目标目录不存在则创建）
  */
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "check_runtime",
     label: "Check Runtime",
     description:
-      "One-stop runtime check for EU5: locates the game (explicit gameDir, remembered path, platform hint, then each Steam library from the registry and libraryfolders.vdf), verifies game/ or .metadata/ exists, derives the Paradox launcher mod directory and the Steam Workshop content dir, and records them in .gamer-agent.local.json. EU5 is Windows-only: on other platforms it reports PARTIAL. No SDK or compilation is involved. For a read-only path check use check_game_paths; to only locate and record the game use set_game_paths.",
-    promptSnippet: "Check game/mod directory locations when they are unknown or changed",
+      "Reports the runtime prerequisites for this workspace: EU5 is pure PDXScript, so there are none (no SDK, no compilation, no runtime to install). It never installs anything and does not locate the game - game/mod paths belong to check_game_paths (verify) and try_set_game_dir / set_game_dir (ensure / record).",
+    promptSnippet: "Check runtime prerequisites (EU5: none)",
     promptGuidelines: [
-      "Use check_runtime when the game/mod directory locations are unknown or may have changed: it locates them, verifies them and records them in one go.",
-      "EU5 needs no runtime or SDK installation; do not call install_runtime for anything but reminding the player that the game itself must be installed.",
-      "If the player already gave you a path, prefer check_game_paths (read-only) to verify it, or pass gameDir here to locate and record it.",
+      "Use check_runtime when a task needs runtime or compile prerequisites, or when the player asks whether the environment is ready: EU5 has none, so it always passes.",
+      "check_runtime does not locate the game or touch any path - a missing game directory is not a runtime problem: ensure or record paths with try_set_game_dir / set_game_dir, verify them with check_game_paths.",
+      "check_runtime never installs anything and never writes state - there is nothing to install for EU5.",
     ],
-    parameters: Type.Object({
-      gameDir: Type.Optional(
-        Type.String({
-          description:
-            "Game installation directory supplied by the player; relative paths use the workspace root. Omit to try the remembered path, the platform hint and each Steam library.",
-        }),
-      ),
-    }),
-    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      const cwd = ctx.cwd;
-      let cfg: ModRepoConfig;
-      try {
-        cfg = readModRepoConfig(cwd);
-      } catch {
-        throw new Error(
-          "INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json. Reopen or update the game workspace; do not edit its maintainer configuration.",
-        );
-      }
-      const state = readState(cwd);
-      const explicit = params.gameDir?.trim() ? resolveUserPath(cwd, params.gameDir) : undefined;
-      const { gameDir, tried, platformUnsupported } = discoverGameDir(cfg, state, explicit);
-
-      if (platformUnsupported) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `PARTIAL: ${GAME_FOLDER_NAME} is Windows-only; no game files can be located on this platform. Run this on Windows.\nNOTE: nothing was written; the remembered paths (if any) were left untouched.`,
-            },
-          ],
-          details: { ...state, ok: false, errors: ["PLATFORM_UNSUPPORTED"], wroteState: false },
-        };
-      }
-
-      if (!gameDir) {
-        const triedText = tried.length
-          ? tried.map((t) => `  - ${t.path} - ${t.reason ?? "did not pass validation"}`).join("\n")
-          : "  (no usable candidate paths: neither the registry nor the Steam libraries have the game)";
-        const errors = [
-          `FAIL: GAME_DIRECTORY_NOT_FOUND (${cfg.game?.name ?? GAME_FOLDER_NAME}). Ask the player for the installed game directory and re-run check_runtime with gameDir, or install the game first.`,
-        ];
-        return {
-          content: [{ type: "text", text: `${errors.join("\n")}\nTried:\n${triedText}` }],
-          details: { ...state, ok: false, errors },
-        };
-      }
-
-      const { modInstallDir, workshopDir, notes } = pathsFor(gameDir, cfg);
-      const problems = notes.filter((n) => n.startsWith("FAIL:"));
-      if (modInstallDir) {
-        writeState(cwd, { gameDir, modInstallDir, workshopDir: workshopDir ?? null });
-      }
-
-      if (problems.length) {
-        return {
-          content: [{ type: "text", text: `${problems.join("\n")}\nNOTE: nothing was written.` }],
-          details: { ...state, ok: false, errors: problems },
-        };
-      }
-
-      const lines = [
-        `PASS: gameDir ${gameDir}`,
-        workshopDir ? `workshopDir ${workshopDir}` : "workshopDir (not found; optional)",
-        `modInstallDir ${modInstallDir}`,
-      ];
-      if (modInstallDir && !existsSync(modInstallDir)) {
-        lines.push(
-          "WARN: that mod directory does not exist yet - normal on a first install (install_mod creates it). If the player moved their Documents folder (e.g. OneDrive), this path may be wrong: confirm with the player where the game expects mods.",
-        );
-      }
-
+    parameters: Type.Object({}),
+    async execute() {
       return {
-        content: [{ type: "text", text: lines.join("\n") }],
-        details: { ...state, ok: true, gameDir, modInstallDir, workshopDir, wroteState: true },
+        content: [
+          {
+            type: "text",
+            text: "PASS: no runtime dependencies for EU5 (pure PDXScript; no SDK, no compile, nothing to install). The game itself must be installed by the player; run try_set_game_dir (no arguments) to locate gameDir/workshopDir/modInstallDir.",
+          },
+        ],
+        details: { ok: true },
       };
     },
   });

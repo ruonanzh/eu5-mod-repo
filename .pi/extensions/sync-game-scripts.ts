@@ -6,10 +6,11 @@ import { checkGameDir, checkWorkshopDir, readModRepoConfig, readState } from "..
 
 /**
  * sync_game_scripts — 把 vanilla 的 game/workshop 文本/定义脚本镜像到 workspace 的 game-scripts/，
- * 供 agent 做 mod 时参考（grep vanilla 对象名、判断 INJECT/REPLACE 覆盖、查 localization key 等）。
+ * 作为**写 mod 前必须加载的上下文**（PDXScript 无自描述 API：没有这些脚本就不知道要 override / INJECT 哪些
+ * vanilla 对象、查不到 localization key）。
  *
  * 只复制文本/定义后缀（KEEP_SUFFIXES allowlist，与 cursor main 的 sync 工具一致）；纹理/网格/音频等
- * 二进制永不复制。源路径来自 check_runtime 写入的 .gamer-agent.local.json（gameDir/workshopDir）。
+ * 二进制永不复制。源路径来自 try_set_game_dir 写入的 .gamer-agent.local.json（gameDir/workshopDir）。
  * 幂等：每次执行都重新遍历源，只复制新增/变化（size+mtime）的文件，并删除源里已不存在的
  * stale 文件。game-scripts/ 不进 git。
  */
@@ -153,16 +154,16 @@ export default function (pi: ExtensionAPI) {
     name: "sync_game_scripts",
     label: "Sync Game Scripts",
     description:
-      "Copy EU5 vanilla game/ and workshop/ text-definition scripts into workspace game-scripts/ for reference while authoring mods (check vanilla object names, INJECT/REPLACE targets, localization keys). Text/definition suffixes only; binaries are never copied. Requires check_runtime to have located the game first.",
-    promptSnippet: "Mirror vanilla game scripts into game-scripts/ for reference",
+      "Copies the vanilla game/ and workshop/ text-definition scripts into game-scripts/ - the context you need to author mods. PDXScript has no self-describing API: without these scripts you cannot write correct PDXScript (the vanilla objects, effects, triggers, and keys all live there). Text/definition suffixes only; binaries are never copied. Requires try_set_game_dir to have recorded the game directory first.",
+    promptSnippet: "Load the vanilla game scripts into game-scripts/ (authoring context)",
     promptGuidelines: [
-      "Use sync_game_scripts before checking whether an object overrides vanilla or what a vanilla key looks like.",
-      "Run check_runtime first; sync_game_scripts fails with a NEXT pointing at check_runtime when the game directory is unknown.",
+      "Run sync_game_scripts before authoring a mod, so the vanilla scripts are in game-scripts/; without them you cannot write correct PDXScript.",
+      "Run try_set_game_dir (no arguments) first; sync_game_scripts fails with a NEXT pointing at it when the game directory is unknown.",
     ],
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const repoRoot = ctx.cwd;
-      // 状态读取与"游戏目录是否可用"的判据都走 lib（与 check_game_paths / set_game_paths /
+      // 状态读取与"游戏目录是否可用"的判据都走 lib（与 check_game_paths / try_set_game_dir /
       // install_mod 同一份）：这里原本自己 JSON.parse + 只 existsSync，等于又实现了一遍同一判据。
       const state = readState(repoRoot);
       const gameVerdict = checkGameDir(typeof state.gameDir === "string" ? state.gameDir : null);
@@ -171,7 +172,7 @@ export default function (pi: ExtensionAPI) {
           content: [
             {
               type: "text",
-              text: `FAIL: ${gameVerdict.reason}. NEXT: run check_runtime first to locate the EU5 install, then re-run sync_game_scripts.`,
+              text: `FAIL: ${gameVerdict.reason}. NEXT: run try_set_game_dir (no arguments) first to locate the EU5 install, then re-run sync_game_scripts.`,
             },
           ],
           details: { ok: false, errors: [gameVerdict.code ?? "GAME_DIRECTORY_NOT_FOUND"] },
@@ -191,7 +192,7 @@ export default function (pi: ExtensionAPI) {
       // Workshop 源可能消失（玩家取消订阅、目录被删）→ **不能静默留着旧镜像**：它会被当成
       // "当前游戏内容"继续给 agent 参考（B20）。但要与"路径未知"区分开：
       //   · 路径已知但已不存在 → 源消失 → 清掉镜像并如实说明
-      //   · 路径未知（没跑过 check_runtime）→ 不动镜像（可能是先前跑出来的有效镜像）
+      //   · 路径未知（没跑过 try_set_game_dir）→ 不动镜像（可能是先前跑出来的有效镜像）
       const wsVerdict = checkWorkshopDir(workshopDir, steamAppId);
       const workshopGone = typeof workshopDir === "string" && !existsSync(workshopDir);
       const w = wsVerdict.ok

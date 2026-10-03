@@ -4,7 +4,8 @@
  * 与其它工具的分工（别混用）：
  *   · check_game_paths   只验给定或已记住的路径            ← 本工具（无副作用；helper 只读会话可用）
  *   · （无人值守的发现/派生是内部实现，不注册为工具：见 lib 的 setPathWithFallback）
- *   · check_runtime      一次跑完整流程（发现 + 校验 + 记录）
+ *   · try_set_game_dir   **确保游戏目录已就绪**（无参、幂等）：自己找并记录，连带派生两条
+ *   · set_game_dir       **记录一个具体的游戏安装目录**（玩家给的或自己找到的）
  *   · install_mod        安装（复用同一份判据；目标不存在则创建）
  *
  * 注意：EU5 的 mod 安装目录在 Paradox 启动器目录（`~/Documents/Paradox Interactive/…`），
@@ -19,6 +20,7 @@ import {
   readModRepoConfig,
   readState,
   resolveUserPath,
+  statePath,
   workshopSupported,
   type ModRepoConfig,
   type PathVerdict,
@@ -28,13 +30,12 @@ export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "check_game_paths",
     description:
-      "Verify game-related directories (game install, Steam Workshop content, mod install target). Read-only: it never writes .gamer-agent.local.json, never scans Steam, never creates directories. Pass any subset of gameDir/workshopDir/modInstallDir to verify just those; omit them all to verify the paths currently remembered in .gamer-agent.local.json. Use it when the player tells you a path (to find out whether it is right) or to re-check remembered paths; use set_game_paths when the location is unknown and needs scanning.",
+      "Verify game-related directories (game install, Steam Workshop content, mod install target). Read-only: it never writes .gamer-agent.local.json, never scans Steam, never creates directories. Pass any subset of gameDir/workshopDir/modInstallDir to verify just those; omit them all to verify the paths currently remembered in .gamer-agent.local.json. Use it when the player tells you a path (to find out whether it is right) or to re-check remembered paths; use try_set_game_dir when the location is unknown and needs finding.",
     promptSnippet: "Verify game/mod paths without scanning or writing",
     promptGuidelines: [
-      "Use check_game_paths (not check_runtime) when the player gives you a path: it verifies without scanning Steam and without writing state.",
-      "check_game_paths never writes .gamer-agent.local.json - if a path is wrong, ask the player for the real one (Steam -> Library -> right-click the game -> Manage -> Browse local files) and verify again with gameDir.",
-      "If nothing is known yet about the game location, run check_runtime first (or ask the player for the path and record it with set_game_dir); check_game_paths only verifies what you pass it or what is already remembered.",
-      "Do not create or install anything as a result of a failed check_game_paths: report the FAIL text and its NEXT line to the player.",
+      "Use check_game_paths when the player gives you a path, or to confirm a remembered one: it verifies without scanning Steam and without writing state.",
+      "check_game_paths never writes .gamer-agent.local.json - verifying and recording are separate tools.",
+      "A failed check_game_paths changes nothing (read-only): follow its NEXT line to fix it (e.g. run try_set_game_dir to record the paths); it never creates or installs anything itself.",
     ],
     parameters: Type.Object({
       gameDir: Type.Optional(Type.String({ description: "Game install directory to verify; relative paths use the workspace root." })),
@@ -96,7 +97,7 @@ export default function (pi: ExtensionAPI) {
             content: [
               {
                 type: "text",
-                text: "FAIL: nothing to check - no paths were given and none are remembered in .gamer-agent.local.json.\nNEXT: run set_game_paths to locate the game, or pass gameDir explicitly (ask the player where the game is).",
+                text: `FAIL: nothing to check - no paths were given and none are remembered in this workspace's state file (${statePath(cwd)}).\nNEXT: run try_set_game_dir with no arguments to discover the game, or pass gameDir explicitly. See the 'setup-workspace' skill if discovery fails.`,
               },
             ],
             details: { ok: false, reason: "NOTHING_TO_CHECK" },
@@ -139,8 +140,8 @@ export default function (pi: ExtensionAPI) {
           lines.push(`FAIL: ${key} (not recorded) - this path is required for this game type.`);
           lines.push(
             key === "gameDir"
-              ? "  NEXT: run check_runtime (or set_game_dir) to locate the game."
-              : "  NEXT: run check_runtime (or set_mod_install_dir) to record the mod install target.",
+              ? "  NEXT: run try_set_game_dir with no arguments to discover the game and record it. See the 'setup-workspace' skill for how to find it if discovery fails."
+              : "  NEXT: run try_set_game_dir (no arguments) - the mod install target is derived from the game directory.",
           );
           failed.push(key);
         }
@@ -149,7 +150,7 @@ export default function (pi: ExtensionAPI) {
           lines.push(
             "WARN: workshopDir (not recorded) - this game has a Workshop; recording it lets you read existing Workshop content for reference.",
           );
-          lines.push("  NEXT: run set_workshop_dir (or set_game_paths with workshopDir).");
+          lines.push("  NEXT: run try_set_game_dir (no arguments) - the Workshop directory is derived together with the game directory.");
           warnings.push("workshopDir");
         }
       }
@@ -157,7 +158,7 @@ export default function (pi: ExtensionAPI) {
       const ok = failed.length === 0;
       if (!ok) {
         lines.push(
-          "NOTE: nothing was changed - this tool never writes state or creates directories. Report the above to the player; once you have a correct path, set_game_paths can record it (or install_mod can use it as-is if it is already remembered).",
+          `NOTE: nothing was changed (this tool is read-only). State lives only in this workspace's ${statePath(cwd)}; to record the paths, run try_set_game_dir (no arguments); only ask the player if discovery fails.`,
         );
       }
 

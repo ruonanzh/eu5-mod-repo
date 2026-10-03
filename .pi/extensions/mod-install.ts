@@ -19,7 +19,7 @@ import { readModIdentity } from "../lib/mod-identity";
  * install_mod — EU5 (pdx-script) 安装契约（mod-repo-guide §4.1）。
  *
  * 把 your_mods/<id>/ 复制到 Paradox launcher 的 mod 目录
- * （.gamer-agent.local.json 的 modInstallDir，由 check_runtime 写入；不自己探测）。
+ * （.gamer-agent.local.json 的 modInstallDir，由 try_set_game_dir 写入；不自己探测）。
  *
  * 同名冲突：目标目录被**别的 mod** 占用时**改名安装**到 `<id>_pimod`（再撞顺延 _pimod2…）——
  * **绝不覆盖别人的内容**，也不阻塞安装。
@@ -167,7 +167,7 @@ export default function (pi: ExtensionAPI) {
     name: "install_mod",
     label: "Install Mod",
     description:
-      "Copy a mod from your_mods/<id>/ into the Paradox launcher mod directory (modInstallDir from check_runtime's .gamer-agent.local.json). Re-installing the same mod updates it in place. If the target directory is taken by another mod it installs as <id>_pimod instead of overwriting it. Does not validate or compile, and does not edit mod content.",
+      "Copy a mod from your_mods/<id>/ into the Paradox launcher mod directory (modInstallDir from try_set_game_dir's .gamer-agent.local.json). Re-installing the same mod updates it in place. If the target directory is taken by another mod it installs as <id>_pimod instead of overwriting it. Does not validate or compile, and does not edit mod content.",
     promptSnippet: "Install mod into the Paradox launcher mod directory",
     promptGuidelines: [
       "Use install_mod after validate_mod passes, so the player can enable the mod in the launcher.",
@@ -192,8 +192,8 @@ export default function (pi: ExtensionAPI) {
         );
       }
 
-      // 目标目录来自 check_runtime 的发现结果（install_mod 不自己探测）
-      // 状态读取走 lib（与 check_game_paths / set_game_paths 同一个读法，别自己 JSON.parse）
+      // 目标目录来自 try_set_game_dir 的记录（install_mod 不自己探测）
+      // 状态读取走 lib（与 check_game_paths / try_set_game_dir 同一个读法，别自己 JSON.parse）
       const remembered = readState(ctx.cwd).modInstallDir;
       let modRoot: string | null =
         typeof remembered === "string" && remembered.trim() ? remembered.trim() : null;
@@ -202,7 +202,7 @@ export default function (pi: ExtensionAPI) {
           content: [
             {
               type: "text",
-              text: "FAIL: mod install directory unknown (no usable modInstallDir in .gamer-agent.local.json).\nNEXT: run check_runtime first to locate the Paradox mod directory, then re-run install_mod.",
+              text: "FAIL: mod install directory unknown (no usable modInstallDir in .gamer-agent.local.json).\nNEXT: run try_set_game_dir (no arguments) first to locate the Paradox mod directory, then re-run install_mod.",
             },
           ],
           details: { ok: false, reason: "TARGET_NOT_FOUND" },
@@ -210,9 +210,9 @@ export default function (pi: ExtensionAPI) {
       }
       // 目标目录「不存在」是全新机器的正常状态（Paradox 启动器/游戏还没跑过）→ **不是错误**：继续往下走，
       // 由下面的 mkdirSync(destDir, { recursive: true }) 连缺失的父级一起创建。
-      // 旧行为要求「必须已存在」：check_runtime 报可安装 → install 因目标不存在失败 → 再 check 仍不创建 → 死循环（B18）。
+      // 旧行为要求「必须已存在」：try_set_game_dir 报可安装 → install 因目标不存在失败 → 再 check 仍不创建 → 死循环（B18）。
       // 仍然拒绝的只有两种：路径不是绝对路径 / 路径存在但不是目录（否则继续只会在 cp/rename 阶段抛出更难懂的错）。
-      // 目标路径的判据与 check_game_paths / set_game_paths 共用一份（lib/game-paths）：
+      // 目标路径的判据与 check_game_paths / try_set_game_dir 共用一份（lib/game-paths）：
       // EU5 的 mod 目录在 Paradox 启动器目录、与游戏安装位置无关 → 形状校验（绝对路径、不是文件、
       // 以 mod-repo.json 声明的相对路径结尾）。目录不存在仍是正常状态（安装时创建）。
       // 形状校验需要 mod-repo.json；读不到就降级（只做绝对路径/非文件校验），不让安装因此失败。

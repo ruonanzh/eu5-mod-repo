@@ -596,7 +596,7 @@ export default function (pi: ExtensionAPI) {
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       // 相对路径按 workspace（ctx.cwd）解析：agent 传的是 your_mods/<name>，
-      // 不能依赖进程自身 cwd —— 与 install_mod / check_runtime 的做法一致。
+      // 不能依赖进程自身 cwd —— 与 install_mod / sync_game_scripts 的做法一致。
       const modDir = params.modDir ? resolve(ctx.cwd, params.modDir) : "";
       if (
         !params.modDir ||

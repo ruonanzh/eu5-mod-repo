@@ -6,7 +6,7 @@ description: 把 EU5 的 mod 装进游戏的 Paradox mod 目录（`install_mod`�
 # 装进游戏（EU5）
 
 `install_mod` 把 mod 复制到 **Paradox mod 目录**（`<userDocuments>/Paradox Interactive/Europa Universalis V/mod`）。
-目标来自 `check_runtime` 的发现结果，**它自己不探测**；路径没记录时先看 `setup-workspace`。
+目标来自 `try_set_game_dir` 记录的状态文件，**它自己不探测**；路径没记录时先跑 `try_set_game_dir`（无参）再装。
 目录不存在**不是错误**（全新机器的正常状态，工具会创建）。
 
 ## 规则
@@ -25,5 +25,5 @@ description: 把 EU5 的 mod 装进游戏的 Paradox mod 目录（`install_mod`�
 
 ## 相关技能
 
-- 路径没准备 / 需要镜像 vanilla 脚本 → `setup-workspace`。
+- 路径没准备 → 先看 `setup-workspace`（`try_set_game_dir` 确保就绪 / `check_game_paths` 只验）。
 - 产物本身（metadata.json、localization、PDXScript）→ `mod-creator`。

@@ -5,7 +5,7 @@
  * 共享模块放进去会被当成扩展加载。这里由各工具用相对路径 import。
  *
  * EU5 与 Duckov 的差别（判据也因此不同）：
- *   · gameDir        游戏目录里应有 `game/` 或 `.metadata/`（EU5 安装布局），Windows-only
+ *   · gameDir        游戏目录里应有主程序 `binaries/eu5.exe`（EU5 安装布局），Windows-only
  *   · workshopDir    `<SteamLibrary>/steamapps/workshop/content/<appid>`
  *   · modInstallDir  **Paradox 启动器目录**（`~/Documents/Paradox Interactive/Europa Universalis V/mod`），
  *                    与游戏安装位置**无关** → 没有"兄弟目录哨兵"可验，改为**形状校验**
@@ -17,8 +17,8 @@ import { execFileSync } from "node:child_process";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import os from "node:os";
 
-/** 游戏目录的判据：这些子项之一存在，才算 EU5 的安装目录 */
-export const GAME_DIR_MARKERS = ["game", ".metadata"];
+/** 游戏安装目录的哨兵：主程序 `binaries/eu5.exe`（与 Duckov 用 `TeamSoda.Duckov.Core.dll` 同理） */
+export const GAME_SENTINEL = join("binaries", "eu5.exe");
 
 export interface ModRepoConfig {
   game?: { name?: string; steamAppId?: string | number; installDirHint?: Record<string, string> };
@@ -97,20 +97,21 @@ export function modInstallDirFor(cfg: ModRepoConfig): string | null {
   return join(os.homedir(), "Documents", rel);
 }
 
-const NEXT_STEAM = "The player can find it in Steam -> Library -> right-click the game -> Manage -> Browse local files.";
+const NEXT_SKILL =
+  "The 'setup-workspace' skill has the full procedure (auto-discovery, using the player's hints, and what to ask if nothing works).";
 
-/** 判据 1：这个目录是不是 EU5 的安装目录（看 game/ 或 .metadata/） */
+/** 判据 1：这个目录是不是 EU5 的安装目录（看主程序 binaries/eu5.exe） */
 export function checkGameDir(dir: string | null | undefined): PathVerdict {
   const p = dir ? expandHome(dir) : null;
   if (!p)
-    return { ok: false, path: null, code: "GAME_DIRECTORY_NOT_FOUND", reason: "no game directory was given", next: `Ask the player for the game install directory, then re-run this with gameDir. ${NEXT_STEAM}` };
-  if (GAME_DIR_MARKERS.every((m) => !existsSync(join(p, m))))
+    return { ok: false, path: null, code: "GAME_DIRECTORY_NOT_FOUND", reason: "no game directory was given", next: `Run try_set_game_dir (no arguments) to discover the game and record it (the derived paths come along), or verify candidates from the player's hints with check_game_paths. ${NEXT_SKILL}` };
+  if (!existsSync(join(p, GAME_SENTINEL)))
     return {
       ok: false,
       path: p,
       code: "GAME_DIRECTORY_NOT_FOUND",
-      reason: `neither game/ nor .metadata/ exists under this directory (not an EU5 install directory)`,
-      next: `Confirm this is the game install directory, not a save folder or another version. ${NEXT_STEAM}`,
+      reason: `binaries/eu5.exe does not exist under this directory (not an EU5 install directory)`,
+      next: `Run try_set_game_dir (no arguments) to re-discover the real game directory (the one you passed does not look like it: no binaries/eu5.exe). ${NEXT_SKILL}`,
     };
   return { ok: true, path: p };
 }
@@ -119,16 +120,16 @@ export function checkGameDir(dir: string | null | undefined): PathVerdict {
 export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepoConfig): PathVerdict {
   const p = dir ? expandHome(dir) : null;
   if (!p)
-    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "no mod install directory was given", next: "Run check_runtime to locate it, or ask the player for the game install directory and verify it with check_game_paths." };
+    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "no mod install directory was given", next: `Run try_set_game_dir (no arguments): it records the game directory and the derived Paradox mod directory. ${NEXT_SKILL}` };
   if (!isAbsolute(p))
-    return { ok: false, path: p, code: "TARGET_INVALID", reason: "not an absolute path", next: "Run check_runtime to derive an absolute path, or ask the player." };
+    return { ok: false, path: p, code: "TARGET_INVALID", reason: "not an absolute path", next: `Run try_set_game_dir (no arguments) to record the conventional Paradox mod directory. ${NEXT_SKILL}` };
   // 先做**与配置无关**的校验（顺序很重要：跳过形状校验时这些也必须生效）
   const st = statSync(p, { throwIfNoEntry: false });
   if (st && !st.isDirectory())
-    return { ok: false, path: p, code: "TARGET_INVALID", reason: "this path exists but is not a directory (it is a file)", next: "Ask the player to check for a file with that name; rename or remove it and try again." };
+    return { ok: false, path: p, code: "TARGET_INVALID", reason: "this path exists but is not a directory (it is a file)", next: `Ask the player to remove or rename the file blocking that path. ${NEXT_SKILL}` };
   const rel = cfg?.modInstall?.path;
   // 形状校验是"我们对 Paradox 目录约定的意见"，不是游戏硬规则 → 配置读不到或没写 modInstall.path 时**跳过**
-  // （配置缺字段由 set_game_paths / check_runtime 负责报出来）。
+  // （配置缺字段由 try_set_game_dir 负责报出来）。
   if (typeof rel !== "string" || !rel.trim()) return { ok: true, path: p };
   const norm = (v: string) => v.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
   if (!norm(p).endsWith(norm(rel)))
@@ -137,7 +138,7 @@ export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepo
       path: p,
       code: "TARGET_INVALID",
       reason: `the path does not end with ${rel} as declared in mod-repo.json (the Paradox launcher only looks there)`,
-      next: "Ask the player to confirm the Paradox launcher mod directory; check_runtime can re-derive it, or omit this argument.",
+      next: `Run try_set_game_dir (no arguments) to record the conventional Paradox mod directory. ${NEXT_SKILL}`,
     };
   // 目录不存在 = 全新机器的正常状态（安装时会创建）
   return { ok: true, path: p };
@@ -278,7 +279,7 @@ export interface PathOutcome {
 }
 
 const ASK_PLAYER =
-  "Ask the player for the correct path (Steam -> Library -> right-click the game -> Manage -> Browse local files), then call this setter again with it.";
+  "Automatic discovery failed as well. Ask the player for the correct path (say what you already tried), then call this setter again with it. The 'setup-workspace' skill has what to ask for.";
 
 function verifyPath(kind: PathKind, p: string, cfg: ModRepoConfig, appId: string): PathVerdict {
   if (kind === "gameDir") return checkGameDir(p);
@@ -364,5 +365,70 @@ export function formatPathOutcome(o: PathOutcome): { text: string; ok: boolean; 
     text: `FAIL: could not record ${o.kind}.\nGiven: ${o.given ?? "(none)"}\nReason: ${o.reason ?? "unknown"}.\nNEXT: ${o.next ?? ASK_PLAYER}`,
     ok: false,
     status: o.status,
+  };
+}
+
+// ── try_set_game_dir 的内部实现（**不注册为工具**）──────────────────────────────
+// 语义（无参、幂等）：
+//   ① 记住的 gameDir 仍有效，且派生的两条与已记录的一致 → 什么都不写 → already
+//   ② 无效 / 过期 / 没记过 → 自动发现（每个候选都过哨兵）→ 记录 gameDir + 派生的两条 → recorded
+//   ③ 找不到 → 不写状态 → missing
+// EU5 事实：Windows-only；modInstallDir 是 Paradox 启动器目录（与 gameDir 无关，恒由
+// mod-repo.json 的 modInstall.path 现算）；workshopDir 由 gameDir 派生、只读参考。
+
+export type EnsureOutcome =
+  | { status: "already"; gameDir: string; modInstallDir: string | null; workshopDir: string | null; warnings: string[] }
+  | { status: "recorded"; gameDir: string; modInstallDir: string | null; workshopDir: string | null; warnings: string[] }
+  | { status: "missing"; reason: string };
+
+function derivedWarnings(modInstallDir: string | null, workshopDir: string | null): string[] {
+  const out: string[] = [];
+  if (modInstallDir && !existsSync(modInstallDir)) {
+    out.push("the mod directory does not exist yet - normal on a first install (install_mod creates it).");
+  }
+  if (!modInstallDir) {
+    out.push("mod-repo.json declares no modInstall.path.");
+  }
+  if (!workshopDir) {
+    out.push("no Steam Workshop directory was found (optional; it is only used to read existing Workshop mods).");
+  }
+  return out;
+}
+
+export function ensureGameDir(cwd: string, cfg: ModRepoConfig): EnsureOutcome {
+  const state = readState(cwd);
+  const remembered = checkGameDir(typeof state.gameDir === "string" ? state.gameDir : null);
+  if (remembered.ok) {
+    const d = pathsFor(remembered.path as string, cfg);
+    const same =
+      (state.modInstallDir ?? null) === (d.modInstallDir ?? null) &&
+      (state.workshopDir ?? null) === (d.workshopDir ?? null);
+    if (same) {
+      return {
+        status: "already",
+        gameDir: remembered.path as string,
+        modInstallDir: d.modInstallDir,
+        workshopDir: d.workshopDir,
+        warnings: derivedWarnings(d.modInstallDir, d.workshopDir),
+      };
+    }
+  }
+  const { gameDir, platformUnsupported } = discoverGameDir(cfg, state);
+  if (!gameDir) {
+    return {
+      status: "missing",
+      reason: platformUnsupported
+        ? `${GAME_FOLDER_NAME} is Windows-only, so no game files can be located on this platform`
+        : "automatic discovery did not find the game (the registry and every Steam library were searched)",
+    };
+  }
+  record(cwd, cfg, "gameDir", gameDir);
+  const d = pathsFor(gameDir, cfg);
+  return {
+    status: "recorded",
+    gameDir,
+    modInstallDir: d.modInstallDir,
+    workshopDir: d.workshopDir,
+    warnings: derivedWarnings(d.modInstallDir, d.workshopDir),
   };
 }

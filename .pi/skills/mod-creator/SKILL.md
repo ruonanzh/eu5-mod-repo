@@ -29,6 +29,11 @@ its bound directory).
   3. **Then write** — produce or change a mod under `your_mods/<ModName>/`. Reuse `reference/example_mod/`. Writes
      are limited to the bound mod directory; with no binding, call `create_mod_folder` with a `lower_snake_case`
      name; do not create a second binding if one already exists.
+  4. **Then check the UI side** — mods here are mostly PDXScript code, but a code/data change is often invisible or
+     broken in-game without its UI part. Before finishing, ask: does this change need an icon, a UI label
+     (localization), a menu entry, a column, a filter, or a panel? Add whatever is missing — and reuse an
+     existing in-game icon/asset when it fits (you do not need to author new art). Do not wait for the player to
+     ask about the icon.
 - **Directory name (our rule, enforced by `create_mod_folder`)**: starts with a lowercase letter, then only
   lowercase letters/digits/underscores, max 40 characters, and not a Windows reserved device name
   (con/prn/aux/nul/com1-9/lpt1-9).

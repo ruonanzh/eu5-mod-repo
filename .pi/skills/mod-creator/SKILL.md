@@ -18,11 +18,13 @@ its bound directory).
 - **Q&A / consultation (read-only):** answer game-mechanics or mod-API questions by reading the knowledge layer.
   Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source. Do **not** create files or prepare the
   environment (locate paths, sync vanilla scripts) unless the player explicitly asks about their environment.
-- **Authoring / modifying (writes):** first run `sync_game_scripts` to load the vanilla context into `game-scripts/`
-  (PDXScript has no self-describing API — without it you cannot write correct PDXScript). Then produce or
-  change a mod under `your_mods/<ModName>/`. Reuse the structure of `reference/example_mod/`. Writes are limited to
-  the mod directory bound to the current session; with no binding, call `create_mod_folder` with a `lower_snake_case`
-  name. Do not create a second binding if one already exists.
+- **Authoring / modifying (writes):** **first agree on what the mod is** — align with the player on what it
+  changes, its scope, and the artifact shape, and give a short mod content description; wait for their confirmation
+  before writing files. Then run `sync_game_scripts` to load the vanilla context into `game-scripts/` (PDXScript has
+  no self-describing API — without it you cannot write correct PDXScript), then produce or change a mod under
+  `your_mods/<ModName>/`. Reuse the structure of `reference/example_mod/`. Writes are limited to the mod directory
+  bound to the current session; with no binding, call `create_mod_folder` with a `lower_snake_case` name. Do not
+  create a second binding if one already exists.
 - **Directory name (our rule, enforced by `create_mod_folder`)**: starts with a lowercase letter, then only
   lowercase letters/digits/underscores, max 40 characters, and not a Windows reserved device name
   (con/prn/aux/nul/com1-9/lpt1-9).

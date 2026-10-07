@@ -1,0 +1,13 @@
+﻿l_english:
+ globalization_move_nw_good: "Spread a New World Good"
+ globalization_move_nw_good_desc: "Spread a good from [ShowContinentName('america')] to any of our [locations|e]. Locals will resent the change, prosperity will fall more than during the Columbian Exchange, and we must pay prestige and gold while restarting that location's [rgo|e]."
+ globalization_move_nw_good_no_available_good: "@trigger_no! You have no [location|e] belonging to a market that trades or produces this [good]"
+ globalization_move_nw_good_no_available_location: "@trigger_no! You have no valid [location|e] that can replace its current [rgo|e] with a New World [good]"
+ globalization_move_ow_good: "Spread an Old World Good"
+ globalization_move_ow_good_desc: "Spread a traditional Old World good to any of our [locations|e]. Locals will resent the change, prosperity will fall more than during the Columbian Exchange, and we must pay prestige and gold while restarting that location's [rgo|e]."
+ globalization_move_ow_good_no_available_good: "$globalization_move_nw_good_no_available_good$"
+ globalization_move_ow_good_no_available_location: "@trigger_no! You have no valid [location|e] that can replace its current [rgo|e] with an Old World [good]"
+ globalization_learn_from_foreigners: "Learn from Foreigners"
+ globalization_learn_from_foreigners_desc: "There are many things that we can learn from these foreigners. Trade and good relationships will surely help our people."
+ globalization_absorb_institutions: "Absorb Institutions"
+ globalization_absorb_institutions_desc: "The ways of these foreigners confuse our people, but we can learn much and apply it to our society."

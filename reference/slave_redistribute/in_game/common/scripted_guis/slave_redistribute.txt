@@ -1,0 +1,419 @@
+﻿srd_set_slave_source = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	is_shown = {
+		owner ?= { is_human = yes }
+		owner = {
+			NOT = { has_variable = slave_redistribute_source_location }
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+	}
+
+	is_valid = {
+		owner ?= { is_human = yes }
+		owner = {
+			NOT = { has_variable = slave_redistribute_source_location }
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+	}
+
+	effect = {
+		save_scope_as = srd_pick
+		owner = {
+			if = {
+				limit = { has_variable = slave_redistribute_target_location }
+				remove_variable = slave_redistribute_target_location
+			}
+			set_variable = {
+				name = slave_redistribute_source_location
+				value = scope:srd_pick
+			}
+			set_variable = {
+				name = slave_redistribute_mode
+				value = 1
+			}
+		}
+	}
+}
+
+srd_set_slave_source_excess = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	saved_scopes = { srd_mult }
+
+	is_shown = {
+		owner ?= { is_human = yes }
+		owner = {
+			NOT = { has_variable = slave_redistribute_source_location }
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+	}
+
+	is_valid = {
+		owner ?= { is_human = yes }
+		owner = {
+			NOT = { has_variable = slave_redistribute_source_location }
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+		scope:srd_mult > 0
+	}
+
+	effect = {
+		save_scope_as = srd_pick
+		owner = {
+			if = {
+				limit = { has_variable = slave_redistribute_target_location }
+				remove_variable = slave_redistribute_target_location
+			}
+			set_variable = {
+				name = slave_redistribute_source_location
+				value = scope:srd_pick
+			}
+			set_variable = {
+				name = slave_redistribute_mode
+				value = 2
+			}
+		}
+	}
+}
+
+srd_import_slaves_here = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	saved_scopes = { srd_source srd_dest }
+
+	is_shown = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_source_location
+			OR = {
+				NOT = { has_variable = slave_redistribute_mode }
+				var:slave_redistribute_mode = 1
+			}
+		}
+		scope:srd_source ?= {
+			NOT = { this = root }
+			owner = root.owner
+			any_pop = {
+				pop_type = pop_type:slaves
+			}
+		}
+	}
+
+	is_valid = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_source_location
+			OR = {
+				NOT = { has_variable = slave_redistribute_mode }
+				var:slave_redistribute_mode = 1
+			}
+		}
+		scope:srd_source ?= {
+			NOT = { this = root }
+			owner = root.owner
+			any_pop = {
+				pop_type = pop_type:slaves
+			}
+		}
+	}
+
+	confirm_title = srd_import_slaves_confirm_title
+	confirm_text = srd_import_slaves_confirm_desc
+
+	effect = {
+		custom_tooltip = {
+			text = srd_slaves_transferred_hint
+			owner = {
+				var:slave_redistribute_source_location = {
+					every_pop = {
+						limit = {
+							pop_type = pop_type:slaves
+						}
+						transfer_pop = {
+							target = scope:srd_dest
+							operator = multiply
+							value = 1
+						}
+					}
+				}
+				remove_variable = slave_redistribute_source_location
+				remove_variable = slave_redistribute_mode
+			}
+		}
+	}
+}
+
+srd_import_slaves_here_excess = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	saved_scopes = { srd_source srd_dest srd_mult }
+
+	is_shown = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_source_location
+			var:slave_redistribute_mode = 2
+		}
+		scope:srd_source ?= {
+			NOT = { this = root }
+			owner = root.owner
+			any_pop = {
+				pop_type = pop_type:slaves
+			}
+		}
+	}
+
+	is_valid = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_source_location
+			var:slave_redistribute_mode = 2
+		}
+		scope:srd_source ?= {
+			NOT = { this = root }
+			owner = root.owner
+			any_pop = {
+				pop_type = pop_type:slaves
+			}
+		}
+		scope:srd_mult > 0
+	}
+
+	confirm_title = srd_import_slaves_confirm_title
+	confirm_text = srd_import_slaves_confirm_desc_excess
+
+	effect = {
+		custom_tooltip = {
+			text = srd_slaves_transferred_excess_hint
+			owner = {
+				var:slave_redistribute_source_location = {
+					every_pop = {
+						limit = {
+							pop_type = pop_type:slaves
+						}
+						transfer_pop = {
+							target = scope:srd_dest
+							operator = multiply
+							value = scope:srd_mult
+						}
+					}
+				}
+				remove_variable = slave_redistribute_source_location
+				remove_variable = slave_redistribute_mode
+			}
+		}
+	}
+}
+
+srd_clear_slave_source = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	is_shown = {
+		owner ?= {
+			is_human = yes
+			has_variable = slave_redistribute_source_location
+		}
+	}
+
+	is_valid = {
+		owner ?= {
+			is_human = yes
+			has_variable = slave_redistribute_source_location
+		}
+	}
+
+	effect = {
+		owner = {
+			remove_variable = slave_redistribute_source_location
+			remove_variable = slave_redistribute_mode
+		}
+	}
+}
+
+# --- Target-first flow: set a receiving province, then send slaves from other provinces to it. ---
+
+srd_set_slave_target = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	is_shown = {
+		owner ?= { is_human = yes }
+		owner = {
+			NOT = { has_variable = slave_redistribute_target_location }
+		}
+	}
+
+	is_valid = {
+		owner ?= { is_human = yes }
+		owner = {
+			NOT = { has_variable = slave_redistribute_target_location }
+		}
+	}
+
+	effect = {
+		save_scope_as = srd_pick
+		owner = {
+			if = {
+				limit = { has_variable = slave_redistribute_source_location }
+				remove_variable = slave_redistribute_source_location
+				remove_variable = slave_redistribute_mode
+			}
+			set_variable = {
+				name = slave_redistribute_target_location
+				value = scope:srd_pick
+			}
+		}
+	}
+}
+
+srd_clear_slave_target = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	is_shown = {
+		owner ?= {
+			is_human = yes
+			has_variable = slave_redistribute_target_location
+		}
+	}
+
+	is_valid = {
+		owner ?= {
+			is_human = yes
+			has_variable = slave_redistribute_target_location
+		}
+	}
+
+	effect = {
+		owner = {
+			remove_variable = slave_redistribute_target_location
+		}
+	}
+}
+
+srd_send_slaves_to_target = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	saved_scopes = { srd_source srd_dest }
+
+	is_shown = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_target_location
+		}
+		scope:srd_dest ?= {
+			NOT = { this = root }
+			owner = root.owner
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+	}
+
+	is_valid = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_target_location
+		}
+		scope:srd_dest ?= {
+			NOT = { this = root }
+			owner = root.owner
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+	}
+
+	confirm_title = srd_send_slaves_confirm_title
+	confirm_text = srd_send_slaves_confirm_desc
+
+	effect = {
+		custom_tooltip = {
+			text = srd_slaves_sent_to_target_hint
+			scope:srd_source = {
+				every_pop = {
+					limit = {
+						pop_type = pop_type:slaves
+					}
+					transfer_pop = {
+						target = scope:srd_dest
+						operator = multiply
+						value = 1
+					}
+				}
+			}
+		}
+	}
+}
+
+srd_send_slaves_to_target_excess = {
+	scope = location
+	ai_is_valid = { always = no }
+
+	saved_scopes = { srd_source srd_dest srd_mult }
+
+	is_shown = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_target_location
+		}
+		scope:srd_dest ?= {
+			NOT = { this = root }
+			owner = root.owner
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+	}
+
+	is_valid = {
+		owner ?= { is_human = yes }
+		owner = {
+			has_variable = slave_redistribute_target_location
+		}
+		scope:srd_dest ?= {
+			NOT = { this = root }
+			owner = root.owner
+		}
+		any_pop = {
+			pop_type = pop_type:slaves
+		}
+		scope:srd_mult > 0
+	}
+
+	confirm_title = srd_send_slaves_confirm_title
+	confirm_text = srd_send_slaves_confirm_desc_excess
+
+	effect = {
+		custom_tooltip = {
+			text = srd_slaves_sent_to_target_excess_hint
+			scope:srd_source = {
+				every_pop = {
+					limit = {
+						pop_type = pop_type:slaves
+					}
+					transfer_pop = {
+						target = scope:srd_dest
+						operator = multiply
+						value = scope:srd_mult
+					}
+				}
+			}
+		}
+	}
+}

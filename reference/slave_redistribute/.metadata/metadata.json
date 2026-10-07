@@ -1,0 +1,11 @@
+{
+	"name": "Slave Redistribute",
+	"id": "slave_redistribute_ronin",
+	"version": "1.2.0",
+	"supported_game_version": "1.3.*",
+	"short_description": "Location context menu: export-then-receive, or set a receiving hub and send slaves from other locations; clear markers from any location.",
+	"tags": ["Gameplay", "Utilities"],
+	"picture": "thumbnail.png",
+	"relationships": [],
+	"game_custom_data": {}
+}

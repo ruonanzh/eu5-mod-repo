@@ -1,0 +1,9 @@
+hint_globalization_age = {
+	priority = {
+		can_see_situation = situation:globalization_age
+	}
+	hide = {
+		NOT = { is_situation_active = situation:globalization_age }
+	}
+	sort_priority = 200
+}

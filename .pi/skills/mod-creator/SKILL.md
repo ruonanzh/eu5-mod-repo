@@ -168,7 +168,8 @@ For "does X exist / what is vanilla's exact value?", follow the lookup hierarchy
 
 ## Reference
 
-- Runnable sample: `reference/example_mod/`.
+- Runnable sample (minimal, must pass `validate_mod`): `reference/example_mod/`.
+- **Real-world pattern references** (read-only, copy the pattern you need): `reference/README.md` maps each to what it demonstrates — `megalopolis_core_upgrade` (simplest tweak), `sync_market_ui_focus` (GUI-only), `character_traits_on_cards` (GUI + attribute columns + filters), `slave_redistribute` (scripted GUIs / context menu), `globalization_age` (full situation/event mechanic).
 - Knowledge-layer navigation (what to load when): `docs/INDEX.md`.
 - Game overview (mechanics): `docs/game.md`.
 - Authoring rules (single source of truth): `docs/eu5-modding-conventions.md`.

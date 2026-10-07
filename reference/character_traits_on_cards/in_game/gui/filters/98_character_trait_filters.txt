@@ -1,0 +1,30 @@
+# Extra scripted filters for character lists (society → People tab uses tags character|ruler).
+character_has_trait_child_gifted = {
+	scope = character
+	group = 12
+	exclusive_group = no
+	tag = ruler
+	trigger = {
+		has_trait = child_gifted
+	}
+}
+
+character_has_trait_child_prodigy = {
+	scope = character
+	group = 12
+	exclusive_group = no
+	tag = ruler
+	trigger = {
+		has_trait = child_prodigy
+	}
+}
+
+character_has_child_education_expensive_in_depth = {
+	scope = character
+	group = 12
+	exclusive_group = no
+	tag = ruler
+	trigger = {
+		has_child_education = expensive_in_depth_education
+	}
+}

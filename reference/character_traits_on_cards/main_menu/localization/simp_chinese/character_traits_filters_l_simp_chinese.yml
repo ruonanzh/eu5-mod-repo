@@ -1,0 +1,7 @@
+﻿l_simp_chinese:
+ search_filter_character_has_trait_child_gifted_name: "天赋异禀"
+ search_filter_character_has_trait_child_gifted_desc: "仅显示拥有童年特质「天赋异禀」的人物"
+ search_filter_character_has_trait_child_prodigy_name: "天生奇才"
+ search_filter_character_has_trait_child_prodigy_desc: "仅显示拥有童年特质「天生奇才」的人物"
+ search_filter_character_has_child_education_expensive_in_depth_name: "精英教育"
+ search_filter_character_has_child_education_expensive_in_depth_desc: "仅显示当前选择的童年教育为「精英教育」的人物"

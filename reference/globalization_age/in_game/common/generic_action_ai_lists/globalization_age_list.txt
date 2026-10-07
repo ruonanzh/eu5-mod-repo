@@ -1,0 +1,11 @@
+globalization_age_list = {
+	potential = {
+		can_see_situation = situation:globalization_age
+	}
+	actions = {
+		globalization_move_nw_good
+		globalization_move_ow_good
+		globalization_learn_from_foreigners
+		globalization_absorb_institutions
+	}
+}

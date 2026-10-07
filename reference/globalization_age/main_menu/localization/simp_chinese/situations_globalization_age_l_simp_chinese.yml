@@ -1,0 +1,6 @@
+﻿l_simp_chinese:
+ globalization_age: "全球化时代"
+ globalization_age_desc: "随着跨洋贸易演变成真正的全球体系，作物、牲畜与商品在新旧大陆之间流动得愈发频繁。抓住这一机遇的国家可以重塑本地生产——但代价是扰乱地方秩序，并付出金钱与威望。"
+ globalization_age_old_world_goods_traded_tt: "一种旧大陆商品在我们的市场被生产或贸易"
+ globalization_age_new_world_goods_traded_tt: "一种新大陆商品在我们的市场被生产或贸易"
+ globalization_age_end_tooltip: "该[situation|e]没有结束日期"

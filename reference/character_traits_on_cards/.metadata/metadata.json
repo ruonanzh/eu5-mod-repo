@@ -1,0 +1,11 @@
+{
+    "name" : "Show Character Traits on Cards", 					
+    "id" : "show_character_traits_on_cards", 					
+    "version" : "1.10",				
+    "supported_game_version" : "1.*",	
+    "short_description" : "Shows traits on Society People → Characters rows; optional filters for Gifted, Prodigy, and elite childhood education.",
+    "tags" : ["User Interface"],
+	"picture": "thumbnail.png",				
+    "relationships" : [],
+    "game_custom_data" : {}
+}

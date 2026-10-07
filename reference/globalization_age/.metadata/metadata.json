@@ -1,0 +1,11 @@
+{
+	"name": "Globalization Age",
+	"id": "globalization_age",
+	"version": "1.0.0",
+	"supported_game_version": "1.*",
+	"short_description": "Age of Revolutions follow-up to the Columbian Exchange: spread Old/New World goods with mild prosperity penalty; cost is prestige plus gold.",
+	"tags": ["Gameplay", "Economy", "Situations"],
+	"picture": "thumbnail.png",
+	"relationships": [],
+	"game_custom_data": {}
+}

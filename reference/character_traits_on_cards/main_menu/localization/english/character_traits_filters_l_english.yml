@@ -1,0 +1,7 @@
+﻿l_english:
+ search_filter_character_has_trait_child_gifted_name: "Gifted"
+ search_filter_character_has_trait_child_gifted_desc: "Shows characters who have the Gifted trait (#italic Childhood#!)"
+ search_filter_character_has_trait_child_prodigy_name: "Prodigy"
+ search_filter_character_has_trait_child_prodigy_desc: "Shows characters who have the Prodigy trait (#italic Childhood#!)"
+ search_filter_character_has_child_education_expensive_in_depth_name: "Elite education"
+ search_filter_character_has_child_education_expensive_in_depth_desc: "Shows characters whose selected [child_education|e] is Elite Education (#italic expensive in-depth#!)"

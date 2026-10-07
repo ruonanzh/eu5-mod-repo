@@ -1,0 +1,13 @@
+﻿l_simp_chinese:
+ globalization_move_nw_good: "移植新世界商品"
+ globalization_move_nw_good_desc: "我们可以将[ShowContinentName('america')]的一种传统商品移植到治下任意一处[locations|e]。当地人会不满，繁荣度惩罚高于哥伦布大交换时期，且需花费少量威望与金钱，并从头发展该地的[rgo|e]。"
+ globalization_move_nw_good_no_available_good: "@trigger_no!你没有属于贸易或生产该[good]的市场的[location|e]"
+ globalization_move_nw_good_no_available_location: "@trigger_no!你没有可以用新世界[good]替代当前[rgo|e]的可选[location|e]"
+ globalization_move_ow_good: "移植旧世界商品"
+ globalization_move_ow_good_desc: "我们可以在治下任意一处[locations|e]移植一种旧世界传统商品。当地人会不满，繁荣度惩罚高于哥伦布大交换时期，且需花费少量威望与金钱，并从头发展该地的[rgo|e]。"
+ globalization_move_ow_good_no_available_good: "$globalization_move_nw_good_no_available_good$"
+ globalization_move_ow_good_no_available_location: "@trigger_no!你没有可以用旧世界[good]替代当前[rgo|e]的可选[location|e]"
+ globalization_learn_from_foreigners: "向外来人学习"
+ globalization_learn_from_foreigners_desc: "我们可以从这些外来人身上学到很多东西。适当的贸易和良好的关系一定能帮助我们的人民。"
+ globalization_absorb_institutions: "吸纳思潮"
+ globalization_absorb_institutions_desc: "这些外来人的行事方式让我们的人民感到困惑，但我们肯定能从他们身上学到很多，并应用到我们的社会当中去。"

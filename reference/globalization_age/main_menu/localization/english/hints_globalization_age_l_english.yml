@@ -1,0 +1,8 @@
+﻿l_english:
+ hint_globalization_age: "[GetSituationByKey('globalization_age').GetNameWithNoTooltip]"
+ hint_globalization_age_hint_text: "$hint_globalization_age_hint_text_1$\n\n$hint_globalization_age_hint_text_2$"
+ hint_globalization_age_hint_text_1: "The [GetSituationByKey('globalization_age').GetName] has begun! [trade_with_icon|e] and [goods_with_icon|e] continue to reshape production across the globe."
+ hint_globalization_age_hint_text_2: "#T Recommended Actions:#!\n@arrow_bonus_tier_3! Use the unique [actions_with_icon|e] on the [situation_with_icon|e] panel to introduce new goods into our [market_with_icon|e]. Spreading goods now costs prestige and gold, and causes a mild prosperity penalty."
+ hint_globalization_age_diplomatic: "\"The world grows smaller with every voyage.\""
+ hint_globalization_age_administrative: "$hint_treaty_of_tordesillas_administrative$"
+ hint_globalization_age_military: "\"Secure profitable crops and livestock before our rivals do!\""

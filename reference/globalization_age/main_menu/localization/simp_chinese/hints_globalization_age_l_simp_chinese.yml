@@ -1,0 +1,8 @@
+﻿l_simp_chinese:
+ hint_globalization_age: "[GetSituationByKey('globalization_age').GetNameWithNoTooltip]"
+ hint_globalization_age_hint_text: "$hint_globalization_age_hint_text_1$\n\n$hint_globalization_age_hint_text_2$"
+ hint_globalization_age_hint_text_1: "[GetSituationByKey('globalization_age').GetName]已经开始！[trade_with_icon|e]与[goods_with_icon|e]将继续重塑全球生产格局。"
+ hint_globalization_age_hint_text_2: "#T 推荐行动：#!\n@arrow_bonus_tier_3!通过[situation_with_icon|e]面板中的特殊[actions_with_icon|e]，将新商品引入我们的[market_with_icon|e]。此时移植商品需花费威望与金钱，并造成中等繁荣度惩罚。"
+ hint_globalization_age_diplomatic: "“每一次远航，世界都变得更小。”"
+ hint_globalization_age_administrative: "$hint_treaty_of_tordesillas_administrative$"
+ hint_globalization_age_military: "“务必抢在对手之前，确保有利可图的作物与牲畜！”"

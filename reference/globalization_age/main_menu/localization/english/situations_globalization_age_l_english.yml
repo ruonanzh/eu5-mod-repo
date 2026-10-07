@@ -1,0 +1,6 @@
+﻿l_english:
+ globalization_age: "Age of Globalization"
+ globalization_age_desc: "As oceanic trade matures into a truly worldwide system, crops, livestock, and commodities move ever more freely between the Old and New Worlds. States that seize this opportunity can reshape local production — at the cost of disruption and coin."
+ globalization_age_old_world_goods_traded_tt: "An Old World good is produced or traded in our market"
+ globalization_age_new_world_goods_traded_tt: "A New World good is produced or traded in our market"
+ globalization_age_end_tooltip: "This [situation|e] does not have an end date"

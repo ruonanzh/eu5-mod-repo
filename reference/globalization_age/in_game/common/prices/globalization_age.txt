@@ -1,0 +1,15 @@
+# Transplant goods: small prestige + gold (Revolutions-era follow-up to Columbian Exchange)
+globalization_move_good = {
+	prestige = 5
+	gold = 150
+}
+
+globalization_learn_from_foreigners = {
+	government_power = 15
+	stability = 10
+}
+
+globalization_absorb_institutions = {
+	government_power = 30
+	stability = 20
+}

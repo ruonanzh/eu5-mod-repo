@@ -1,5 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { isValidModId } from "../lib/mod-identity";
+import { analyzeSemantics } from "../lib/mod-semantics";
 import { Type } from "typebox";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, resolve, sep, basename } from "node:path";
@@ -615,6 +616,7 @@ export default function (pi: ExtensionAPI) {
       ];
       const errors = findings.filter((f) => f.severity === "error");
       const warnings = findings.filter((f) => f.severity === "warn");
+      const semantic = analyzeSemantics(modDir);
 
       const name = modDir.split(/[\\/]/).pop() || modDir;
       const lines: string[] = [];
@@ -646,6 +648,10 @@ export default function (pi: ExtensionAPI) {
           ok: errors.length === 0,
           errors: errors.map((e) => `${e.rel}: ${e.message}`),
           warnings: warnings.map((w) => `${w.rel}: ${w.message}`),
+          semantic: {
+            checked: semantic.checked,
+            warnings: semantic.warnings,
+          },
         },
       };
     },

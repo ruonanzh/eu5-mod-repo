@@ -57,3 +57,13 @@ Keep these in mind while authoring, so most `validate_mod` failures never happen
 After finishing (or changing) a mod, run `validate_mod` on `your_mods/<ModName>/` and clear every
 ERROR before ending the turn. The linter checks syntax/conventions only; it is not a semantic
 validator.
+
+## mod-guard（mod 会话工具，本 worktree 新增）
+
+`.pi/extensions/mod-guard.ts` 复制自 `pi-desktop/extensions/mod-guard.ts`（产品侧模拟「玩家 mod 会话」的那份）。
+
+- `create_mod_folder`：建 `your_mods/<name>/` 并绑定到本 session（唯一的写豁免通道）。
+- **写隔离（fail-closed）**：本 workspace 里**未绑定** mod 目录的 session，`write`/`edit` 一律被拒；绑定后只能写该 mod 目录。
+- `before_agent_start`：为本 workspace 的 session 追加 `## Mod development session` 提示。
+
+> 以 `pi-desktop/extensions/mod-guard.ts` 为准；改动请同步回产品。

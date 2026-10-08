@@ -245,6 +245,240 @@ function definitionsFrom(files: string[]): Set<string> {
   return defs;
 }
 
+// ---- C2：粘性上下文拼写校验 ----
+
+/** 进入 effect/trigger 上下文的块名名单（方案 §2 C2，实现期对着 reference mod 调准）。 */
+const CONTEXT_ENTER_NAMES = new Set([
+  "option",
+  "immediate",
+  "after",
+  "potential",
+  "allow",
+  "location_potential",
+  "country_potential",
+  "on_built",
+  "on_destroyed",
+  "effect",
+  "trigger",
+  "hidden_effect",
+  "hidden_trigger",
+]);
+
+/** 相对路径是否在 common/scripted_effects/ 或 common/scripted_triggers/ 下（目录即上下文）。 */
+function isScriptedDir(rel: string): boolean {
+  const c = categoryFromRel(rel);
+  return c === "scripted_effects" || c === "scripted_triggers";
+}
+
+interface ScriptDictionary {
+  names: Set<string>;
+  /** 按首字母分桶，供有界纠错缩小候选。 */
+  byFirstLetter: Map<string, string[]>;
+}
+
+/**
+ * 现解析 script_docs 三个词典（effects/triggers/modifiers），合并成 Set + 首字母分桶。
+ * 优先相对模块自身定位（import.meta.dirname → ../../docs/script_docs，Node 24 ESM 可用）；
+ * 找不到再退回 repo 根的 docs/script_docs（workshop 真实 mod 下 findRepoRoot 常为 null）。
+ * 全部找不到返回 null，C2 安全跳过（不产 WARN/NOTE）。
+ */
+function loadScriptDictionary(repoRoot: string | null): ScriptDictionary | null {
+  const dirs: string[] = [
+    join(import.meta.dirname, "..", "..", "docs", "script_docs"),
+  ];
+  if (repoRoot) dirs.push(join(repoRoot, "docs", "script_docs"));
+  for (const dir of dirs) {
+    const effects = readText(join(dir, "effects.log"));
+    const triggers = readText(join(dir, "triggers.log"));
+    const modifiers = readText(join(dir, "modifiers.log"));
+    if (effects === null || triggers === null || modifiers === null) continue;
+    const names = new Set<string>();
+    for (const m of effects.matchAll(/^## (\w+)/gm)) names.add(m[1]);
+    for (const m of triggers.matchAll(/^## (\w+)/gm)) names.add(m[1]);
+    for (const m of modifiers.matchAll(/^Tag: ([\w]+),/gm)) names.add(m[1]);
+    if (names.size === 0) continue;
+    const byFirstLetter = new Map<string, string[]>();
+    for (const name of names) {
+      const key = name[0].toLowerCase();
+      let bucket = byFirstLetter.get(key);
+      if (!bucket) {
+        bucket = [];
+        byFirstLetter.set(key, bucket);
+      }
+      bucket.push(name);
+    }
+    return { names, byFirstLetter };
+  }
+  return null;
+}
+
+/** 有界 Levenshtein：一旦最坏可能距离超过 max 即剪枝返回 max+1（避免 O(n·m) 全算）。 */
+function boundedLevenshtein(a: string, b: string, max: number): number {
+  const m = a.length;
+  const n = b.length;
+  if (Math.abs(m - n) > max) return max + 1;
+  let prev = new Array(n + 1);
+  for (let j = 0; j <= n; j += 1) prev[j] = j;
+  for (let i = 1; i <= m; i += 1) {
+    const cur = new Array(n + 1);
+    cur[0] = i;
+    let rowMin = cur[0];
+    for (let j = 1; j <= n; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+      if (cur[j] < rowMin) rowMin = cur[j];
+    }
+    if (rowMin > max) return max + 1;
+    prev = cur;
+  }
+  return prev[n];
+}
+
+/** 首字母同 + 长度 ±1 + 编辑距离 ≤2 的词典名（纠错候选）。 */
+function findDidYouMean(name: string, dict: ScriptDictionary): string | null {
+  const bucket = dict.byFirstLetter.get(name[0].toLowerCase());
+  if (!bucket) return null;
+  let best: string | null = null;
+  let bestDist = 3;
+  for (const candidate of bucket) {
+    if (Math.abs(candidate.length - name.length) > 1) continue;
+    const d = boundedLevenshtein(name, candidate, 2);
+    if (d < bestDist) {
+      bestDist = d;
+      best = candidate;
+      if (bestDist === 1) break; // name 不在词典，最小距离为 1，已最优
+    }
+  }
+  return bestDist <= 2 ? best : null;
+}
+
+/** C2 候选命中条件：长度 ≥8、不在词典、不是 mod 自己定义的名、且有 ≤2 的纠错候选。 */
+function checkCandidate(
+  name: string,
+  dict: ScriptDictionary,
+  modDefined: Set<string>,
+  warnings: SemanticWarning[],
+): void {
+  if (name.length < 8) return;
+  if (dict.names.has(name)) return;
+  if (modDefined.has(name)) return;
+  const suggestion = findDidYouMean(name, dict);
+  if (suggestion !== null) {
+    warnings.push({
+      code: "semantic:c2",
+      message: `semantic: unknown name '${name}' - did you mean '${suggestion}'?`,
+    });
+  }
+}
+
+type ContextMode = "context" | "param" | "neutral";
+
+function isIdentStart(ch: string): boolean {
+  return (ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z") || ch === "_";
+}
+function isIdentChar(ch: string): boolean {
+  return isIdentStart(ch) || (ch >= "0" && ch <= "9");
+}
+function isWs(ch: string): boolean {
+  return ch === " " || ch === "\t" || ch === "\n" || ch === "\r";
+}
+
+/**
+ * 粘性上下文扫描（注释/字符串感知的 char 级扫描，栈记每层块的 interior 模式）：
+ * - 进入 context：块名 ∈ 名单，或 scripted_effects/scripted_triggers 的顶层对象；
+ * - 保持：scope 块（块名不在词典）不退出 context；
+ * - 退出：块名在词典（已知 effect/trigger/modifier 的参数块），或块名 ∈ mod 自定义的
+ *   scripted effect/trigger 名（调用体是参数列表，如 `_cmm_register_bool_setting_internal = { is_global = 0 }`）
+ *   → 该块内部为 param；
+ * - context 里 `name = ...` 左值（含块名）是候选；裸值、长度 <8、mod 定义名不扫。
+ */
+function scanStickyContext(
+  cleaned: string,
+  isScripted: boolean,
+  dict: ScriptDictionary,
+  modDefined: Set<string>,
+  modScripted: Set<string>,
+  warnings: SemanticWarning[],
+): void {
+  const n = cleaned.length;
+  const stack: ContextMode[] = [];
+  let inString = false;
+  let i = 0;
+
+  const currentMode = (): ContextMode =>
+    stack.length > 0 ? stack[stack.length - 1] : "neutral";
+
+  const pushBlock = (name: string, parentMode: ContextMode): void => {
+    const isTopLevel = stack.length === 0;
+    let mode: ContextMode;
+    if (parentMode === "param") mode = "param";
+    else if (CONTEXT_ENTER_NAMES.has(name)) mode = "context";
+    else if (parentMode === "context")
+      mode = dict.names.has(name) || modScripted.has(name) ? "param" : "context";
+    else if (isScripted && isTopLevel) mode = "context";
+    else mode = "neutral";
+    stack.push(mode);
+  };
+
+  while (i < n) {
+    const ch = cleaned[i];
+    if (inString) {
+      if (ch === '"') inString = false;
+      i += 1;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      i += 1;
+      continue;
+    }
+    if (ch === "{") {
+      // 裸 `{`（`?=`、`scope:actor =` 等之后）：视作 scope 块，继承父模式
+      stack.push(currentMode());
+      i += 1;
+      continue;
+    }
+    if (ch === "}") {
+      if (stack.length > 0) stack.pop();
+      i += 1;
+      continue;
+    }
+    if (isIdentStart(ch)) {
+      let j = i;
+      while (j < n && isIdentChar(cleaned[j])) j += 1;
+      const name = cleaned.slice(i, j);
+      const prev = i > 0 ? cleaned[i - 1] : "";
+      let k = j;
+      while (k < n && isWs(cleaned[k])) k += 1;
+      if (
+        k < n &&
+        cleaned[k] === "=" &&
+        cleaned[k + 1] !== "=" &&
+        prev !== ":" &&
+        prev !== "." &&
+        !isIdentChar(prev)
+      ) {
+        const mode = currentMode();
+        if (mode === "context") {
+          checkCandidate(name, dict, modDefined, warnings);
+        }
+        let r = k + 1;
+        while (r < n && isWs(cleaned[r])) r += 1;
+        if (r < n && cleaned[r] === "{") {
+          pushBlock(name, mode);
+          i = r + 1;
+          continue;
+        }
+        i = r;
+        continue;
+      }
+      i = j;
+      continue;
+    }
+    i += 1;
+  }
+}
+
 export function analyzeSemantics(
   modPath: string,
   opts?: unknown,
@@ -261,12 +495,21 @@ export function analyzeSemantics(
     Array<{ keyword: string; name: string }>
   >();
   const modDefsByCategory = new Map<string, Set<string>>();
+  // C2 排除「本 mod 自己定义的名」：全部 .txt 的顶层 `name =` 定义名（跨 category 合并）。
+  const modDefinedNames = new Set<string>();
+  // 仅 scripted_effects/scripted_triggers 目录的顶层定义名：这些才是「会被调用、
+  // 调用体是参数列表」的名，用于 param 判定（building/goods 等对象名不参与）。
+  const modScriptedNames = new Set<string>();
   for (const { abs, rel } of modFiles) {
     const category = categoryFromRel(rel);
-    if (!category) continue;
     const text = readText(abs);
     if (text === null) continue;
     const scan = scanTopLevel(stripLineComments(text));
+    for (const d of scan.definitions) modDefinedNames.add(d);
+    if (isScriptedDir(rel)) {
+      for (const d of scan.definitions) modScriptedNames.add(d);
+    }
+    if (!category) continue;
     if (scan.overrides.length > 0) {
       const list = overridesByCategory.get(category) ?? [];
       for (const o of scan.overrides) list.push(o);
@@ -277,10 +520,6 @@ export function analyzeSemantics(
       for (const d of scan.definitions) defs.add(d);
       modDefsByCategory.set(category, defs);
     }
-  }
-
-  if (overridesByCategory.size === 0) {
-    return { checked, warnings };
   }
 
   // vanilla 侧可用性：game-scripts/ 缺失，或镜像里按 `<目录>` 收集到的 common 文件总数为 0
@@ -309,29 +548,47 @@ export function analyzeSemantics(
     checked.push(`common/${category}`);
   }
 
-  if (!vanillaAvailable) {
+  // C1 的 game-scripts 缺失退化逻辑（NOTE）保持不动；但不再 early-return，C2 独立运行。
+  if (overridesByCategory.size > 0 && !vanillaAvailable) {
     warnings.push({
       code: "semantic:c1",
       message:
         "semantic: game-scripts/ unavailable (missing or empty); REPLACE/INJECT target lookup against vanilla skipped",
       level: "note",
     });
-    return { checked, warnings };
+  } else {
+    for (const [category, overrides] of overridesByCategory) {
+      const vanilla = vanillaDefsByCategory.get(category) ?? new Set<string>();
+      const mod = modDefsByCategory.get(category) ?? new Set<string>();
+      for (const o of overrides) {
+        if (vanilla.has(o.name) || mod.has(o.name)) continue;
+        const advisory = isAdvisoryKeyword(o.keyword);
+        warnings.push({
+          code: "semantic:c1",
+          message:
+            `semantic: ${o.keyword} target '${o.name}' not found in common/${category}` +
+            (advisory ? " (advisory)" : ""),
+          level: advisory ? "note" : "warn",
+        });
+      }
+    }
   }
 
-  for (const [category, overrides] of overridesByCategory) {
-    const vanilla = vanillaDefsByCategory.get(category) ?? new Set<string>();
-    const mod = modDefsByCategory.get(category) ?? new Set<string>();
-    for (const o of overrides) {
-      if (vanilla.has(o.name) || mod.has(o.name)) continue;
-      const advisory = isAdvisoryKeyword(o.keyword);
-      warnings.push({
-        code: "semantic:c1",
-        message:
-          `semantic: ${o.keyword} target '${o.name}' not found in common/${category}` +
-          (advisory ? " (advisory)" : ""),
-        level: advisory ? "note" : "warn",
-      });
+  // ---- C2：粘性上下文拼写校验（独立运行，不依赖 C1 的 overrides 非空） ----
+  const dict = loadScriptDictionary(repoRoot);
+  if (dict !== null) {
+    checked.push("c2:script_docs");
+    for (const { abs, rel } of modFiles) {
+      const text = readText(abs);
+      if (text === null) continue;
+      scanStickyContext(
+        stripLineComments(text),
+        isScriptedDir(rel),
+        dict,
+        modDefinedNames,
+        modScriptedNames,
+        warnings,
+      );
     }
   }
 

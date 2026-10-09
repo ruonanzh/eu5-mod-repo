@@ -11,9 +11,10 @@
  *         REPLACE:/INJECT: 缺失 → WARN；TRY_* / _OR_CREATE → NOTE（常是故意的，永不 FAIL）。
  *         game-scripts/ 缺失时跳过 vanilla 侧核对并给 NOTE。【已实现】
  *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
- *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。【待实现】
+ *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。【已实现】
  *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
- *         只查 mod 已提供的语言；in_game 与 main_menu 的 localization/ 都算合法。【待实现】
+ *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
+ *         in_game 与 main_menu 的 localization/ 都算合法。【已实现】
  *
  * 契约：只读、零第三方依赖；接口字段/返回文案一律 ASCII/英文（Windows GBK 会乱码）。
  * 语义项默认 WARN，不 FAIL。
@@ -519,6 +520,73 @@ function scanStickyContext(
   }
 }
 
+// ---- C3：新对象缺约定 loc key ----
+
+/** C3 关注的对象类别（plan §2 C3）：mod 新加的建筑 / 商品。 */
+const C3_CATEGORY_ORDER = ["building_types", "goods"];
+/** 文案里的类别名词。 */
+const C3_CATEGORY_NOUN: Record<string, string> = {
+  building_types: "building",
+  goods: "goods",
+};
+/**
+ * mod 一个 localization 目录都没有时的判定语言（基语言）。
+ * 「只查 mod 已提供的语言」的语义是「不因缺**其它**语言而报警」，不是「没有 loc 就不查」——
+ * 新对象全无 loc 正是 C3 要抓的情形，故退化为按基语言 english 判一次。
+ */
+const C3_DEFAULT_LANGUAGE = "english";
+/** loc 文件名里的语言后缀：`<name>_l_<lang>.yml`（也容忍 `.yaml`）。 */
+const LOC_FILE_LANG_RE = /_l_([a-z0-9_]+)\.ya?ml$/i;
+/**
+ * loc 行的定义 key。**宽松匹配**（不要求 value 带引号）：多认一个假 key 只会少报一条，
+ * 少认一个真 key 会造出误报——零误报是硬门槛，故宁松勿严。
+ */
+const LOC_KEY_LINE_RE = /^\s*([A-Za-z0-9_]+)\s*:\s*(?:\d+\s*)?/;
+
+/**
+ * 扫 mod 的 `{in_game|main_menu}/localization/**`，按**文件名语言后缀**归集 loc key。
+ * 语言取自文件名而非目录名：真实 workshop mod 有 `localization/replace/<lang>/…` 这类嵌套，
+ * 目录名会多出一个 `replace` 假语言。目录递归，覆盖 `<lang>/<子目录>/…`。
+ */
+function collectLocKeys(modPath: string): Map<string, Set<string>> {
+  const byLang = new Map<string, Set<string>>();
+  const walk = (dir: string): void => {
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      if (e.name === ".git") continue;
+      const abs = join(dir, e.name);
+      if (e.isDirectory()) {
+        walk(abs);
+        continue;
+      }
+      if (!e.isFile()) continue;
+      const m = LOC_FILE_LANG_RE.exec(e.name);
+      if (!m) continue;
+      const lang = m[1].toLowerCase();
+      const text = readText(abs);
+      if (text === null) continue;
+      let keys = byLang.get(lang);
+      if (!keys) {
+        keys = new Set<string>();
+        byLang.set(lang, keys);
+      }
+      for (const line of text.split(/\r?\n/)) {
+        const km = LOC_KEY_LINE_RE.exec(line);
+        if (km) keys.add(km[1]);
+      }
+    }
+  };
+  for (const base of ["in_game", "main_menu"]) {
+    walk(join(modPath, base, "localization"));
+  }
+  return byLang;
+}
+
 export function analyzeSemantics(
   modPath: string,
   opts?: unknown,
@@ -577,17 +645,30 @@ export function analyzeSemantics(
     gameScriptsCandidates.find((c) => isDirectory(c)) ?? null;
   const hasGameScripts = gameScriptsRoot !== null;
 
+  // C3 也要 vanilla 侧的建筑/商品名；为省一次全树遍历，与 C1 的 `<目录>` 并成一次收集。
+  // 但 C1 的可用性判定（totalVanillaFiles/vanillaAvailable）仍**只统计 C1 自己的 `<目录>`**，
+  // 以免新增 C3 类别把 C1 的 game-scripts 退化分支从 NOTE 变回正常核对。
+  const c3DefCategories = C3_CATEGORY_ORDER.filter(
+    (c) => (modDefsByCategory.get(c)?.size ?? 0) > 0,
+  );
+  const vanillaCategories = new Set<string>(overridesByCategory.keys());
+  for (const c of c3DefCategories) vanillaCategories.add(c);
+
   const vanillaDefsByCategory = new Map<string, Set<string>>();
-  let totalVanillaFiles = 0;
+  const vanillaFileCountByCategory = new Map<string, number>();
   if (hasGameScripts) {
     const filesByCategory = findVanillaCommonFiles(
       gameScriptsRoot as string,
-      new Set(overridesByCategory.keys()),
+      vanillaCategories,
     );
     for (const [category, files] of filesByCategory) {
-      totalVanillaFiles += files.length;
+      vanillaFileCountByCategory.set(category, files.length);
       vanillaDefsByCategory.set(category, definitionsFrom(files));
     }
+  }
+  let totalVanillaFiles = 0;
+  for (const category of overridesByCategory.keys()) {
+    totalVanillaFiles += vanillaFileCountByCategory.get(category) ?? 0;
   }
   const vanillaAvailable = hasGameScripts && totalVanillaFiles > 0;
 
@@ -636,6 +717,59 @@ export function analyzeSemantics(
         modScriptedNames,
         warnings,
       );
+    }
+  }
+
+  // ---- C3：新对象缺约定 loc key（只查 mod 新加的建筑/商品；独立于 C1/C2） ----
+  if (c3DefCategories.length > 0) {
+    for (const category of c3DefCategories) checked.push(`c3:common/${category}`);
+    let c3VanillaFiles = 0;
+    for (const category of c3DefCategories) {
+      c3VanillaFiles += vanillaFileCountByCategory.get(category) ?? 0;
+    }
+    if (hasGameScripts && c3VanillaFiles > 0) {
+      checked.push("c3:localization");
+      const locByLang = collectLocKeys(modPath);
+      // plan §2 C3 v3：只查 mod 已经提供的语言，各语言分别报；一个语言都没提供时
+      // 按基语言 english 判一次（见 C3_DEFAULT_LANGUAGE 注释）。
+      const languages =
+        locByLang.size > 0 ? [...locByLang.keys()] : [C3_DEFAULT_LANGUAGE];
+      const multiLang = languages.length > 1;
+      for (const lang of languages) {
+        const keys = locByLang.get(lang) ?? new Set<string>();
+        for (const category of c3DefCategories) {
+          const vanilla =
+            vanillaDefsByCategory.get(category) ?? new Set<string>();
+          for (const id of modDefsByCategory.get(category) ?? []) {
+            if (vanilla.has(id)) continue; // vanilla 已有 → 覆盖，不是新对象
+            const missingDesc = !keys.has(`${id}_desc`);
+            const missingId = !keys.has(id);
+            if (!missingDesc && !missingId) continue;
+            // 一个 (对象, 语言) 只出一条：`_desc` 优先（约定里最常漏的那个 key）。
+            // 两个都缺时在同一行括号里补一句 base key，不另开一条（保持一条一对象的粒度）。
+            const namedKey = missingDesc ? `${id}_desc` : id;
+            const extras: string[] = [];
+            if (missingId && missingDesc)
+              extras.push(`base key '${id}' is missing too`);
+            if (multiLang) extras.push(`language '${lang}'`);
+            warnings.push({
+              code: "semantic:c3",
+              message:
+                `semantic: new ${C3_CATEGORY_NOUN[category] ?? category} '${id}' ` +
+                `has no localization key '${namedKey}'` +
+                (extras.length > 0 ? ` (${extras.join("; ")})` : ""),
+            });
+          }
+        }
+      }
+    } else {
+      // 与 C1 同口径退化：game-scripts/ 缺失或空 → 无法区分 vanilla/新对象，跳过 + NOTE（不 crash）。
+      warnings.push({
+        code: "semantic:c3",
+        message:
+          "semantic: game-scripts/ unavailable (missing or empty); new building/goods localization lookup skipped",
+        level: "note",
+      });
     }
   }
 

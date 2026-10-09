@@ -15,7 +15,9 @@
  *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
  *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。
  *         trigger 列表容器（visible / enabled / select_trigger / ai_interaction_source_list …）
- *         也进入上下文（A2）。【已实现】
+ *         也进入上下文（A2）。modifier **左值表族**（body 为 `<modifier 名> = 数值` 的块，
+ *         如 modifier / country_modifier / rank_modifier / country_base_values / goods_demand …）
+ *         也进入上下文（A4，见 CONTEXT_ENTER_NAMES 的 JSDoc）。【已实现】
  *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
  *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
  *         in_game 与 main_menu 的 localization/ 都算合法。vanilla 侧同 C1：只算
@@ -261,8 +263,66 @@ function definitionsFrom(files: string[]): Set<string> {
 // ---- C2：粘性上下文拼写校验 ----
 
 /**
- * 进入 effect/trigger 上下文的块名名单（方案 §2 C2，实现期对着 reference mod 调准）。
+ * 进入 effect/trigger/modifier 上下文的块名名单（方案 §2 C2，实现期对着 reference mod 调准）。
  * trigger **列表容器**（visible/enabled/select_trigger/…）另见 TRIGGER_CONTAINER_NAMES。
+ *
+ * ===== modifier 左值表族（A4，2026-10）=====
+ * 判据（什么样的块算「modifier 左值表」）：块 body 是形如 `<modifier 名> = <数值>` 的
+ * **左值列表**——modifier 名取自 docs/script_docs/modifiers.log 词典；既不是效果/触发的
+ * **参数表**（参数名常与词典撞车），也不是 scope 目标块 / 脚本值。进入该块即 context，块内
+ * 「不在词典、且与某词典名拼写距离 ≤2」的左值 → WARN（与 effect/trigger 左值同一条通路）。
+ *
+ * 成员按两类枚举（括号 = vanilla 全量 `c2-coverage.mjs --vanilla` 里「该父块下出现 modifier
+ * 名」次数；成员是**按类**枚举，不是只挑卡里列的 21 个）：
+ *  类 A · 名字自证（含 modifier 词根，或 `_base_values` 形）：
+ *   country_modifier(5005) modifier(2278) definition_modifier(815) location_modifier(429)
+ *   modifier_when_in_debate(205) capital_country_modifier(170) country_base_values(161)
+ *   left_modifier(120) right_modifier(116) rank_modifier(100) leader_modifier(87)
+ *   international_organization_modifier(76) raw_modifier(64) character_modifier(45)
+ *   subject_modifier(43) positive_modifier(35) negative_modifier(33) neutral_modifier(32)
+ *   capital_modifier(29) overlord_modifier(23) maintenance_modifier(21)
+ *   modifier_while_progressing(19) market_center_modifier(16) non_leader_modifier(10)
+ *   modifier_on_completion(10) province_modifier(8)
+ *  类 B · 名字不自证；vanilla 里这个名字**既有「body 是 modifier 左值表」的用法，也有他种语义的块**，
+ *  按「全量语料实测零误报」纳入（逐名给正例）：
+ *   literacy_impact(6)  pop_types/00_default.txt:24    local_cultural_tradition = 0.2
+ *   goods_demand(30)    age/00_default.txt:14          global_liquor_pop_demand = -0.75
+ *   high_power(25)      estates/00_default.txt:66       nobles_estate_max_tax = -1.0
+ *   low_power(12)       estates/00_default.txt:72       nobles_estate_max_tax = 0.5
+ *   power(12)           estates/00_default.txt:20       parliament_base_support = 0.5
+ *   satisfaction(15)    estates/00_default.txt:61       monthly_prestige = 0.2
+ *   unique(10)          age/00_default.txt:59           diplomatic_capacity_modifier = 0.25
+ *   diplo_chance(18) / diplo_chance_accept_subject(37)
+ *                       country_interactions / subject_types：base=… + diplomatic_reputation=…
+ *
+ *  ⚠️ 类 B 的**他种用法**（已全量语料实测 0 误报，属**潜在误报面**：词典随版本刷新可能点亮）：
+ *   - power: in_game/common/attribute_columns/27_language.txt:21、94_dialect.txt:21
+ *       `power = { widget = language_power  width = 100  fixed_height = 32  is_constant_width = yes  sort = {…} }`（GUI 列定义，无 modifier 左值）
+ *   - power: in_game/common/trigger_localization/estate_triggers.txt:13（trigger loc 键表 none/global/third）
+ *   - satisfaction: in_game/common/attribute_columns/20_province.txt:119（`widget = province_satisfaction …`）
+ *   - goods_demand: main_menu/common/game_concepts/00_game_concepts.txt:82（alias/family/texture）
+ *   - modifier 本身: main_menu/gfx/portraits/portrait_modifiers/*.txt 共 405+43 处
+ *       `modifier = { add = 100000  <trigger> }`（权重/触发块，非 modifier 表）
+ *   依据：vanilla 全量复刻扫描；`fixed_height` / `is_constant_width` / `portrait_clothing_trigger` 等
+ *   均无 ≤2 纠错候选 → 0 新增告警。
+ *
+ * 有意**不**纳入（避免再成为「未记录的洞」）：
+ *  - `(top)`：不是块，是 c2-coverage 的伪块名（顶层对象定义名本身与词典撞车，如 auto_modifiers
+ *    的 `prestige = {…}`、cabinet_actions 的 `form_new_culture = {…}`）。C2 不把顶层定义名当
+ *    左值候选，属正常行为。
+ *  - `create_character`：效果**参数表**（body 是 `adm = {…}` / `dip` / `save_scope_as` / `if`），
+ *    命中它是「已知效果 → param 退出」这条既有行为的正常结果（probe10 G2 同族）。
+ *  - `capital`：byParentMod 里的命中**全部**来自 `main_menu/common/static_modifiers/location.txt:326`
+ *    的 `capital = {…}`（= 下一条「数据驱动目录里的任意 id 对象」），不是独立的一类，也不属 A5。
+ *  - 数据驱动目录里的**任意 id 对象**（`common/static_modifiers/**`、`common/auto_modifiers/**`
+ *    的对象定义，body 也是 modifier 表，如 `location_base_values` / `development` /
+ *    `rome_reborn` / `is_great_power` / `complacency_impact` / `foodstuffs_exports_banned`）：
+ *    块名是作者起的 id、不能枚举。正确修法是加「目录即上下文」规则（与 scripted_effects 同思路），
+ *    属目录级规则；本卡只做名字级收口，且审计 harness（c2-coverage.mjs，只解析本文件两张名字
+ *    Set）也复刻不了目录规则，故**显式排除并记录在此**，留作后续卡。
+ *
+ * 回归门槛：本族在 33 个真实 mod（reference + workshop + Paradox）上跑过「C2 零误报」
+ * （probe11 / tool-content-sweep）；零误报是硬门槛。
  */
 const CONTEXT_ENTER_NAMES = new Set([
   "option",
@@ -278,6 +338,42 @@ const CONTEXT_ENTER_NAMES = new Set([
   "trigger",
   "hidden_effect",
   "hidden_trigger",
+  // --- modifier 左值表族（判据与逐名理由见上方 JSDoc）---
+  "modifier",
+  "country_modifier",
+  "definition_modifier",
+  "location_modifier",
+  "modifier_when_in_debate",
+  "capital_country_modifier",
+  "country_base_values",
+  "left_modifier",
+  "right_modifier",
+  "rank_modifier",
+  "leader_modifier",
+  "international_organization_modifier",
+  "raw_modifier",
+  "character_modifier",
+  "subject_modifier",
+  "positive_modifier",
+  "negative_modifier",
+  "neutral_modifier",
+  "capital_modifier",
+  "overlord_modifier",
+  "literacy_impact",
+  "diplo_chance_accept_subject",
+  "goods_demand",
+  "high_power",
+  "maintenance_modifier",
+  "modifier_while_progressing",
+  "diplo_chance",
+  "market_center_modifier",
+  "satisfaction",
+  "power",
+  "low_power",
+  "unique",
+  "non_leader_modifier",
+  "modifier_on_completion",
+  "province_modifier",
 ]);
 
 /**
@@ -300,8 +396,12 @@ const CONTEXT_ENTER_NAMES = new Set([
  * - `rank_modifier` / `literacy_impact` / `sort_text` 等（c2-coverage 里也成规模出现）：形态上
  *   可能同样是容器，但本卡只对上面 10 个跑过「33 个真实 mod 零误报」，未验证的一律不加，
  *   留作后续候选（见 A2 结论里的「新发现」）。
- * - `limit` / `modifier` / `country_modifier` / `raw_modifier` / `owner` / `area` / `value` /
- *   `map_color` 等：形态混杂（参数表 / scope 目标 / 取值块），未验证，不加。
+ *   注（A4）：`rank_modifier` / `literacy_impact` 已作为 **modifier 左值表族** 并入
+ *   CONTEXT_ENTER_NAMES（见其 JSDoc）；`sort_text` 仍属未验证容器，见 A5。
+ * - `limit` / `owner` / `area` / `value` / `map_color` / `sort_text` 等：形态混杂（参数表 /
+ *   scope 目标 / 取值块），未验证，不加。
+ *   注（A4）：`modifier` / `country_modifier` / `raw_modifier` 已作为 **modifier 左值表族**
+ *   并入 CONTEXT_ENTER_NAMES（见其 JSDoc）；`sort_text` 仍属未验证容器，见 A5。
  */
 const TRIGGER_CONTAINER_NAMES = new Set([
   "select_trigger",

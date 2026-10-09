@@ -618,6 +618,17 @@ export default function (pi: ExtensionAPI) {
       const warnings = findings.filter((f) => f.severity === "warn");
       const semantic = analyzeSemantics(modDir);
 
+      // 语义行作为独立一段追加进 content（agent 只看 content，details 不进其视野）。
+      // w.message 已以 `semantic: ` 开头，这里不再重复加前缀。
+      const semanticLines = semantic.warnings
+        .slice(0, MAX_CONTENT_LINES)
+        .map((w) => `${w.level === "note" ? "NOTE" : "WARN"}: ${w.message}`);
+      if (semantic.warnings.length > MAX_CONTENT_LINES) {
+        semanticLines.push(
+          `... ${semantic.warnings.length - MAX_CONTENT_LINES} more semantic warning(s) omitted`,
+        );
+      }
+
       const name = modDir.split(/[\\/]/).pop() || modDir;
       const lines: string[] = [];
       if (errors.length === 0) {
@@ -627,6 +638,7 @@ export default function (pi: ExtensionAPI) {
         for (const w of warnings.slice(0, MAX_CONTENT_LINES)) {
           lines.push(`WARN: ${w.rel}: ${w.message}`);
         }
+        lines.push(...semanticLines);
       } else {
         lines.push(
           `FAIL: ${name} has ${errors.length} error(s), ${warnings.length} warning(s)`,
@@ -639,6 +651,7 @@ export default function (pi: ExtensionAPI) {
             `... ${errors.length - MAX_CONTENT_LINES} more error(s) omitted`,
           );
         }
+        lines.push(...semanticLines);
         lines.push(`NEXT: fix the errors above and re-run validate_mod.`);
       }
 

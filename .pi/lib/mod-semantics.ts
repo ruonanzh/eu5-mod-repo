@@ -133,7 +133,11 @@ function scanTopLevel(cleaned: string): TopLevelScan {
 
 function readText(abs: string): string | null {
   try {
-    return readFileSync(abs, "utf8");
+    const text = readFileSync(abs, "utf8");
+    // 剥离单个前导 UTF-8 BOM（\ufeff）：vanilla 部分文件（如 subject_types/march.txt）
+    // 首字节就是 BOM 且紧跟定义名，若不剥掉会把 `march = {` 挤离行首，导致 C1 漏判为「not found」。
+    // BOM 无任何语义，对所有调用方（definitionsFrom / mod 扫描 / loadScriptDictionary）都安全。
+    return text.startsWith("\ufeff") ? text.slice(1) : text;
   } catch {
     return null;
   }
@@ -263,6 +267,41 @@ const CONTEXT_ENTER_NAMES = new Set([
   "hidden_effect",
   "hidden_trigger",
 ]);
+
+/**
+ * 容器/控制效果的块：body 是 effect/trigger **列表**而非参数表，进入后应**继续** context 扫描
+ * （否则 `if = { add_prestigez = … }` 里的 typo 会漏）。判定优先级**高于**「块名在词典 → param」。
+ * 精确名以 script_docs（effects.log/triggers.log）实测为准；first_valid 不在词典也纳入（无害）。
+ * 前缀 every_/any_/ordered_ 对应 effects.log（every_/ordered_ 各 300+）与 triggers.log（any_ 300+）。
+ * hidden_effect/hidden_trigger 已在 CONTEXT_ENTER_NAMES，不重复。
+ *
+ * ⚠️ **不含 switch**：trigger 侧 `switch = { trigger = <t> <值> = { <triggers> } … }` 的 case 名是
+ * 任意**值**（如 location_key `antigonish`），不是 trigger 名——纳入会把 case 名误报成拼写错
+ * （实测 workshop mod 3633816300：`antigonish` 被报 did-you-mean `antagonism`）。零误报是硬门槛，
+ * 故宁可少纳入 switch（其 case body 内部 typo 暂不查）。
+ */
+const CONTAINER_CONTROL_NAMES = new Set([
+  "if",
+  "else",
+  "else_if",
+  "random",
+  "random_list",
+  "while",
+  "first_valid",
+  "trigger_if",
+  "trigger_else",
+  "trigger_else_if",
+  "and",
+  "or",
+  "not",
+  "nor",
+]);
+const CONTAINER_CONTROL_PREFIXES = ["every_", "any_", "ordered_"];
+
+function isContainerControl(name: string): boolean {
+  if (CONTAINER_CONTROL_NAMES.has(name)) return true;
+  return CONTAINER_CONTROL_PREFIXES.some((p) => name.startsWith(p));
+}
 
 /** 相对路径是否在 common/scripted_effects/ 或 common/scripted_triggers/ 下（目录即上下文）。 */
 function isScriptedDir(rel: string): boolean {
@@ -413,6 +452,7 @@ function scanStickyContext(
     let mode: ContextMode;
     if (parentMode === "param") mode = "param";
     else if (CONTEXT_ENTER_NAMES.has(name)) mode = "context";
+    else if (parentMode === "context" && isContainerControl(name)) mode = "context";
     else if (parentMode === "context")
       mode = dict.names.has(name) || modScripted.has(name) ? "param" : "context";
     else if (isScripted && isTopLevel) mode = "context";
@@ -526,9 +566,16 @@ export function analyzeSemantics(
   // （空/坏），都无法判定目标是否为 vanilla 对象 → 退化：只给一条 NOTE，跳过 per-target 产出。
   // 注意：镜像有内容、只是某个特定 `<目录>` 恰好无 vanilla 文件 → 那是真命中，照常 WARN。
   const repoRoot = findRepoRoot(modPath);
-  const gameScriptsRoot = repoRoot ? join(repoRoot, "game-scripts") : null;
-  const hasGameScripts =
-    gameScriptsRoot !== null && isDirectory(gameScriptsRoot);
+  // game-scripts 定位顺序：①mod 所在 repo 根（findRepoRoot）→ ②工具自身 repo 根（import.meta.dirname 往上）。
+  // workshop/Paradox mod 目录在仓库外，findRepoRoot 常为 null → 用工具自身 repo 兜底（与 loadScriptDictionary 同思路）。
+  const gameScriptsCandidates: string[] = [];
+  if (repoRoot) gameScriptsCandidates.push(join(repoRoot, "game-scripts"));
+  gameScriptsCandidates.push(
+    join(import.meta.dirname, "..", "..", "game-scripts"),
+  );
+  const gameScriptsRoot =
+    gameScriptsCandidates.find((c) => isDirectory(c)) ?? null;
+  const hasGameScripts = gameScriptsRoot !== null;
 
   const vanillaDefsByCategory = new Map<string, Set<string>>();
   let totalVanillaFiles = 0;

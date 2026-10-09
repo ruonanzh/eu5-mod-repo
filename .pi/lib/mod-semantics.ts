@@ -11,7 +11,9 @@
  *         REPLACE:/INJECT: 缺失 → WARN；TRY_* / _OR_CREATE → NOTE（常是故意的，永不 FAIL）。
  *         game-scripts/ 缺失时跳过 vanilla 侧核对并给 NOTE。【已实现】
  *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
- *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。【已实现】
+ *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。
+ *         trigger 列表容器（visible / enabled / select_trigger / ai_interaction_source_list …）
+ *         也进入上下文（A2）。【已实现】
  *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
  *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
  *         in_game 与 main_menu 的 localization/ 都算合法。【已实现】
@@ -252,7 +254,10 @@ function definitionsFrom(files: string[]): Set<string> {
 
 // ---- C2：粘性上下文拼写校验 ----
 
-/** 进入 effect/trigger 上下文的块名名单（方案 §2 C2，实现期对着 reference mod 调准）。 */
+/**
+ * 进入 effect/trigger 上下文的块名名单（方案 §2 C2，实现期对着 reference mod 调准）。
+ * trigger **列表容器**（visible/enabled/select_trigger/…）另见 TRIGGER_CONTAINER_NAMES。
+ */
 const CONTEXT_ENTER_NAMES = new Set([
   "option",
   "immediate",
@@ -267,6 +272,42 @@ const CONTEXT_ENTER_NAMES = new Set([
   "trigger",
   "hidden_effect",
   "hidden_trigger",
+]);
+
+/**
+ * trigger 列表容器（A2 卡补）：这些块名在真实脚本里 body 是 **trigger 列表**（非参数表），
+ * 但既不在 CONTEXT_ENTER_NAMES，也不是 if/every_* 一类控制效果 —— 不加的话整块不进入上下文
+ * （`select_trigger = { visible = { <typo> = yes } }` 必然漏报）。
+ * 名单来源：A2 卡用 c2-coverage.mjs 在真实 mod 上做的模式复刻统计；并由 probe4.mjs 在
+ * 33 个真实 mod 上验证「加入后 C2 零误报」（零误报是硬门槛）。
+ * 逐名依据（括号为统计出现次数）：
+ * - visible                     generic_actions / select_trigger 的可见性 trigger 列表（56）
+ * - enabled                     cabinet_actions / generic_actions 的启用条件 trigger 列表（12）
+ * - is_shown / show_if          交互类的显示条件 trigger 列表（7 / 7）
+ * - can_start / can_end         situation / 交互的开始/结束条件 trigger 列表（5 / 5）
+ * - is_valid / ai_is_valid      交互类的合法性 trigger 列表（5 / 9）
+ * - select_trigger              上述列表的**外层容器**（generic_actions 等），本身也是列表容器
+ * - ai_interaction_source_list  select_trigger 内的 AI 目标来源列表（内部 every_goods > limit 仍是 context）
+ *
+ * 有意**不**纳入（避免再成为「未记录的洞」）：
+ * - `switch`：见下方注释（case 名是任意值）。
+ * - `rank_modifier` / `literacy_impact` / `sort_text` 等（c2-coverage 里也成规模出现）：形态上
+ *   可能同样是容器，但本卡只对上面 10 个跑过「33 个真实 mod 零误报」，未验证的一律不加，
+ *   留作后续候选（见 A2 结论里的「新发现」）。
+ * - `limit` / `modifier` / `country_modifier` / `raw_modifier` / `owner` / `area` / `value` /
+ *   `map_color` 等：形态混杂（参数表 / scope 目标 / 取值块），未验证，不加。
+ */
+const TRIGGER_CONTAINER_NAMES = new Set([
+  "select_trigger",
+  "ai_interaction_source_list",
+  "visible",
+  "enabled",
+  "is_shown",
+  "show_if",
+  "can_start",
+  "can_end",
+  "is_valid",
+  "ai_is_valid",
 ]);
 
 /**
@@ -452,7 +493,8 @@ function scanStickyContext(
     const isTopLevel = stack.length === 0;
     let mode: ContextMode;
     if (parentMode === "param") mode = "param";
-    else if (CONTEXT_ENTER_NAMES.has(name)) mode = "context";
+    else if (CONTEXT_ENTER_NAMES.has(name) || TRIGGER_CONTAINER_NAMES.has(name))
+      mode = "context";
     else if (parentMode === "context" && isContainerControl(name)) mode = "context";
     else if (parentMode === "context")
       mode = dict.names.has(name) || modScripted.has(name) ? "param" : "context";

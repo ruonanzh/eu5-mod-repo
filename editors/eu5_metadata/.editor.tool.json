@@ -1,0 +1,9 @@
+{
+  "apiVersion": 1,
+  "id": "eu5_metadata",
+  "name": "EU5 mod metadata",
+  "match": ["your_mods/*/.metadata/metadata.json"],
+  "entry": "index.html",
+  "mode": "edit",
+  "description": "View/edit a mod's .metadata/metadata.json (form, Ctrl+S to save)"
+}

@@ -9,14 +9,17 @@
  *         REPLACE_OR_CREATE|INJECT_OR_CREATE):\s*(\w+)\s*=`，目标名须在**同一类数据库**
  *         （同一 `common/<目录>/`；in_game 与 main_menu 合并）的 vanilla 或本 mod 里存在。
  *         REPLACE:/INJECT: 缺失 → WARN；TRY_* / _OR_CREATE → NOTE（常是故意的，永不 FAIL）。
- *         game-scripts/ 缺失时跳过 vanilla 侧核对并给 NOTE。【已实现】
+ *         `game-scripts/game/` 缺失/空时跳过 vanilla 侧核对并给 NOTE。【已实现】
+ *         注：vanilla 严格 = 真原版 `game-scripts/game/**`；`game-scripts/workshop/**`
+ *         （他 mod 镜像）不算 vanilla（用户决议，见 A3 卡与下方 vanillaRoot 注释）。
  *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
  *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。
  *         trigger 列表容器（visible / enabled / select_trigger / ai_interaction_source_list …）
  *         也进入上下文（A2）。【已实现】
  *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
  *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
- *         in_game 与 main_menu 的 localization/ 都算合法。【已实现】
+ *         in_game 与 main_menu 的 localization/ 都算合法。vanilla 侧同 C1：只算
+ *         `game-scripts/game/**`（排除 workshop 镜像）。【已实现】
  *
  * 契约：只读、零第三方依赖；接口字段/返回文案一律 ASCII/英文（Windows GBK 会乱码）。
  * 语义项默认 WARN，不 FAIL。
@@ -202,8 +205,11 @@ function findRepoRoot(start: string): string | null {
 }
 
 /**
- * 在 game-scripts 镜像里，按 `<目录>` 收集 `…/common/<目录>/…` 下的 .txt 文件。
- * 不写死层级（game/jomini/dlc/workshop 都可能有），用「包含 /common/<目录>/」定位。
+ * 在 vanilla 根（调用方传 `game-scripts/game/`，见 analyzeSemantics 的 vanillaRoot）下，
+ * 按 `<目录>` 收集 `…/common/<目录>/…` 下的 .txt 文件。
+ * 不写死层级（game/jomini/dlc 都可能嵌套），用「包含 /common/<目录>/」定位。
+ * 注意：调用方**不能**把整棵 `game-scripts/`（含 `workshop/**` 他 mod 镜像）当作 root ——
+ * 那正是 A3 的假阴性来源。
  */
 function findVanillaCommonFiles(
   root: string,
@@ -672,9 +678,9 @@ export function analyzeSemantics(
     }
   }
 
-  // vanilla 侧可用性：game-scripts/ 缺失，或镜像里按 `<目录>` 收集到的 common 文件总数为 0
+  // vanilla 侧可用性：`game-scripts/game/` 缺失，或其中按 `<目录>` 收集到的 common 文件总数为 0
   // （空/坏），都无法判定目标是否为 vanilla 对象 → 退化：只给一条 NOTE，跳过 per-target 产出。
-  // 注意：镜像有内容、只是某个特定 `<目录>` 恰好无 vanilla 文件 → 那是真命中，照常 WARN。
+  // 注意：vanilla 根有内容、只是某个特定 `<目录>` 恰好无 vanilla 文件 → 那是真命中，照常 WARN。
   const repoRoot = findRepoRoot(modPath);
   // game-scripts 定位顺序：①mod 所在 repo 根（findRepoRoot）→ ②工具自身 repo 根（import.meta.dirname 往上）。
   // workshop/Paradox mod 目录在仓库外，findRepoRoot 常为 null → 用工具自身 repo 兜底（与 loadScriptDictionary 同思路）。
@@ -685,7 +691,19 @@ export function analyzeSemantics(
   );
   const gameScriptsRoot =
     gameScriptsCandidates.find((c) => isDirectory(c)) ?? null;
-  const hasGameScripts = gameScriptsRoot !== null;
+  // vanilla 根严格限定为真原版 `game-scripts/game/**`（**不含** `game-scripts/workshop/**`）。
+  // 为何排除 workshop 镜像：`sync_game_scripts` 把**所有已订阅 workshop mod** 的内容镜像到
+  // `game-scripts/workshop/<mod_id>/**`（见 sync-game-scripts.ts）。若并入 vanilla，
+  // 镜像过的 mod 只要自己的对象也在镜像里 → 被 `vanilla.has(id)` 判为「vanilla 已有」：
+  //   - C3：新对象的 loc 检查被跳过 —— 对镜像过的 workshop mod C3 实际失效（假阴性）；
+  //   - C1：`REPLACE:` 一个只存在于他 mod 镜像里的目标被判「存在」→ 少报。
+  // 用户决议（2026-10-09，见 board/tasks/A3-workshop-mirror-treated-as-vanilla.md）：
+  // vanilla 严格 = 真原版 `game-scripts/game/**`。
+  // 退化口径不变：`game-scripts/game/` 缺失/空 → 跳过 vanilla 侧核对并给 NOTE。
+  const vanillaRoot =
+    gameScriptsRoot !== null && isDirectory(join(gameScriptsRoot, "game"))
+      ? join(gameScriptsRoot, "game")
+      : null;
 
   // C3 也要 vanilla 侧的建筑/商品名；为省一次全树遍历，与 C1 的 `<目录>` 并成一次收集。
   // 但 C1 的可用性判定（totalVanillaFiles/vanillaAvailable）仍**只统计 C1 自己的 `<目录>`**，
@@ -698,9 +716,9 @@ export function analyzeSemantics(
 
   const vanillaDefsByCategory = new Map<string, Set<string>>();
   const vanillaFileCountByCategory = new Map<string, number>();
-  if (hasGameScripts) {
+  if (vanillaRoot !== null) {
     const filesByCategory = findVanillaCommonFiles(
-      gameScriptsRoot as string,
+      vanillaRoot,
       vanillaCategories,
     );
     for (const [category, files] of filesByCategory) {
@@ -712,13 +730,13 @@ export function analyzeSemantics(
   for (const category of overridesByCategory.keys()) {
     totalVanillaFiles += vanillaFileCountByCategory.get(category) ?? 0;
   }
-  const vanillaAvailable = hasGameScripts && totalVanillaFiles > 0;
+  const vanillaAvailable = vanillaRoot !== null && totalVanillaFiles > 0;
 
   for (const category of overridesByCategory.keys()) {
     checked.push(`common/${category}`);
   }
 
-  // C1 的 game-scripts 缺失退化逻辑（NOTE）保持不动；但不再 early-return，C2 独立运行。
+  // C1 的 game-scripts/game/ 缺失退化逻辑（NOTE）保持不动；但不再 early-return，C2 独立运行。
   if (overridesByCategory.size > 0 && !vanillaAvailable) {
     warnings.push({
       code: "semantic:c1",
@@ -769,7 +787,7 @@ export function analyzeSemantics(
     for (const category of c3DefCategories) {
       c3VanillaFiles += vanillaFileCountByCategory.get(category) ?? 0;
     }
-    if (hasGameScripts && c3VanillaFiles > 0) {
+    if (vanillaRoot !== null && c3VanillaFiles > 0) {
       checked.push("c3:localization");
       const locByLang = collectLocKeys(modPath);
       // plan §2 C3 v3：只查 mod 已经提供的语言，各语言分别报；一个语言都没提供时
@@ -805,7 +823,7 @@ export function analyzeSemantics(
         }
       }
     } else {
-      // 与 C1 同口径退化：game-scripts/ 缺失或空 → 无法区分 vanilla/新对象，跳过 + NOTE（不 crash）。
+      // 与 C1 同口径退化：game-scripts/game/ 缺失或空 → 无法区分 vanilla/新对象，跳过 + NOTE（不 crash）。
       warnings.push({
         code: "semantic:c3",
         message:

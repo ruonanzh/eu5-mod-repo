@@ -477,7 +477,8 @@ function checkBraceQuoteBalance(cleaned: string): BalanceResult {
 
 /**
  * INJECT:/REPLACE: 族关键字只能出现在顶层块，且格式为 `KEYWORD:key = {`。
- * comment/string-aware 的 depth 扫描；depth>0 处出现关键字，或顶层关键字后不是 `key = {`，均 ERROR。
+ * comment/string-aware 的 depth 扫描；depth>0 处出现关键字 → **warn**（可能是合法的“容器目录条目级”
+ * override，如 genes/accessory_genes；vanilla 也这么写），顶层关键字后不是 `key = {` → error。
  */
 function checkOverrideKeywords(cleaned: string): Finding[] {
   const findings: Finding[] = [];
@@ -518,10 +519,14 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
       if (hasKw && depth > 0) {
+        // 降级为 warn（原为 error）：规则应是“紧邻一个 database entry”，而**条目层**因目录而异
+        // （多数 common/ 目录 = 文件顶层；容器型目录如 genes/ 在 `accessory_genes = { <entry> = {} }`
+        //  一层里）。vanilla 自己就这么写：dlc/D008_fate_of_the_phoenix/in_game/common/genes/
+        //  D008_genes_accessories.txt 共 6 处 `INJECT_OR_CREATE:` 都在 accessory_genes 内。
         findings.push({
-          severity: "error",
+          severity: "warn",
           rel: "",
-          message: `line ${line}: '${m.groups.kw}' override keyword must be at a top-level block, not nested`,
+          message: `line ${line}: '${m.groups.kw}' override keyword is nested (depth ${depth}); it must sit directly before a *database entry* - that is the file's top level in most common/ folders, but in container folders (e.g. genes/accessory_genes) the entry is one level in, and vanilla does that too. Confirm before treating as an error.`,
         });
       }
       // 跳过整个 `[KEYWORD:]key = {` 到 '{'，让下一轮对 '{' 计数。
@@ -571,7 +576,8 @@ function checkPdxScript(modRoot: string): Finding[] {
     if (!bal.ok && bal.message)
       findings.push({ severity: "error", rel, message: bal.message });
     for (const f of checkOverrideKeywords(cleaned)) {
-      findings.push({ severity: "error", rel, message: f.message });
+      // 保留 checkOverrideKeywords 自己给出的 severity（嵌套关键字是 warn，不是 error）
+      findings.push({ severity: f.severity ?? "error", rel, message: f.message });
     }
   }
   return findings;

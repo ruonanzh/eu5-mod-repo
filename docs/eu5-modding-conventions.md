@@ -33,8 +33,11 @@ EU5 loads a mod's files on top of the base game. There are three distinct overri
   only outside keyword folders.
 - **`INJECT:` / `REPLACE:` keywords:** most `<top_folder>/common/` folders (and some others) require
   a keyword to modify an existing object without a full file overwrite. Implicit replace does **not**
-  work in these folders. Keywords apply to **top-level blocks only** (you cannot inject into a
-  sub-block):
+  work in these folders. Keywords must sit **directly before a database entry** — that is the file's
+  **top level** in most `common/` folders, but in *container* folders the entry is **one level in**, e.g.
+  `genes/accessory_genes = { <entry> = { … } }`, where vanilla itself writes
+  `INJECT_OR_CREATE:<entry> = { … }` (see `dlc/D008_fate_of_the_phoenix/in_game/common/genes/D008_genes_accessories.txt`).
+  Injecting into a sub-block **below the entry level** is still invalid:
 
   | Keyword | Effect |
   | --- | --- |
@@ -54,7 +57,8 @@ EU5 loads a mod's files on top of the base game. There are three distinct overri
 
 **Rule of thumb:** prefer additive new objects; use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
 variants) for surgical changes in keyword folders; reserve full-file overwrite for when you must
-change most of a file. `validate_mod` flags a keyword nested in a sub-block (hard ERROR); whether a
+change most of a file. `validate_mod` flags a keyword nested below the entry level as a **WARN** (not a
+hard error — container folders legitimately nest entries one level in, and vanilla does so); whether a
 top-level object redefines a vanilla name **without** a keyword is a soft rule the agent checks with
 `grep`/`read` against the local game directory (the exact list of keyword folders is not yet fully
 documented on the wiki - marked "TBA").

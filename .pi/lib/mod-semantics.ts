@@ -14,12 +14,15 @@
  *         （他 mod 镜像）不算 vanilla（用户决议，见 A3 卡与下方 vanillaRoot 注释）。
  *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
  *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。
- *         trigger 列表容器（visible / enabled / select_trigger / ai_interaction_source_list …）
- *         也进入上下文（A2）。modifier **左值表族**（body 为 `<modifier 名> = 数值` 的块，
- *         如 modifier / country_modifier / rank_modifier / country_base_values / goods_demand …）
- *         也进入上下文（A4，见 CONTEXT_ENTER_NAMES 的 JSDoc）。
- *         另外，**数据驱动目录**（顶层块名是作者自起 id、body 是词典左值列表，块名不可枚举）
- *         的顶层对象也是 context（A6，见 DATA_DRIVEN_CONTEXT_DIRS 的 JSDoc）。【已实现】
+ *         **容器名单来自 `docs/script_docs` 的结构示例解析**（A0：示例含 `<effects>`/`<triggers>`
+ *         ⇒ 该名字的 body 是 effect/trigger 列表 ⇒ 进 context；见 loadContainerModel）；
+ *         **已知名**集合 = effects ∪ triggers ∪ modifiers ∪ event_targets ∪ on_actions ∪
+ *         custom_localization ∪ vanilla（`game-scripts/game/**`）键名 ∪ 合法结构字段
+ *         （A9：候选名在「已知名」里 ⇒ 放过，不作候选；见 checkCandidate）。
+ *         块名不是 effect/trigger 的**结构字段**（option / immediate / potential / visible /
+ *         modifier 左值表族 / 数据驱动目录 …）仍是手写名单：script_docs 提供不了，依据是
+ *         文件结构 + 实际语料（见 CONTEXT_ENTER_NAMES / TRIGGER_CONTAINER_NAMES /
+ *         DATA_DRIVEN_CONTEXT_DIRS 的 JSDoc 与 board/C2-COVERAGE.md）。【已实现】
  *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
  *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
  *         in_game 与 main_menu 的 localization/ 都算合法。vanilla 侧同 C1：只算
@@ -265,8 +268,16 @@ function definitionsFrom(files: string[]): Set<string> {
 // ---- C2：粘性上下文拼写校验 ----
 
 /**
- * 进入 effect/trigger/modifier 上下文的块名名单（方案 §2 C2，实现期对着 reference mod 调准）。
- * trigger **列表容器**（visible/enabled/select_trigger/…）另见 TRIGGER_CONTAINER_NAMES。
+ * 进入 effect/trigger/modifier 上下文的**结构字段**名单（方案 §2 C2，实现期对着 reference mod 调准）。
+ *
+ * 为什么仍是手写：这些是**文件结构字段**（事件/建筑/法律/科技/交互的固定部位），**不是**
+ * effect/trigger 名 —— `docs/script_docs` 里根本没有它们，所以**不可从 dump 派生**。
+ * 依据 = 文件结构（wiki 的 `Event_modding` / `Building_modding` / `Subject_type_modding` /
+ * `Cabinet_action_modding` / `Generic_action_modding` 等页面 + 实际语料形态）。
+ * 对照：本名单 **0/48** 在「script_docs 结构示例派生的容器集合」（1220 个）里（A0 对照命令），
+ * 即解析不可能覆盖它们。
+ * 名单**冻结**（GOAL #8）：新增覆盖须新开卡 + 用户确认；清单与逐项证据见 `board/C2-COVERAGE.md`。
+ * trigger **列表容器**（`visible` / `enabled` / `on_*` / `*_trigger` …）另见 TRIGGER_CONTAINER_NAMES。
  *
  * ===== modifier 左值表族（A4，2026-10）=====
  * 判据（什么样的块算「modifier 左值表」）：块 body 是形如 `<modifier 名> = <数值>` 的
@@ -392,8 +403,20 @@ const CONTEXT_ENTER_NAMES = new Set([
  * - is_shown / show_if          交互类的显示条件 trigger 列表（7 / 7）
  * - can_start / can_end         situation / 交互的开始/结束条件 trigger 列表（5 / 5）
  * - is_valid / ai_is_valid      交互类的合法性 trigger 列表（5 / 9）
- * - select_trigger              上述列表的**外层容器**（generic_actions 等），本身也是列表容器
  * - ai_interaction_source_list  select_trigger 内的 AI 目标来源列表（内部 every_goods > limit 仍是 context）
+ *
+ * ===== A9 复核（2026-10，容器名单从 script_docs 解析后）=====
+ * 对照：本名单 **0/53** 在「结构示例派生的容器集合」（1220 个）里 —— 它们**都不是** effect/trigger
+ * 名，是**结构字段/列表部位**，dump 不提供 ⇒ 只能手写（与 CONTEXT_ENTER_NAMES 同理）。
+ * 逐项复核后**剔除 1 条**：
+ * - `select_trigger`（已删）：`c2-coverage --vanilla` 证据 = 988 个块 / body 键 6751 / 命中词典 **0**（ratio 0%）
+ *   —— body 是**选择器配置**（`looking_for_a` / `name` / 嵌套 `visible` / `ai_interaction_source_list`），
+ *   不是 effect/trigger 左值列表；作 ENTER 会把配置名当左值候选（仅扩大误报面）。
+ *   剔除后其真 trigger 列表部位（`visible` / `ai_interaction_source_list`）仍在名单里 ⇒ 不丢覆盖
+ *   （`board/cases/c2-trigger-list-container` 仍 2 条命中，见 A0 验收）。
+ * 复核后**保留**（有证据）：`sort_text`（vanilla 97 块 / 194 键 **100%** 命中词典 —— dump 无文档但语料
+ * 形态确为 trigger 列表）；`is_shown` / `is_valid` / `ai_is_valid`（vanilla 0 块 —— 无证据也无误报面，
+ * A2 经 probe11 在 33 真实 mod 验证保留）。
  *
  * ===== A5 族（2026-10，名字级剩余缺口收口）=====
  * 判据与 A2 同源：**块名可枚举、body 是 effect/trigger 列表**；差别在于这些块名此前被
@@ -455,7 +478,6 @@ const CONTEXT_ENTER_NAMES = new Set([
  *   A5 按卡边界不动。
  */
 const TRIGGER_CONTAINER_NAMES = new Set([
-  "select_trigger",
   "ai_interaction_source_list",
   "visible",
   "enabled",
@@ -519,39 +541,214 @@ const TRIGGER_CONTAINER_NAMES = new Set([
 ]);
 
 /**
- * 容器/控制效果的块：body 是 effect/trigger **列表**而非参数表，进入后应**继续** context 扫描
- * （否则 `if = { add_prestigez = … }` 里的 typo 会漏）。判定优先级**高于**「块名在词典 → param」。
- * 精确名以 script_docs（effects.log/triggers.log）实测为准；first_valid 不在词典也纳入（无害）。
- * 前缀 every_/any_/ordered_ 对应 effects.log（every_/ordered_ 各 300+）、triggers.log（any_ 300+）；
- * random_ 对应 effects.log（random_* 305，如 random_market_present_in_country）——A5 补。
- * hidden_effect/hidden_trigger 已在 CONTEXT_ENTER_NAMES，不重复。
+ * ===== 容器/控制块（effect/trigger 列表容器）：从 script_docs 结构示例解析（A0，2026-10）=====
+ *
+ * **权威来源**：`docs/script_docs/effects.log` / `triggers.log` —— 每个 `## <name>` 的**示例行**
+ * （`<name> = { … }`，可跨行；名字大小写不敏感，dump 里有 `every_town_rights_in_Location` 这类）
+ * 只要示例块含 `<effects>` 或 `<triggers>`，该 name 的 body 就是 effect/trigger **列表** ⇒ 容器
+ * ⇒ 进入后**继续** context 扫描（否则 `if = { add_prestigez = … }` 里的 typo 会漏）。
+ * 判定优先级**高于**「块名在词典 → param」。
+ * 实测：`effects.log` + `triggers.log` → **1220 个**（其中 **1212 = every_/any_/ordered_/random_ 各 303**，
+ * 非前缀 8 = if/else/else_if/while/trigger_if/trigger_else/trigger_else_if/**switch**）。
+ * 权威对照（见 `board/C2-COVERAGE.md` 的复现命令 ①）：权威有而我们没有的**只有 `switch`**，
+ * 而 `switch` **有意排除**（见下）。⇒ 「权威容器集合 ∖ {switch} ⊆ 我们的容器集合」成立。
+ *
+ * **维护成本归零**：dump 刷新（游戏 patch）后**不改代码即自动跟随**；前缀族不必再手写。
  *
  * ⚠️ **不含 switch**：trigger 侧 `switch = { trigger = <t> <值> = { <triggers> } … }` 的 case 名是
  * 任意**值**（如 location_key `antigonish`），不是 trigger 名——纳入会把 case 名误报成拼写错
  * （实测 workshop mod 3633816300：`antigonish` 被报 did-you-mean `antagonism`）。零误报是硬门槛，
  * 故宁可少纳入 switch（其 case body 内部 typo 暂不查）。
+ *
+ * **dump 看不见的容器（少量）** —— `DUMP_INVISIBLE_CONTAINERS`：dump 页面写了「body 是
+ * effect/trigger 列表」但示例行没有 `<effects>`/`<triggers>` 占位符（`random` = `effects...`；
+ * `random_list` = 数值选项列表；`and`/`or`/`not`/`nor`/`nand`/`any_false`/`all_false` = 布尔算子，
+ * 文档无示例行）⇒ 解析天然漏掉，显式列出（逐条证据见该常量注释）。
+ */
+
+/** 有意排除的权威容器（解析后删除）：`switch`（理由见上方）。 */
+const DERIVED_CONTAINER_EXCLUSIONS = new Set(["switch"]);
+
+/**
+ * dump 文档语义是「effect/trigger 列表」但示例行**无**占位符（解析漏掉）的容器，显式补入。
+ * 逐条依据（都来自 script_docs 页面本身 + vanilla 全量语料计数）：
+ *  - `random`      effects.log（`effects... # effects to run if the random roll succeeds`）；45 块
+ *  - `random_list` effects.log「randomly choose effects from a list」；472 块（body 是 `10 = {…}` 数值选项）
+ *  - `and`/`or`/`not`/`nor` triggers.log 描述即「all inside trigger must be true」/「at least one entry inside
+ *                  trigger must be true」/「negates content of trigger」/「a negated OR trigger」；
+ *                  语料 body 命中词典 53% / 69% / 72% / 97%（vanilla）
+ *  - `nand`/`any_false`/`all_false` triggers.log 里是 NAND/全假算子（`any_false` = 「equivalent to NAND」）；
+ *                  语料出现极少（`nand = {` ×1），补入只为不丢这类 block 的内部扫描
+ */
+const DUMP_INVISIBLE_CONTAINERS = new Set([
+  "random",
+  "random_list",
+  "and",
+  "or",
+  "not",
+  "nor",
+  "nand",
+  "any_false",
+  "all_false",
+]);
+
+/**
+ * **退化名单**：`script_docs` 结构示例不可用（文件缺失/格式变/全无示例）时回退到的手工容器名。
+ * 与旧行为等价（A5 收口的精确名单 + 前缀族），保证「dump 不可用也不崩、不丢既有覆盖」。
+ * 名字保持不变是为了审计 harness（`board/audits/harness/c2-coverage.mjs`）仍能按名解析。
+ * 解析成功时**不使用**本名单（容器集合完全由 dump 决定 —— A0 验收 4）。
  */
 const CONTAINER_CONTROL_NAMES = new Set([
   "if",
   "else",
   "else_if",
-  "random",
-  "random_list",
   "while",
-  "first_valid",
   "trigger_if",
   "trigger_else",
   "trigger_else_if",
-  "and",
-  "or",
-  "not",
-  "nor",
 ]);
 const CONTAINER_CONTROL_PREFIXES = ["every_", "any_", "ordered_", "random_"];
 
+interface ContainerModel {
+  /** 容器名（解析成功时为 dump 派生集 ∪ dump 不可见容器）。 */
+  names: Set<string>;
+  /** 前缀族（仅退化模式非空；解析成功时 dump 已枚举 1212 个）。 */
+  prefixes: string[];
+  /** true = 来自 script_docs 结构示例；false = 退化手工名单。 */
+  derived: boolean;
+}
+
+/** 进程内缓存的容器模型（按 script_docs 目录）。 */
+const containerModelCache = new Map<string, ContainerModel>();
+
+/** 退化容器模型（新建 Set，避免调用方意外共享可变集合）。 */
+function fallbackContainerModel(): ContainerModel {
+  return {
+    names: new Set([...CONTAINER_CONTROL_NAMES, ...DUMP_INVISIBLE_CONTAINERS]),
+    prefixes: [...CONTAINER_CONTROL_PREFIXES],
+    derived: false,
+  };
+}
+
+/**
+ * 从 effects.log / triggers.log 的**结构示例行**解析容器名。
+ * 逐 `## <name>` 块：找 `^\s*<name>\s*=\s*\{`（大小写不敏感）起始的**平衡大括号**示例块，
+ * 块内含 `<effects>` 或 `<triggers>` ⇒ 容器。未找到示例行/无占位符 ⇒ 不加入（如 `random`）。
+ */
+function containersFromLogText(text: string): Set<string> {
+  const found = new Set<string>();
+  const lines = text.split(/\r?\n/);
+  let i = 0;
+  while (i < lines.length) {
+    const header = /^##\s+(\w+)\s*$/.exec(lines[i]);
+    if (header === null) {
+      i += 1;
+      continue;
+    }
+    const name = header[1];
+    // name 来自 \w+（无正则元字符），直接内插安全。
+    const exampleRe = new RegExp(`^\\s*${name}\\s*=\\s*\\{`, "i");
+    let j = i + 1;
+    let blockStart = -1;
+    while (j < lines.length && !/^##\s+\w/.test(lines[j])) {
+      if (blockStart < 0 && exampleRe.test(lines[j])) blockStart = j;
+      j += 1;
+    }
+    if (blockStart >= 0) {
+      let depth = 0;
+      let started = false;
+      const block: string[] = [];
+      for (let k = blockStart; k < j; k += 1) {
+        block.push(lines[k]);
+        for (const ch of lines[k]) {
+          if (ch === "{") {
+            depth += 1;
+            started = true;
+          } else if (ch === "}") {
+            depth -= 1;
+          }
+        }
+        if (started && depth <= 0) break;
+      }
+      const body = block.join("\n");
+      if (body.includes("<effects>") || body.includes("<triggers>")) {
+        found.add(name);
+      }
+    }
+    i = j;
+  }
+  return found;
+}
+
+/**
+ * 从 effects.log / triggers.log 文本解析容器名（不含退化名单、不含 dump 不可见容器）。
+ * 有意排除的权威容器（`switch`）在这里就删掉。
+ */
+function deriveContainerNames(effectsText: string, triggersText: string): Set<string> {
+  const names = new Set<string>();
+  for (const n of containersFromLogText(effectsText)) names.add(n);
+  for (const n of containersFromLogText(triggersText)) names.add(n);
+  for (const n of DERIVED_CONTAINER_EXCLUSIONS) names.delete(n);
+  return names;
+}
+
+/**
+ * 测试/审计入口：给定 `docs/script_docs` 目录，返回结构示例派生的容器集合
+ * （= 权威容器集合 ∖ 有意排除；文件缺失/无示例时为空集）。
+ * A0 验收 1（「权威容器集合 ∖ {switch} ⊆ 我们的容器集合」）与 `board/C2-COVERAGE.md` 用它。
+ */
+export function deriveScriptDocContainers(scriptDocsDir: string): Set<string> {
+  const effects = readText(join(scriptDocsDir, "effects.log"));
+  const triggers = readText(join(scriptDocsDir, "triggers.log"));
+  if (effects === null || triggers === null) return new Set();
+  return deriveContainerNames(effects, triggers);
+}
+
+/**
+ * 解析 / 取缓存的容器模型。解析出 0 个容器（dump 无结构示例）⇒ 退化手工名单。
+ * 缓存按 script_docs 目录：verify.mjs 的 sweep 对 33 个 mod 调 33 次，只解析一次。
+ */
+function loadContainerModel(
+  dir: string,
+  effectsText: string,
+  triggersText: string,
+): ContainerModel {
+  const cached = containerModelCache.get(dir);
+  if (cached) return cached;
+  const names = deriveContainerNames(effectsText, triggersText);
+  let model: ContainerModel;
+  if (names.size > 0) {
+    for (const n of DUMP_INVISIBLE_CONTAINERS) names.add(n);
+    model = { names, prefixes: [], derived: true };
+  } else {
+    model = fallbackContainerModel();
+  }
+  containerModelCache.set(dir, model);
+  return model;
+}
+
+/**
+ * 本次校验生效的容器模型。
+ * 为何是进程级变量而不是参数：保持 `isContainerControl(name)` 与 `pushBlock` 的字面形状，
+ * 审计 harness（`probe13.mjs` / `probe14.mjs`）以这些行做 temp 副本实验的文本锚点；
+ * `analyzeSemantics` 是同步单线程的，设置后立即用于扫描，无并发可观测性。
+ */
+let activeContainers: ContainerModel = fallbackContainerModel();
+
+/**
+ * 合法结构字段（像是左值、实为文件结构字段）：进「已知名」排除集，**不作候选**。
+ * 依据 = 文件结构（wiki 的 `Building_modding` 等）+ vanilla 实际语料（A9 卡差距 B / 修法 1），
+ * **不是** script_docs（dump 里没有这些字段）。也见 board/C2-COVERAGE.md。
+ */
+const LEGITIMATE_STRUCTURAL_FIELDS = new Set([
+  // building_types 的建筑结构字段（vanilla `building_types/capital_buildings.txt` 等 10+ 处）
+  "remove_if",
+  "lifts_fog_of_war",
+]);
+
 function isContainerControl(name: string): boolean {
-  if (CONTAINER_CONTROL_NAMES.has(name)) return true;
-  return CONTAINER_CONTROL_PREFIXES.some((p) => name.startsWith(p));
+  if (activeContainers.names.has(name)) return true;
+  return activeContainers.prefixes.some((p) => name.startsWith(p));
 }
 
 /** 相对路径是否在 common/scripted_effects/ 或 common/scripted_triggers/ 下（目录即上下文）。 */
@@ -638,15 +835,112 @@ interface ScriptDictionary {
   names: Set<string>;
   /** 按首字母分桶，供有界纠错缩小候选。 */
   byFirstLetter: Map<string, string[]>;
+  /**
+   * **已知名**（候选排除集，A9）：names ∪ event_targets ∪ on_actions ∪ custom_localization
+   * ∪ vanilla 键名 ∪ 合法结构字段。
+   *
+   * ⚠️ 为何**不**直接把它合进 `names`：`names` 在 `pushBlock` 里还决定 block 是 param
+   * 还是 context —— 如 `dynasty_home = { <trigger 列表> }` 的 body 是 trigger 列表，
+   * 加进 `names` 会把整块变 param、body 不再扫（新的漏查）。故**块分类逻辑不动**，
+   * 本集合只影响 `checkCandidate`。
+   */
+  knownNames: Set<string>;
+  /** 容器模型（来自 script_docs 结构示例；解析不可用时为退化手工名单）。 */
+  containers: ContainerModel;
+}
+
+/** `### <name>`（event_targets.log，334 条）。 */
+function parseEventTargetNames(text: string | null): string[] {
+  if (text === null) return [];
+  return [...text.matchAll(/^### (\w+)/gm)].map((m) => m[1]);
 }
 
 /**
- * 现解析 script_docs 三个词典（effects/triggers/modifiers），合并成 Set + 首字母分桶。
+ * on_actions.log：`<name>:` **独占一行**（行尾是 CRLF ⇒ 用 `\r?$`，不能用 `$` 锚点）。
+ * 实测 256 条（>8 长度的用于排除；数字/短名无害）。
+ */
+function parseOnActionNames(text: string | null): string[] {
+  if (text === null) return [];
+  return [...text.matchAll(/^([a-z_0-9]+):\r?$/gm)].map((m) => m[1]);
+}
+
+/**
+ * custom_localization.log：**有层级** —— 顶层 `<name>:`，`Entries:` 下的子项（裸标识符）
+ * **也是名字**，所以不能一行一个（naive 逐行会同时把 `Scope:` / `Random Valid:` 当名字）。
+ * 实测：顶层 926 条（464 distinct）+ Entries 子项 ~47k ⇒ 并入已知名（只减误报）。
+ */
+function parseCustomLocalizationNames(text: string | null): string[] {
+  if (text === null) return [];
+  const out: string[] = [];
+  let inEntries = false;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (line === "Entries:") {
+      inEntries = true;
+      continue;
+    }
+    if (inEntries) {
+      if (line === "" || line.startsWith("-")) {
+        inEntries = false; // 分隔线/空行 → Entries 段结束
+      } else if (/^[A-Za-z0-9_]+$/.test(line)) {
+        out.push(line);
+        continue;
+      }
+    }
+    const top = /^([A-Za-z0-9_]+):$/.exec(line);
+    if (top !== null) out.push(top[1]);
+  }
+  return out;
+}
+
+/**
+ * vanilla 键名/对象名的**行首**形态：`name =`、`REPLACE:name =`（`==` 不算；`name:` 不算）。
+ * 只取行首（`^`）—— 值里的标识符不是「作为键名出现过」。
+ */
+const VANILLA_KEY_RE = /^\s*(?:[A-Z_]+:)?([A-Za-z_][A-Za-z0-9_]*)\s*=(?!=)/gm;
+
+/** 进程内缓存的 vanilla 键名集合（按 vanilla 根路径）。实测 2830 文件 / ~0.7s。 */
+const vanillaKeyNameCache = new Map<string, Set<string>>();
+
+/**
+ * 收集真原版 `game-scripts/game/**` 里**作为键名/对象名出现过**的全部名字（A9 修法 1）。
+ * 只取 vanilla：① vanilla 是唯一权威的「已知名」来源；② 取其它 mod 会让流传的 typo 互相背书；
+ * ③ 语义上「合法」= vanilla 已知 **或** 本 mod 自己定义。
+ * 实测能档住 remove_if×82 / dynasty_home×2 / lifts_fog_of_war×3 / birth_date×8612 /
+ * opinions×2390 / dynasty_names×547 / building_levels×1 / antigonish×3 / cultural_ties×1。
+ * 副作用（已记录、可接受）：vanilla 自己的错字 `hidden_Effect` 会被放过 —— 不是我们的职责。
+ */
+function collectVanillaKeyNames(vanillaRoot: string): Set<string> {
+  const cached = vanillaKeyNameCache.get(vanillaRoot);
+  if (cached) return cached;
+  const keys = new Set<string>();
+  for (const { abs } of walkTxtFiles(vanillaRoot)) {
+    const text = readText(abs);
+    if (text === null) continue;
+    for (const m of text.matchAll(VANILLA_KEY_RE)) keys.add(m[1]);
+  }
+  vanillaKeyNameCache.set(vanillaRoot, keys);
+  return keys;
+}
+
+/** 进程内缓存的词典（按 repoRoot|vanillaRoot）。避免 sweep 对 33 个 mod 重复解析/扫 vanilla。 */
+const dictionaryCache = new Map<string, ScriptDictionary | null>();
+
+/**
+ * 现解析 script_docs 词典：effects/triggers/modifiers（→ `names`，兼作块分类）+ 已知名补充
+ * （event_targets/on_actions/custom_localization，仅排除候选）+ vanilla 键名（A9）。
+ * 容器模型也从同一目录的 effects.log/triggers.log 结构示例解析（A0）。
  * 优先相对模块自身定位（import.meta.dirname → ../../docs/script_docs，Node 24 ESM 可用）；
  * 找不到再退回 repo 根的 docs/script_docs（workshop 真实 mod 下 findRepoRoot 常为 null）。
  * 全部找不到返回 null，C2 安全跳过（不产 WARN/NOTE）。
  */
-function loadScriptDictionary(repoRoot: string | null): ScriptDictionary | null {
+function loadScriptDictionary(
+  repoRoot: string | null,
+  vanillaRoot: string | null,
+): ScriptDictionary | null {
+  const cacheKey = `${repoRoot ?? "<null>"}|${vanillaRoot ?? "<null>"}`;
+  const cached = dictionaryCache.get(cacheKey);
+  if (cached !== undefined) return cached;
   const dirs: string[] = [
     join(import.meta.dirname, "..", "..", "docs", "script_docs"),
   ];
@@ -671,8 +965,24 @@ function loadScriptDictionary(repoRoot: string | null): ScriptDictionary | null 
       }
       bucket.push(name);
     }
-    return { names, byFirstLetter };
+    const knownNames = new Set<string>(names);
+    for (const n of parseEventTargetNames(readText(join(dir, "event_targets.log")))) knownNames.add(n);
+    for (const n of parseOnActionNames(readText(join(dir, "on_actions.log")))) knownNames.add(n);
+    for (const n of parseCustomLocalizationNames(readText(join(dir, "custom_localization.log")))) knownNames.add(n);
+    for (const n of LEGITIMATE_STRUCTURAL_FIELDS) knownNames.add(n);
+    if (vanillaRoot !== null) {
+      for (const n of collectVanillaKeyNames(vanillaRoot)) knownNames.add(n);
+    }
+    const result: ScriptDictionary = {
+      names,
+      byFirstLetter,
+      knownNames,
+      containers: loadContainerModel(dir, effects, triggers),
+    };
+    dictionaryCache.set(cacheKey, result);
+    return result;
   }
+  dictionaryCache.set(cacheKey, null);
   return null;
 }
 
@@ -716,7 +1026,11 @@ function findDidYouMean(name: string, dict: ScriptDictionary): string | null {
   return bestDist <= 2 ? best : null;
 }
 
-/** C2 候选命中条件：长度 ≥8、不在词典、不是 mod 自己定义的名、且有 ≤2 的纠错候选。 */
+/**
+ * C2 候选命中条件：长度 ≥8、**不在已知名集合**（词典 ∪ event_targets ∪ on_actions ∪
+ * custom_localization ∪ vanilla 键名 ∪ 合法结构字段）、不是 mod 自己定义的名、且有 ≤2 的纠错候选。
+ * A9：`knownNames` 的判定只在这里（候选层），不影响 `pushBlock` 的 param/context 分类。
+ */
 function checkCandidate(
   name: string,
   dict: ScriptDictionary,
@@ -724,7 +1038,7 @@ function checkCandidate(
   warnings: SemanticWarning[],
 ): void {
   if (name.length < 8) return;
-  if (dict.names.has(name)) return;
+  if (dict.knownNames.has(name)) return;
   if (modDefined.has(name)) return;
   const suggestion = findDidYouMean(name, dict);
   if (suggestion !== null) {
@@ -1048,9 +1362,11 @@ export function analyzeSemantics(
   }
 
   // ---- C2：粘性上下文拼写校验（独立运行，不依赖 C1 的 overrides 非空） ----
-  const dict = loadScriptDictionary(repoRoot);
+  const dict = loadScriptDictionary(repoRoot, vanillaRoot);
   if (dict !== null) {
     checked.push("c2:script_docs");
+    // 容器模型：从 script_docs 结构示例解析（A0）；不可用时为退化手工名单。
+    activeContainers = dict.containers;
     for (const { abs, rel } of modFiles) {
       const text = readText(abs);
       if (text === null) continue;

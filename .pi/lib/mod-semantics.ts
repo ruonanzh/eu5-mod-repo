@@ -12,6 +12,9 @@
  *         `game-scripts/game/` 缺失/空时跳过 vanilla 侧核对并给 NOTE。【已实现】
  *         注：vanilla 严格 = 真原版 `game-scripts/game/**`；`game-scripts/workshop/**`
  *         （他 mod 镜像）不算 vanilla（用户决议，见 A3 卡与下方 vanillaRoot 注释）。
+ *         【T7】`INJECT:<name>` 且 name ∈（本 mod ∪ vanilla）的 scripted_effects/scripted_triggers
+ *         顶层定义名 → WARN `semantic:c1-inject-scripted`（wiki：INJECT 对二者无效、会整体覆盖）。
+ *         只查 `INJECT:`；`REPLACE:`（合法替换）/ `TRY_INJECT:` / `*_OR_CREATE` 不在内。
  *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
  *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。
  *         **容器名单来自 `docs/script_docs` 的结构示例解析**（A0：示例含 `<effects>`/`<triggers>`
@@ -54,6 +57,14 @@ const OVERRIDE_KEYWORD = "(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?";
 const OVERRIDE_DECL_RE = new RegExp(`^(${OVERRIDE_KEYWORD}):\\s*(\\w+)\\s*=`);
 /** 顶层普通对象定义：`name =`。 */
 const TOPLEVEL_DEF_RE = /^(\w+)\s*=/;
+
+/**
+ * T7：wiki `Modding/Mod_structure.md` 明说 **INJECT 对 scripted effects / scripted triggers 无效** ——
+ * 用在它们身上会把**原定义整体覆盖**（静默陷阱：作者以为在追加，实际是替换）。
+ * 本 mod 侧的 scripted 顶层定义名见 `modScriptedNames`；vanilla 侧从 vanilla 根下这两个目录取
+ * （vanilla 严格 = `game-scripts/game/**`，与 C1 同口径）。
+ */
+const SCRIPTED_CATEGORIES = ["scripted_effects", "scripted_triggers"] as const;
 
 /**
  * A8：**行首**的覆盖关键字前缀（`REPLACE:` / `INJECT:` / `TRY_*` / `*_OR_CREATE`）在 C2 扫描前剥掉，
@@ -1387,11 +1398,19 @@ export function analyzeSemantics(
   // C3 也要 vanilla 侧的建筑/商品名；为省一次全树遍历，与 C1 的 `<目录>` 并成一次收集。
   // 但 C1 的可用性判定（totalVanillaFiles/vanillaAvailable）仍**只统计 C1 自己的 `<目录>`**，
   // 以免新增 C3 类别把 C1 的 game-scripts 退化分支从 NOTE 变回正常核对。
+  // T7：只挑 `INJECT:`（`REPLACE:` / `TRY_INJECT:` / `*_OR_CREATE` 不在本检查内）。
+  const injectOverrides: Array<{ keyword: string; name: string }> = [];
+  for (const list of overridesByCategory.values())
+    for (const o of list) if (o.keyword === "INJECT") injectOverrides.push(o);
+
   const c3DefCategories = C3_CATEGORY_ORDER.filter(
     (c) => (modDefsByCategory.get(c)?.size ?? 0) > 0,
   );
   const vanillaCategories = new Set<string>(overridesByCategory.keys());
   for (const c of c3DefCategories) vanillaCategories.add(c);
+  // T7：本 mod 真的写了 `INJECT:` 时才去收 vanilla 的 scripted 名（省一次目录匹配）。
+  if (injectOverrides.length > 0)
+    for (const c of SCRIPTED_CATEGORIES) vanillaCategories.add(c);
 
   const vanillaDefsByCategory = new Map<string, Set<string>>();
   const vanillaFileCountByCategory = new Map<string, number>();
@@ -1405,6 +1424,12 @@ export function analyzeSemantics(
       vanillaDefsByCategory.set(category, definitionsFrom(files));
     }
   }
+  // T7：vanilla 侧的 scripted effect/trigger 顶层名（vanilla 根缺失时为空 → 只按本 mod 名判定）。
+  const vanillaScriptedNames = new Set<string>();
+  if (injectOverrides.length > 0) {
+    for (const c of SCRIPTED_CATEGORIES)
+      for (const n of vanillaDefsByCategory.get(c) ?? []) vanillaScriptedNames.add(n);
+  }
   let totalVanillaFiles = 0;
   for (const category of overridesByCategory.keys()) {
     totalVanillaFiles += vanillaFileCountByCategory.get(category) ?? 0;
@@ -1414,6 +1439,8 @@ export function analyzeSemantics(
   for (const category of overridesByCategory.keys()) {
     checked.push(`common/${category}`);
   }
+  // 本 mod 有任何覆盖声明，就说明本检查的分支前提成立（不论有没有 INJECT）——用于用例的 checked 断言。
+  if (overridesByCategory.size > 0) checked.push("c1:inject-scripted");
 
   // C1 的 game-scripts/game/ 缺失退化逻辑（NOTE）保持不动；但不再 early-return，C2 独立运行。
   if (overridesByCategory.size > 0 && !vanillaAvailable) {
@@ -1439,6 +1466,20 @@ export function analyzeSemantics(
         });
       }
     }
+  }
+
+  // ---- C1（T7）：`INJECT:` 指向 scripted effect/trigger → WARN ----
+  // 独立于上面的「目标存在性」判定：目标**存在**（正是本 mod / vanilla 的 scripted 名），
+  // 但 wiki 明说 INJECT 对 scripted effects/triggers 无效、会整体覆盖 → 仍是错。
+  for (const o of injectOverrides) {
+    if (!modScriptedNames.has(o.name) && !vanillaScriptedNames.has(o.name)) continue;
+    warnings.push({
+      code: "semantic:c1-inject-scripted",
+      message:
+        `semantic: INJECT target '${o.name}' is a scripted effect/trigger; ` +
+        `INJECT does not work for scripted effects/triggers and will overwrite the original definition ` +
+        `(use REPLACE: to replace it; to append, use another mechanism or a new object)`,
+    });
   }
 
   // ---- C2：粘性上下文拼写校验（独立运行，不依赖 C1 的 overrides 非空） ----

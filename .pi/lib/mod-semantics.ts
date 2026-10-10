@@ -377,12 +377,14 @@ const CONTEXT_ENTER_NAMES = new Set([
 ]);
 
 /**
- * trigger 列表容器（A2 卡补）：这些块名在真实脚本里 body 是 **trigger 列表**（非参数表），
- * 但既不在 CONTEXT_ENTER_NAMES，也不是 if/every_* 一类控制效果 —— 不加的话整块不进入上下文
- * （`select_trigger = { visible = { <typo> = yes } }` 必然漏报）。
- * 名单来源：A2 卡用 c2-coverage.mjs 在真实 mod 上做的模式复刻统计；并由 probe4.mjs 在
- * 33 个真实 mod 上验证「加入后 C2 零误报」（零误报是硬门槛）。
- * 逐名依据（括号为统计出现次数）：
+ * trigger 列表容器：这些块名在真实脚本里 body 是 **trigger/effect 列表**（而非参数表），
+ * 进入该块即 context。判据（什么样的块名算「名字级容器」）：
+ *   块名可枚举、在 vanilla 全量语料里 body 表现为 effect/trigger 列表（或列表 wrapper），
+ *   且块名本身不在 effects.log/triggers.log 里承担「已知效果/触发的参数表」语义。
+ * 名单来源：A2/A5 卡用 c2-coverage.mjs 在真实 mod 上做的模式复刻统计；每一族都由
+ * probe11（temp 复制件）在 **33 个真实 mod** 上验证「加入后 C2 零误报」（零误报是硬门槛）。
+ *
+ * ===== A2 族（交互/选择的可见性与合法性列表，括号为统计出现次数）=====
  * - visible                     generic_actions / select_trigger 的可见性 trigger 列表（56）
  * - enabled                     cabinet_actions / generic_actions 的启用条件 trigger 列表（12）
  * - is_shown / show_if          交互类的显示条件 trigger 列表（7 / 7）
@@ -391,17 +393,60 @@ const CONTEXT_ENTER_NAMES = new Set([
  * - select_trigger              上述列表的**外层容器**（generic_actions 等），本身也是列表容器
  * - ai_interaction_source_list  select_trigger 内的 AI 目标来源列表（内部 every_goods > limit 仍是 context）
  *
+ * ===== A5 族（2026-10，名字级剩余缺口收口）=====
+ * 判据与 A2 同源：**块名可枚举、body 是 effect/trigger 列表**；差别在于这些块名此前被
+ * 「块名在词典 → param」或「顶层对象父模式 neutral」两条既有分支短路，整块不查。
+ *  - situations / 交互脚本的 `on_*`：body 是**某时机执行的 effect 列表**；它们出现在顶层
+ *    对象（situation/casus_belli/…）下，父模式是 neutral，不显式纳入则整块 neutral。
+ *    名字判据 = `on_<时机>` 形态，vanilla 计数：on_start 206 / on_monthly 148 /
+ *    on_completion 218 / on_accept 218 / on_activate 145 / on_end 118 / on_debate_passed 225。
+ *    成员（probe10 观测到的 9 名，A5 按类收口后同族共 22 名，见下方收口段）：on_start on_monthly
+ *    on_ended on_ending on_completion on_accept on_activate on_end on_debate_passed。
+ *  - potential_trigger：auto_modifiers 的 **trigger 列表容器**（body 全为 trigger 左值，
+ *    `potential_trigger = { has_societal_value = … culture = { OR = {…} } }`，vanilla 297）。
+ *  - ai_will_do：**script value 容器**。判据 = 「脚本值容器里 `if > limit` 仍是 trigger 守卫」
+ *    （`ai_will_do = { value = 10  if = { limit = { is_situation_active = … } add = 10 } }`）；
+ *    ai_will_do 在 triggers.log 里是已知触发名，旧逻辑判 param，limit 里的 trigger 不查（vanilla 476）。
+ *  - custom_tooltip / custom_description / show_as_tooltip：**wrapper 块**。判据 = body 是
+ *    「左值列表 + 可选 triggers」的 loc 包装，而非参数表；这三个名字本身在 effects/triggers
+ *    词典里是效果/触发名，旧逻辑判 param 而整块短路，故必须走 ENTER 优先 + 纳入本名单。
+ *    vanilla 计数：custom_tooltip 1253 / custom_description 289 / show_as_tooltip 283。
+ *  - sort_text：`attribute_columns > info > sort > sort_text > if > limit > { <typo-trigger> }`。
+ *    判据 = UI 排序配置里唯一的 trigger 列表是 `limit`，其 body 是真 trigger 列表；vanilla 192。
+ *    （A5 卡「优先纳入」；probe11 V2 实测 33 真实 mod 零误报。）
+ *    A2 卡曾把它列为「未验证容器」，A5 完成验证后正式纳入。
+ *
  * 有意**不**纳入（避免再成为「未记录的洞」）：
- * - `switch`：见下方注释（case 名是任意值）。
- * - `rank_modifier` / `literacy_impact` / `sort_text` 等（c2-coverage 里也成规模出现）：形态上
- *   可能同样是容器，但本卡只对上面 10 个跑过「33 个真实 mod 零误报」，未验证的一律不加，
- *   留作后续候选（见 A2 结论里的「新发现」）。
- *   注（A4）：`rank_modifier` / `literacy_impact` 已作为 **modifier 左值表族** 并入
- *   CONTEXT_ENTER_NAMES（见其 JSDoc）；`sort_text` 仍属未验证容器，见 A5。
- * - `limit` / `owner` / `area` / `value` / `map_color` / `sort_text` 等：形态混杂（参数表 /
- *   scope 目标 / 取值块），未验证，不加。
- *   注（A4）：`modifier` / `country_modifier` / `raw_modifier` 已作为 **modifier 左值表族**
- *   并入 CONTEXT_ENTER_NAMES（见其 JSDoc）；`sort_text` 仍属未验证容器，见 A5。
+ * - `switch`：见下方 CONTAINER_CONTROL_NAMES 注释（case 名是任意值，纳入会误报）。
+ * - `limit` / `owner` / `area` / `value` / `map_color`：形态混杂（trigger 列表 / 参数表 /
+ *   scope 目标 / 取值块），无法用名字判据区分，不加；其内部漏查属已知的**名字级不可判**面。
+ * - `(top)` 伪块名与数据驱动目录里作者自起 id 的对象（如 `common/static_modifiers/**`
+ *   的 `location_base_values`）：块名不可枚举，属**目录级**规则（A6），不在本名单。
+ *   注（A4）：`modifier` / `country_modifier` / `raw_modifier` / `rank_modifier` /
+ *   `literacy_impact` 已作为 **modifier 左值表族** 并入 CONTEXT_ENTER_NAMES（见其 JSDoc）。
+ * - **同族的未验证成员** —— **已由 A5 按类收口**（2026-10）：① IO / 议会 / 任务 / 官僚等
+ *   数据驱动目录里的 `on_*` 成员块（on_debate_failed / on_joined / on_abort / on_deactivate /
+ *   on_left / on_fully_activated / on_persistent_completion / on_enable / on_spread_to_country /
+ *   on_disband / on_creation / on_persistent_start / on_calc_effect）与 ② `*_trigger` / `actor_trigger`
+ *   后缀成员块（can_join_trigger / create_visible_trigger / invite_visible_trigger /
+ *   can_bestow_trigger / can_lead_trigger / can_leave_trigger / auto_leave_trigger /
+ *   auto_disband_trigger / auto_bestowal_trigger / can_add_location_trigger / actor_trigger /
+ *   can_remove_trigger / can_add_trigger / location_trigger / potential_target_trigger /
+ *   pause_trigger）已按类并入本名单，并经「逐名计数 + 33 真实 mod 零误报」验证（probe10 G3
+ *   命中、`c2-coverage --vanilla` 中这 29 名全部从 top 榜消失）。
+ *
+ * ===== A5 收口后仍出现在 `c2-coverage.mjs --vanilla` neutral 榜的项 =====
+ * 这些**不是本名单遗漏**，已在下面显式归类：
+ * - 参数名与词典撞车的**噪声**（卡里已注明）：`(top)` 6846 / `(bare)` 2603 / create_character
+ *   4794+77 / dynamic_historical_event 3648 / limit / if / value / add / OR …（auditor 已逐个核过：
+ *   这些块的 body 是参数表，不是 effect/trigger 列表）。
+ * - **数据驱动目录的任意 id 对象内部**的成员块（`common/international_organizations/**`、
+ *   `common/parliament_issues/**`、`common/formable_countries/**`、`events/**` 等）——
+ *   如 create_visible 84 / form_effect 56 / ai_desire_to_join 54 / calc 53 / every_subject 53 /
+ *   major_trigger 27 / can_lead_tooltip_trigger / auto_rescind_trigger …：父对象是作者起
+ *   的 **id** → neutral，于是内部所有块（含已知 effect/trigger 名）都 neutral。这类形状随目录/版本
+ *   **无界**，名字级无法穷举（这就是卡里把 G10/G11/G12 与它划给 A6 的原因），正确修法是
+ *   **目录即上下文**，属 A6，A5 按卡边界不动。
  */
 const TRIGGER_CONTAINER_NAMES = new Set([
   "select_trigger",
@@ -414,13 +459,65 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "can_end",
   "is_valid",
   "ai_is_valid",
+  // --- A5：situations / 交互脚本 on_*（effect 列表）---
+  "on_start",
+  "on_monthly",
+  "on_ended",
+  "on_ending",
+  "on_completion",
+  "on_accept",
+  "on_activate",
+  "on_end",
+  "on_debate_passed",
+  // --- A5：同族收口（IO / 议会 / 任务 / 官僚等数据驱动目录里的 on_* 成员块，
+  //     body 同样是 effect/trigger 列表；逐名由 probe10/probe11 + 33 真实 mod 零误报验证）---
+  "on_debate_failed",
+  "on_joined",
+  "on_abort",
+  "on_deactivate",
+  "on_left",
+  "on_fully_activated",
+  "on_persistent_completion",
+  "on_enable",
+  "on_spread_to_country",
+  "on_disband",
+  "on_creation",
+  "on_persistent_start",
+  "on_calc_effect",
+  // --- A5：`*_trigger` / `actor_trigger` 后缀成员块（IO 的 can_*_trigger、scripted
+  //     diplomatic objectives 的 actor_trigger 等，body 是 trigger 列表）---
+  "can_join_trigger",
+  "create_visible_trigger",
+  "invite_visible_trigger",
+  "can_bestow_trigger",
+  "can_lead_trigger",
+  "can_leave_trigger",
+  "auto_leave_trigger",
+  "auto_disband_trigger",
+  "auto_bestowal_trigger",
+  "can_add_location_trigger",
+  "actor_trigger",
+  "can_remove_trigger",
+  "can_add_trigger",
+  "location_trigger",
+  "potential_target_trigger",
+  "pause_trigger",
+  // --- A5：trigger 列表容器 / script value 容器 / loc wrapper ---
+  "potential_trigger",
+  "ai_will_do",
+  "custom_tooltip",
+  "custom_description",
+  "show_as_tooltip",
+  // --- A5：UI 排序里的 trigger 列表（limit）---
+  "sort_text",
 ]);
 
 /**
  * 容器/控制效果的块：body 是 effect/trigger **列表**而非参数表，进入后应**继续** context 扫描
  * （否则 `if = { add_prestigez = … }` 里的 typo 会漏）。判定优先级**高于**「块名在词典 → param」。
  * 精确名以 script_docs（effects.log/triggers.log）实测为准；first_valid 不在词典也纳入（无害）。
- * 前缀 every_/any_/ordered_ 对应 effects.log（every_/ordered_ 各 300+）与 triggers.log（any_ 300+）。
+ * 前缀 every_/any_/ordered_ 对应 effects.log（every_/ordered_ 各 300+）、triggers.log（any_ 300+）；
+ * random_ 对应 effects.log（random_* 305，如 random_market_present_in_country）——A5 补。
  * hidden_effect/hidden_trigger 已在 CONTEXT_ENTER_NAMES，不重复。
  *
  * ⚠️ **不含 switch**：trigger 侧 `switch = { trigger = <t> <值> = { <triggers> } … }` 的 case 名是
@@ -444,7 +541,7 @@ const CONTAINER_CONTROL_NAMES = new Set([
   "not",
   "nor",
 ]);
-const CONTAINER_CONTROL_PREFIXES = ["every_", "any_", "ordered_"];
+const CONTAINER_CONTROL_PREFIXES = ["every_", "any_", "ordered_", "random_"];
 
 function isContainerControl(name: string): boolean {
   if (CONTAINER_CONTROL_NAMES.has(name)) return true;
@@ -598,9 +695,13 @@ function scanStickyContext(
   const pushBlock = (name: string, parentMode: ContextMode): void => {
     const isTopLevel = stack.length === 0;
     let mode: ContextMode;
-    if (parentMode === "param") mode = "param";
-    else if (CONTEXT_ENTER_NAMES.has(name) || TRIGGER_CONTAINER_NAMES.has(name))
+    // ENTER 名单**优先**于 param（A5 G2a/G2b）：已知效果的参数块里嵌套的
+    // effect/trigger/hidden_effect/hidden_trigger/容器块（真实形态
+    // `create_building_country_in_location > hidden_effect > <effect>`）body 仍是
+    // effect/trigger 列表；先判 `parentMode === "param"` 会把整块短路成参数表而漏查。
+    if (CONTEXT_ENTER_NAMES.has(name) || TRIGGER_CONTAINER_NAMES.has(name))
       mode = "context";
+    else if (parentMode === "param") mode = "param";
     else if (parentMode === "context" && isContainerControl(name)) mode = "context";
     else if (parentMode === "context")
       mode = dict.names.has(name) || modScripted.has(name) ? "param" : "context";

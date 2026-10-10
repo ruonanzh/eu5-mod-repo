@@ -111,8 +111,21 @@ interface TopLevelScan {
 }
 
 /**
- * 注释/字符串感知地扫描顶层对象：只认 depth==0 且行首的 `name =` 或 `KEYWORD:name =`。
+ * 注释/字符串感知地扫描顶层对象：只认 **depth==0** 的 `name =` 或 `KEYWORD:name =`
+ * （行首**允许**前导空白，见下方判据）。
  * `{`/`}` 计数维护 depth，字符串内的括号与关键字不计（与 mod-lint 的 checkOverrideKeywords 同思路）。
+ *
+ * 判据 = **depth==0**，与行首空白**无关**（A10）：EU5 脚本里顶层对象通常顶格写，但
+ * **行首 tab/空格不是语义**。证据（真原版 `game-scripts/game/**`）：**16 个文件里有 35 个
+ * 行首缩进的顶层（depth==0）定义**（`vanilla-indent-count.mjs`：advances 19 / modifier_icons 8 /
+ * cultures 4 / genes 1 / holy_sites 1 / religious_aspects 1 / script_values 1），如
+ * `in_game/common/advances/country_byz.txt:3` 的 `\tbyz_heart_of_orthodoxy_advance = {`。
+ * 旧实现用「`i-1 === "\n"` 行首紧贴 + `^` 锚定」，只要该行行首有空白，两个 `^` 都失配 ⇒
+ * **depth==0 的顶层定义 / 覆盖声明整类漏解析**（C1 假阴、C1 假阳、C3 假阴）。
+ * 与 mod-lint 的 `checkOverrideKeywords` **同口径**：那里本来就是 `^[ \t]*<KEYWORD>:`。
+ * 注意：本函数只处理 **depth==0** 的行首空白；depth>0 的条目级 override 关键字
+ * （如 `D008_genes_accessories.txt` 里 `accessory_genes = {` **内部**的 6 条 `\tINJECT_OR_CREATE:`，
+ * 实测 depth==1）属**语法层**（checkOverrideKeywords / A11 / T7），不在 C1/C3。
  */
 function scanTopLevel(cleaned: string): TopLevelScan {
   const definitions = new Set<string>();
@@ -143,20 +156,23 @@ function scanTopLevel(cleaned: string): TopLevelScan {
       i += 1;
       continue;
     }
-    // 顶层且行首：先试覆盖声明（更长、更具体），再试普通定义。
+    // depth==0 且**行首**（允许行首空白 —— 空白不是语义，理由见函数 JSDoc）：
+    // 先跳过行首空白，再试覆盖声明（更长、更具体），最后试普通定义。
     if (depth === 0 && (i === 0 || cleaned[i - 1] === "\n")) {
-      const window = cleaned.slice(i, i + 200);
+      let j = i;
+      while (j < n && (cleaned[j] === " " || cleaned[j] === "\t")) j += 1;
+      const window = cleaned.slice(j, j + 200);
       const om = OVERRIDE_DECL_RE.exec(window);
       if (om && om.index === 0) {
         overrides.push({ keyword: om[1], name: om[2] });
         // 不把覆盖声明本身算作「目标已存在」——它正是被核对的对象。
-        i += om[0].length;
+        i = j + om[0].length;
         continue;
       }
       const dm = TOPLEVEL_DEF_RE.exec(window);
       if (dm && dm.index === 0) {
         definitions.add(dm[1]);
-        i += dm[0].length;
+        i = j + dm[0].length;
         continue;
       }
     }

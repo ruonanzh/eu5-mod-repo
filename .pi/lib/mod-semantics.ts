@@ -17,7 +17,9 @@
  *         trigger 列表容器（visible / enabled / select_trigger / ai_interaction_source_list …）
  *         也进入上下文（A2）。modifier **左值表族**（body 为 `<modifier 名> = 数值` 的块，
  *         如 modifier / country_modifier / rank_modifier / country_base_values / goods_demand …）
- *         也进入上下文（A4，见 CONTEXT_ENTER_NAMES 的 JSDoc）。【已实现】
+ *         也进入上下文（A4，见 CONTEXT_ENTER_NAMES 的 JSDoc）。
+ *         另外，**数据驱动目录**（顶层块名是作者自起 id、body 是词典左值列表，块名不可枚举）
+ *         的顶层对象也是 context（A6，见 DATA_DRIVEN_CONTEXT_DIRS 的 JSDoc）。【已实现】
  *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
  *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
  *         in_game 与 main_menu 的 localization/ 都算合法。vanilla 侧同 C1：只算
@@ -317,9 +319,9 @@ function definitionsFrom(files: string[]): Set<string> {
  *  - 数据驱动目录里的**任意 id 对象**（`common/static_modifiers/**`、`common/auto_modifiers/**`
  *    的对象定义，body 也是 modifier 表，如 `location_base_values` / `development` /
  *    `rome_reborn` / `is_great_power` / `complacency_impact` / `foodstuffs_exports_banned`）：
- *    块名是作者起的 id、不能枚举。正确修法是加「目录即上下文」规则（与 scripted_effects 同思路），
- *    属目录级规则；本卡只做名字级收口，且审计 harness（c2-coverage.mjs，只解析本文件两张名字
- *    Set）也复刻不了目录规则，故**显式排除并记录在此**，留作后续卡。
+ *    块名是作者起的 id、不能枚举，**不能**进本名字名单。A6 已用**目录级**规则
+ *    （`DATA_DRIVEN_CONTEXT_DIRS` + `isDataDrivenContextDir`，与 scripted_effects 同一条
+ *    `scanStickyContext` 通路）覆盖其**清单内**的目录；清单外的目录见该 JSDoc 的「有意排除」。
  *
  * 回归门槛：本族在 33 个真实 mod（reference + workshop + Paradox）上跑过「C2 零误报」
  * （probe11 / tool-content-sweep）；零误报是硬门槛。
@@ -421,7 +423,8 @@ const CONTEXT_ENTER_NAMES = new Set([
  * - `limit` / `owner` / `area` / `value` / `map_color`：形态混杂（trigger 列表 / 参数表 /
  *   scope 目标 / 取值块），无法用名字判据区分，不加；其内部漏查属已知的**名字级不可判**面。
  * - `(top)` 伪块名与数据驱动目录里作者自起 id 的对象（如 `common/static_modifiers/**`
- *   的 `location_base_values`）：块名不可枚举，属**目录级**规则（A6），不在本名单。
+ *   的 `location_base_values`）：块名不可枚举，属**目录级**规则（A6，已实装为
+ *   `DATA_DRIVEN_CONTEXT_DIRS`），不在本名单。
  *   注（A4）：`modifier` / `country_modifier` / `raw_modifier` / `rank_modifier` /
  *   `literacy_impact` 已作为 **modifier 左值表族** 并入 CONTEXT_ENTER_NAMES（见其 JSDoc）。
  * - **同族的未验证成员** —— **已由 A5 按类收口**（2026-10）：① IO / 议会 / 任务 / 官僚等
@@ -444,9 +447,12 @@ const CONTEXT_ENTER_NAMES = new Set([
  *   `common/parliament_issues/**`、`common/formable_countries/**`、`events/**` 等）——
  *   如 create_visible 84 / form_effect 56 / ai_desire_to_join 54 / calc 53 / every_subject 53 /
  *   major_trigger 27 / can_lead_tooltip_trigger / auto_rescind_trigger …：父对象是作者起
- *   的 **id** → neutral，于是内部所有块（含已知 effect/trigger 名）都 neutral。这类形状随目录/版本
- *   **无界**，名字级无法穷举（这就是卡里把 G10/G11/G12 与它划给 A6 的原因），正确修法是
- *   **目录即上下文**，属 A6，A5 按卡边界不动。
+ *   的 **id** → neutral，于是内部所有块（含已知 effect/trigger 名）都 neutral。
+ *   → A6 已按**目录即上下文**覆盖其中「对象 body 是词典左值列表」的目录（清单 + 逐目录
+ *   depth=1 计数见 `DATA_DRIVEN_CONTEXT_DIRS` 的 JSDoc）；不在该清单的目录为**有意排除**
+ *   （同上 JSDoc）；`events/**` 这类不在 `{in_game|main_menu}/common/<目录>/` 下的形状，其
+ *   对象的 effect/trigger 列表容器（`immediate`/`option`/`trigger`…）已由 ENTER 名单覆盖。
+ *   A5 按卡边界不动。
  */
 const TRIGGER_CONTAINER_NAMES = new Set([
   "select_trigger",
@@ -552,6 +558,80 @@ function isContainerControl(name: string): boolean {
 function isScriptedDir(rel: string): boolean {
   const c = categoryFromRel(rel);
   return c === "scripted_effects" || c === "scripted_triggers";
+}
+
+/**
+ * ===== 数据驱动目录（A6，2026-10）：「目录即上下文」第二类 =====
+ *
+ * 判据（什么样的 `<目录>` 算「body 是左值列表」的数据驱动目录，块名不可枚举）：
+ *  1. 目录里的**顶层块名是作者自起的 id**（`<id> = { … }`），不可能按名字进 ENTER / 容器 / 词典，
+ *     因此 `pushBlock` 对顶层对象只能给 neutral（`isScripted` 分支是唯一的入口）→ 整个 body 不扫；
+ *  2. 对象 body 里存在**直接依赖 script_docs 词典的左值**——`name = <number|yes/no|scope|…>` 形式的
+ *     modifier / effect / trigger 名（或与词典撞名的资源/成本键），使「左值写成 dist ≤2 的 typo」
+ *     在名字级是**可判**的；
+ *  3. **全量真实语料零误报（硬门槛）**：加入后必须在 33 个真实 mod（reference + workshop +
+ *     Paradox mod 目录）上保持 C2 WARN = 0（`probe13.mjs` 的目录集实验 + `tool-content-sweep.mjs`）。
+ *
+ * 满足 1+2+3 的目录 → 其**顶层对象**（及内部 scope 块）进入 context，与 scripted_effects 走同一条
+ * `scanStickyContext` 通路。顶层对象名本身**不**参与候选（C2 只查 body 左值，与 `(top)` 噪声同口径）。
+ *
+ * 成员（6 个；括号 = 在 `game-scripts/game/**` 真原版全量语料上，该目录的对象 body **直系**
+ * `depth=1` 出现词典左值的次数 / distinct id 数；eff/trg/mod = effects/triggers/modifiers 词典）：
+ *  - `static_modifiers`  body 是纯 modifier 左值表：726 个 distinct modifier 名（monthly_legitimacy 113、
+ *                       monthly_prestige 112、local_max_control 51 …），2616 个 id。
+ *  - `auto_modifiers`    242 个 distinct modifier 名（monthly_towards_hellenization 26 …），140 个 id。
+ *  - `advances`          487 个 distinct（`unlock_unit` effect 186 + modifier 名，monthly_prestige 68 …），
+ *                       2892 个 id；body 是 effect + modifier 左值表。
+ *  - `prices`            17 个资源/成本键（gold 109、stability 87、prestige 53 …）——这些键同时是词典名
+ *                       （词典名与结构化键撞车，正是可判的前提），332 个 id。
+ *  - `holy_sites`        `importance`（trigger 名，241 次），241 个 id。
+ *  - `building_types`    `employment_size`(465) / `is_foreign`(456)（trigger 名），465 个 id。
+ * 6 个目录全部有 `probe13.mjs` 的目录夹具（命中 6/6）与 `board/cases` 的 `c2-dir-context-data-*` 用例。
+ *
+ * 有意**排除**（看起来像数据驱动目录，但**不该**按目录进 context；避免「未记录的洞」）：
+ *  - **无 depth=1 词典左值**（唯一命中是已在 ENTER 的容器名）→ 纳入零收益：
+ *    `country_interactions` / `character_interactions` / `generic_actions`（depth=1 唯一词典名是
+ *    `ai_will_do`，A5 已 ENTER）、`death_reason`（0 条）。
+ *  - **body 是结构化字段表（布尔/枚举/颜色/贴图/局部化键），depth=1 的词典名是「字段名与词典
+ *    合法撞车」，不是左值列表**；纳入等于把字段名当左值候选（只扩大潜在误报面），且这些目录里
+ *    真正的 effect/trigger 列表容器（`potential_trigger` / `on_*` / `*_trigger` / 各 `*_modifier`）
+ *    已由名字级 ENTER/容器名单覆盖 → 不纳入：
+ *      `religions`（`has_karma = yes` 等 14 名）、`gods`（`is_female`）、`laws`（`requires_vote`）、
+ *      `casus_belli`（`war_goal_type`）、`parliament_agendas`（`importance`）、`subject_types`
+ *      （`has_overlords_ruler` 等 7 名）、`international_organizations`（`leader_type` 等 10 个枚举
+ *      字段）、`topography`（`movement_cost`/`proximity` 等 3 个地形字段）、`script_values`
+ *      （`value`/`if`/`multiply` 脚本值表达式 + `save_temporary_scope_as`；其 `if > limit` 是脚本值
+ *      的**值分支**，与 A7 的「param 值分支」同族，需外科式规则，不属本卡）。
+ *    注：`subject_types` 的 `visible_through_diplomacy = { <trigger 列表> }` 是作者自起名的
+ *    trigger 容器，属**已知的名字级不可判**面；若真实语料给出反例，按下方维护规则重新评估。
+ *  - 其余 `common/<目录>`（`countries` / `locations` / … 游戏状态表、界面/贴图表、loc 表）：顶层块名
+ *    不是「作者 id 对象」或 body 无词典左值，一律不纳入。
+ *  - 顶层 `REPLACE:` / `INJECT:` **覆盖对象**的 body（如 `REPLACE:slave_center = { … }`，见 workshop
+ *    3610028078 `…/building_types/ftc_foreign_buildings.txt:66`）仍不进 context —— `KEYWORD:` 前缀使
+ *    行扫描只看到一个无名 scope 块。这是与 `common/scripted_effects/**` **同源的既有行为**（覆盖体
+ *    不查，`REPLACE:foo = { add_goldd = 1 }` 在 scripted_effects 里也为 0 条），不是本目录判据的
+ *    一部分；若要覆盖，属独立卡（C2 覆盖体规则），且需另做零误报验证。
+ *
+ * 维护规则（验收 6，零误报优先）：真实语料一旦在**已纳入**目录里出现 C2 WARN，先逐条判定——
+ *  **真命中**（作者把 modifier/effect/trigger 名写错）→ 保留；**新误报**（词典名与结构化字段
+ *  合法撞车）→ 收紧该目录（必要时移出清单）并**在此记录依据**。宁可少纳，不可误报。
+ *
+ * 命名说明：不叫 `DATA_DRIVEN_DIRS` / `isDataDrivenDir`，是为了不撞审计 harness `probe13.mjs`
+ * 在 temp 副本里插入的同名 Set/函数（`const` 重名会 SyntaxError，令 D1/D2 实验跑不起来）。
+ */
+const DATA_DRIVEN_CONTEXT_DIRS = new Set([
+  "static_modifiers",
+  "auto_modifiers",
+  "advances",
+  "prices",
+  "holy_sites",
+  "building_types",
+]);
+
+/** 相对路径是否在「数据驱动目录」下（顶层块名是作者 id、body 是词典左值列表）。 */
+function isDataDrivenContextDir(rel: string): boolean {
+  const c = categoryFromRel(rel);
+  return c !== null && DATA_DRIVEN_CONTEXT_DIRS.has(c);
 }
 
 interface ScriptDictionary {
@@ -683,6 +763,10 @@ function scanStickyContext(
   modDefined: Set<string>,
   modScripted: Set<string>,
   warnings: SemanticWarning[],
+  // A6：文件是否在「数据驱动目录」下（顶层对象是作者 id、body 是词典左值列表）。
+  // 与 `isScripted` 分开传（不在此处 OR）是为了保持调用点第二行 `isScriptedDir(rel),` 的
+  // 字面不变——审计 harness probe13.mjs 以此行做 temp 副本的 D1/D2 实验锚点。
+  isDataDriven: boolean,
 ): void {
   const n = cleaned.length;
   const stack: ContextMode[] = [];
@@ -705,7 +789,7 @@ function scanStickyContext(
     else if (parentMode === "context" && isContainerControl(name)) mode = "context";
     else if (parentMode === "context")
       mode = dict.names.has(name) || modScripted.has(name) ? "param" : "context";
-    else if (isScripted && isTopLevel) mode = "context";
+    else if ((isScripted || isDataDriven) && isTopLevel) mode = "context";
     else mode = "neutral";
     stack.push(mode);
   };
@@ -977,6 +1061,7 @@ export function analyzeSemantics(
         modDefinedNames,
         modScriptedNames,
         warnings,
+        isDataDrivenContextDir(rel),
       );
     }
   }

@@ -55,6 +55,27 @@ const OVERRIDE_DECL_RE = new RegExp(`^(${OVERRIDE_KEYWORD}):\\s*(\\w+)\\s*=`);
 /** 顶层普通对象定义：`name =`。 */
 const TOPLEVEL_DEF_RE = /^(\w+)\s*=/;
 
+/**
+ * A8：**行首**的覆盖关键字前缀（`REPLACE:` / `INJECT:` / `TRY_*` / `*_OR_CREATE`）在 C2 扫描前剥掉，
+ * 让 `KEYWORD:foo = { … }` 里的 `foo` 重新成为**块名** —— 覆盖体因此等价于「**该目录的一个普通对象**」，
+ * 由**既有规则**处置（scripted / 数据驱动目录 → context；其它目录 → neutral）。**不新增任何判据**。
+ *
+ * 为何必须剥：`scanStickyContext` 的块名判定带 `prev !== ":"` 守卫（防 `scope:actor =` 被当块名），
+ * 于是 `REPLACE:foo` 的 `foo` 被跳过、紧随的裸 `{` 只 `push(currentMode())` = neutral
+ * ⇒ **覆盖体整块不扫**（`REPLACE:foo = { add_prestigez = 1 }` 在 scripted_effects 里也是 0 条）。
+ * 为何安全：只用 `OVERRIDE_KEYWORD`（与 C1 同源）⇒ `scope:actor = {` 这类「`:` 前是 scope 名而非
+ * 覆盖关键字」的照旧**不**剥。只在行首（允许前导空白；vanilla 的条目级嵌套覆盖，如
+ * `dlc/D008.../in_game/common/genes/D008_genes_accessories.txt:3` 的 `\tINJECT_OR_CREATE:headwear = {`
+ * 也是行首缩进）剥，且要求后面确实是 `name =` 形态（`(?=\w+\s*=)`），避免误剥字符串里的同形文本。
+ */
+const OVERRIDE_PREFIX_LINE_RE = new RegExp(
+  `^(\\s*)${OVERRIDE_KEYWORD}:(?=\\w+\\s*=)`,
+  "gm",
+);
+function stripOverrideKeywordPrefixes(text: string): string {
+  return text.replace(OVERRIDE_PREFIX_LINE_RE, "$1");
+}
+
 /** TRY_* / *_OR_CREATE 是"尽力而为/允许新建"语义，目标缺失是常事 → NOTE，永不 WARN。 */
 function isAdvisoryKeyword(keyword: string): boolean {
   return keyword.startsWith("TRY_") || keyword.endsWith("_OR_CREATE");
@@ -536,6 +557,20 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "custom_tooltip",
   "custom_description",
   "show_as_tooltip",
+  // --- A7：同族 wrapper —— 文档占位符是**单数** `<trigger>`/`<effects>`，A0 的
+  //     `<effects>`/`<triggers>` 结构示例派生看不见，故显式按名纳入（与 A5 loc wrapper 同族）。---
+  // calc_true_if：triggers.log `calc_true_if = { amount = 2 <trigger> <trigger> <trigger> }`。
+  //   名字在 triggers 词典 ⇒ 旧逻辑判 param → body 不扫，其内的作用域容器
+  //   （`any_unit = { <triggers> }`）被连带短路（真形态
+  //   `country_interactions/lend_unit_to_ally.txt:162-165` 的 `ai_will_do > if > limit > calc_true_if`）。
+  "calc_true_if",
+  // custom_label / custom_description_no_bullet：与 custom_tooltip / custom_description /
+  //   show_as_tooltip **同族 loc wrapper**（effects.log：`custom_label = { text = key subject = scope
+  //   <hidden effects> }`、`custom_description_no_bullet = { … ... effects ... }`；占位符同样不是
+  //   `<effects>` ⇒ 派生看不见）。语料（vanilla + 33 真实 mod）**0 次使用** ⇒ 纳入不改变零误报面，
+  //   只为不留「同族未记录」的洞（清单见 board/C2-COVERAGE.md 表 B2）。
+  "custom_label",
+  "custom_description_no_bullet",
   // --- A5：UI 排序里的 trigger 列表（limit）---
   "sort_text",
 ]);
@@ -749,6 +784,22 @@ const LEGITIMATE_STRUCTURAL_FIELDS = new Set([
 function isContainerControl(name: string): boolean {
   if (activeContainers.names.has(name)) return true;
   return activeContainers.prefixes.some((p) => name.startsWith(p));
+}
+
+/**
+ * **非双用**容器（A7，P2）：容器名**不在** `CONTAINER_CONTROL_NAMES`
+ * （`if`/`else`/`else_if`/`while`/`trigger_if`/`trigger_else`/`trigger_else_if`）。
+ *
+ * 为何要分：`if` 这类控制关键字是**双用**的 —— 既作 effect/trigger 列表容器，又作**脚本值表达式**
+ * 节点（param 块里的值分支，vanilla 全量 `if`×19 / `else`×3，如
+ * `add_research_progress = { if = { limit = {…} value = … } }`），在 param 父块下必须保守（不放行）。
+ * 其余容器（`every_*`/`any_*`/`ordered_*`/`random_*` 作用域迭代，`random`/`random_list`，
+ * `and`/`or`/`not`/`nor`/`nand`/`any_false`/`all_false`）的 body **只可能**是 effect/trigger 列表
+ * ⇒ 即使在 param 下也放行（否则真形态 `create_character > every_country > <typo>` 整块不扫）。
+ * 判据只叠加在**派生容器集合**（A0）之上，不引入手写前缀名单。
+ */
+function isUnambiguousContainer(name: string): boolean {
+  return isContainerControl(name) && !CONTAINER_CONTROL_NAMES.has(name);
 }
 
 /** 相对路径是否在 common/scripted_effects/ 或 common/scripted_triggers/ 下（目录即上下文）。 */
@@ -1069,9 +1120,11 @@ function isWs(ch: string): boolean {
  *   scripted effect/trigger 名（调用体是参数列表，如 `_cmm_register_bool_setting_internal = { is_global = 0 }`）
  *   → 该块内部为 param；
  * - context 里 `name = ...` 左值（含块名）是候选；裸值、长度 <8、mod 定义名不扫。
+ * - A8：扫描前剥掉**行首覆盖关键字前缀**（`REPLACE:`/`INJECT:`/`TRY_*`/`*_OR_CREATE`），
+ *   于是 `KEYWORD:foo = { … }` 的 `foo` 是普通块名、覆盖体由上面这些**既有规则**处置。
  */
 function scanStickyContext(
-  cleaned: string,
+  rawCleaned: string,
   isScripted: boolean,
   dict: ScriptDictionary,
   modDefined: Set<string>,
@@ -1082,6 +1135,8 @@ function scanStickyContext(
   // 字面不变——审计 harness probe13.mjs 以此行做 temp 副本的 D1/D2 实验锚点。
   isDataDriven: boolean,
 ): void {
+  // A8：先剥行首覆盖关键字前缀（理由与判据见 stripOverrideKeywordPrefixes 的 JSDoc）。
+  const cleaned = stripOverrideKeywordPrefixes(rawCleaned);
   const n = cleaned.length;
   const stack: ContextMode[] = [];
   let inString = false;
@@ -1092,6 +1147,15 @@ function scanStickyContext(
 
   const pushBlock = (name: string, parentMode: ContextMode): void => {
     const isTopLevel = stack.length === 0;
+    // A7（P2）：param 父块下的**非双用容器**（作用域迭代 every_/any_/ordered_/random_、
+    // random/random_list、and/or/not/nor/nand/any_false/all_false）body 仍是 effect/trigger 列表
+    // ⇒ 放行进 context；否则整块被短路成 param、body 不扫（真形态
+    // `create_character = { every_country = { <typo> } }`）。**不放行**双用控制关键字
+    // （见 isUnambiguousContainer 的 JSDoc：param 值分支的 if/else 必须保持不扫）。
+    if (parentMode === "param" && isUnambiguousContainer(name)) {
+      stack.push("context");
+      return;
+    }
     let mode: ContextMode;
     // ENTER 名单**优先**于 param（A5 G2a/G2b）：已知效果的参数块里嵌套的
     // effect/trigger/hidden_effect/hidden_trigger/容器块（真实形态

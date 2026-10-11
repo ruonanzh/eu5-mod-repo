@@ -14,9 +14,10 @@ The game is **Windows-only**.
   the `workshop/` scripts into it, and git ignores it. This is the modding context you must load
   before writing mods. PDXScript has no self-describing API, so you cannot write a correct override
   or `INJECT` without it.
-- `.pi/skills/` — three role-split skills: `setup-workspace`, `mod-creator`, and `mod-installer`.
-  Each skill describes its own scope and trigger. Pi keeps the descriptions in context, so read
-  the matching skill. This repo's step guidance lives there, not in the product prompt.
+- `.pi/skills/` — the step guidance: role skills `setup-workspace`, `mod-creator`, and `mod-installer`,
+  plus `how-to-speak` (how to write anything the player reads). Each skill describes its own scope
+  and trigger. Pi keeps the descriptions in context, so read the matching skill. This repo's step
+  guidance lives there, not in the product prompt.
 - `.pi/extensions/` — the tools. Path tools: `try_set_game_dir`, `set_game_dir`, and
   `check_game_paths`. Runtime tools: `check_runtime` and `install_runtime` (EU5 has no runtime).
   Mod tools: `validate_mod` and `install_mod`. Context tool: `sync_game_scripts`. Trust the

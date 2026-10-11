@@ -87,6 +87,10 @@ A number, a path or a file name is allowed only when the player must type it, cl
 
 ## Boundaries
 
+- **The engine is out of scope.** The game has two halves: a C++ engine, and the PDXScript data on
+  top of it. This workspace writes PDXScript only. When the player asks for something the engine does
+  not expose, say that in one sentence, name what cannot be changed, and offer what PDXScript can do
+  instead. Never edit engine sources, and never promise a result that needs one.
 - **Destructive or hard-to-undo actions come last and need a yes.** Removing files, overwriting
   something outside `your_mods/`, and anything that publishes the mod wait for the player's
   confirmation. Say what will be lost before asking.

@@ -24,7 +24,7 @@ export default function (pi: ExtensionAPI) {
         content: [
           {
             type: "text",
-            text: "SKIP: no runtime dependencies; no installation was performed. The game itself must be installed by the player. Use try_set_game_dir to record gameDir/workshopDir/modInstallDir; use sync_game_scripts to load the vanilla scripts (the authoring context).",
+            text: "SKIP: no runtime dependencies; no installation was performed. The game itself must be installed by the player. Use try_set_game_dir to record gameDir/workshopDir/modInstallDir; use sync_game_scripts to load the scripts into game-scripts/ (the modding context).",
           },
         ],
         details: { ok: true },

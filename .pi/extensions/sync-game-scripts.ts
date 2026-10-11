@@ -5,7 +5,7 @@ import { join, relative, resolve, dirname, sep } from "node:path";
 import { checkGameDir, checkWorkshopDir, readModRepoConfig, readState } from "../lib/game-paths";
 
 /**
- * sync_game_scripts — 把 vanilla 的 game/workshop 文本/定义脚本镜像到 workspace 的 game-scripts/，
+ * sync_game_scripts — 把 game/ 与 workshop/ 的文本/定义脚本镜像到 workspace 的 game-scripts/，
  * 作为**写 mod 前必须加载的上下文**（PDXScript 无自描述 API：没有这些脚本就不知道要 override / INJECT 哪些
  * vanilla 对象、查不到 localization key）。
  *
@@ -154,10 +154,10 @@ export default function (pi: ExtensionAPI) {
     name: "sync_game_scripts",
     label: "Sync Game Scripts",
     description:
-      "Copies the vanilla game/ and workshop/ text-definition scripts into game-scripts/ - the context you need to author mods. PDXScript has no self-describing API: without these scripts you cannot write correct PDXScript (the vanilla objects, effects, triggers, and keys all live there). Text/definition suffixes only; binaries are never copied. Requires try_set_game_dir to have recorded the game directory first.",
-    promptSnippet: "Load the vanilla game scripts into game-scripts/ (authoring context)",
+      "Copies the text and definition scripts from the game and from the Workshop mods into game-scripts/ - the modding context you need before you write mods. PDXScript has no self-describing API: without these scripts you cannot write correct PDXScript (the vanilla objects, effects, triggers, and keys all live there). Text/definition suffixes only; binaries are never copied. Requires try_set_game_dir to have recorded the game directory first.",
+    promptSnippet: "Load the game scripts into game-scripts/ (modding context)",
     promptGuidelines: [
-      "Run sync_game_scripts before authoring a mod, so the vanilla scripts are in game-scripts/; without them you cannot write correct PDXScript.",
+      "Run sync_game_scripts before you write a mod, so the scripts are in game-scripts/; without them you cannot write correct PDXScript.",
       "Run try_set_game_dir (no arguments) first; sync_game_scripts fails with a NEXT pointing at it when the game directory is unknown.",
     ],
     parameters: Type.Object({}),

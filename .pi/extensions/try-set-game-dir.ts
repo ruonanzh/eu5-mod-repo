@@ -26,7 +26,7 @@ export default function (pi: ExtensionAPI) {
       "Makes sure the Europa Universalis V game directory, the Paradox mod install directory, and the Steam Workshop content directory are recorded and still valid. Takes no arguments: it either confirms the recorded paths are already correct, or locates the game and records them.",
     promptSnippet: "Ensure the game directory is recorded (locates it when needed)",
     promptGuidelines: [
-      "Use try_set_game_dir when a task needs the game location (installing a mod, syncing vanilla scripts) and you are not sure the paths are recorded or still valid.",
+      "Use try_set_game_dir when a task needs the game location (installing a mod, syncing the game scripts) and you are not sure the paths are recorded or still valid.",
       "It takes no arguments: it confirms the recorded paths or locates and records them, so you do not have to find the path yourself first.",
       "It only records paths in .gamer-agent.local.json; it never creates or changes anything inside the game.",
     ],

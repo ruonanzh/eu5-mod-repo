@@ -10,7 +10,7 @@ import { Type } from "typebox";
  *   · set_game_dir      **记录一个具体的游戏安装目录**（玩家给的或自己找到的）
  *   · check_game_paths   只**验证**给定/已记住的路径（只读、不扫描、不写状态）
  *   · install_runtime    只报「无依赖 / 无需安装」（不执行安装）
- *   · sync_game_scripts  镜像 vanilla 脚本到 game-scripts/（写 mod 前的上下文）
+ *   · sync_game_scripts  镜像 game/ 与 workshop/ 脚本到 game-scripts/（写 mod 前的上下文）
  *   · install_mod        安装（目标目录不存在则创建）
  */
 export default function (pi: ExtensionAPI) {

@@ -1330,6 +1330,11 @@ function isWs(ch: string): boolean {
  *   与 `common/scripted_effects|triggers` 目录规则**同源**。旧实现只按**目录**判定 ⇒ 这里顶层对象
  *   得 `neutral`、body 不扫。现按「块名前一个词是 `scripted_trigger`/`scripted_effect`（大小写不敏感）
  *   且是顶层」显式放行进 context。
+ * - A18：上面这条对**带点名字**的定义（`scripted_trigger flavor_chi.15_foreign_country_trigger = {`）
+ *   原本不生效 —— 块名判定带 `prev !== "."` / `prev !== ":"` 守卫，ident-run 在 `.` 处截断、
+ *   该 `{` 不产生块名（⇒ 走裸 `{` 路径、继承 neutral）、A17-2 的放行**永不触发** ⇒ body 整块不扫。
+ *   **守卫不动**（它们防的正是 `scope:actor = {` / `ROOT.province:xxx = {` 这类 scope 路径被当块名）；
+ *   改由 `inlineScriptedDottedBodyStart` 这条**窄通路**在**顶层**位置把那个 `{` 单判成 context。
  */
 function scanStickyContext(
   rawCleaned: string,
@@ -1366,6 +1371,40 @@ function scanStickyContext(
   const isInlineScriptedKeyword = (word: string): boolean => {
     const w = word.toLowerCase();
     return w === "scripted_trigger" || w === "scripted_effect";
+  };
+
+  /**
+   * A18：**带点名字**的顶层内联 scripted 定义 —— 返回其 body `{` 的索引（未命中返回 -1）。
+   *
+   * 机理（别与相邻卡混淆）：块名判定带 `prev !== "."` / `prev !== ":"` 守卫 ⇒
+   * `scripted_trigger flavor_chi.15_foreign_country_trigger = {` 的 ident-run 在 `.` 处截断、
+   * 该 `{` **不产生块名** ⇒ A17-2 的「块名前一个词是 scripted_*」放行**永不触发** ⇒ body 整块不扫
+   * （**不是** A17 的「父模式 = neutral 不放行」、**不是** A13 的「名字不在 ENTER」、
+   * **不是** A16 的「scope 路径没有块名」）。
+   *
+   * 这条通路是**另给**的窄口径：调用方已确认「前一个词 ∈ {scripted_trigger, scripted_effect}」
+   * 且**顶层**；这里只接受 `<名> (.<名段>)+ = {` —— `.` 后必须是标识符，遇 `:` 即不命中
+   * （⇒ `ROOT.province:xxx = {` / `scope:actor = {` 天然不被这条吃掉）。返回的只是那一个 `{`，
+   * 由 `pushBlock(..., isInlineScriptedDecl = true)` 判成 context；**不**改普通块名检测路径、
+   * **不**新增其它块名、**不**放松守卫。
+   */
+  const inlineScriptedDottedBodyStart = (nameEnd: number): number => {
+    let d = nameEnd;
+    let sawDot = false;
+    while (d < n && cleaned[d] === ".") {
+      let e = d + 1;
+      while (e < n && isIdentChar(cleaned[e])) e += 1;
+      if (e === d + 1) return -1; // `.` 后不是标识符 ⇒ 不是带点名字
+      d = e;
+      sawDot = true;
+    }
+    if (!sawDot) return -1;
+    let t = d;
+    while (t < n && isWs(cleaned[t])) t += 1;
+    if (t >= n || cleaned[t] !== "=" || cleaned[t + 1] === "=") return -1;
+    let r = t + 1;
+    while (r < n && isWs(cleaned[r])) r += 1;
+    return r < n && cleaned[r] === "{" ? r : -1;
   };
 
   const pushBlock = (
@@ -1456,6 +1495,23 @@ function scanStickyContext(
       while (j < n && isIdentChar(cleaned[j])) j += 1;
       const name = cleaned.slice(i, j);
       const prev = i > 0 ? cleaned[i - 1] : "";
+      // A18：顶层内联 `scripted_trigger|scripted_effect <带点名字> = {` 的窄通路（见
+      // inlineScriptedDottedBodyStart 的 JSDoc）。**只在顶层**、且前一个词是 scripted_* 关键字时
+      // 生效 —— 该 `{` 由于 `prev !== "."` 守卫本不产生块名，这里把它单判成 context。
+      if (
+        stack.length === 0 &&
+        prev !== ":" &&
+        prev !== "." &&
+        !isIdentChar(prev) &&
+        isInlineScriptedKeyword(prevWordBefore(i))
+      ) {
+        const bodyStart = inlineScriptedDottedBodyStart(j);
+        if (bodyStart >= 0) {
+          pushBlock(name, currentMode(), true);
+          i = bodyStart + 1;
+          continue;
+        }
+      }
       let k = j;
       while (k < n && isWs(cleaned[k])) k += 1;
       if (

@@ -90,8 +90,6 @@ A number, a path or a file name is allowed only when the player must type it, cl
 - **Destructive or hard-to-undo actions come last and need a yes.** Removing files, overwriting
   something outside `your_mods/`, and anything that publishes the mod wait for the player's
   confirmation. Say what will be lost before asking.
-- **The mod's own text is not your reply.** The names, descriptions and tooltips that the game shows
-  belong to the mod (see `mod-creator`); write them as mod content, not as part of your answer.
 - **Do not decide the mod's design.** Offer options with their consequences; the choice is the
   player's.
 - **Do not explain the workspace to the player.** Directory maps, tool lists and conventions are for

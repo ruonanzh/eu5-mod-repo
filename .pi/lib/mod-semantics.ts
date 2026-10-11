@@ -957,7 +957,7 @@ function isContainerControl(name: string): boolean {
 }
 
 /**
- * **非双用**容器（A7，P2）：容器名**不在** `CONTAINER_CONTROL_NAMES`
+ * **非双用**容器（A7 + A17）：容器名**不在** `CONTAINER_CONTROL_NAMES`
  * （`if`/`else`/`else_if`/`while`/`trigger_if`/`trigger_else`/`trigger_else_if`）。
  *
  * 为何要分：`if` 这类控制关键字是**双用**的 —— 既作 effect/trigger 列表容器，又作**脚本值表达式**
@@ -965,12 +965,41 @@ function isContainerControl(name: string): boolean {
  * `add_research_progress = { if = { limit = {…} value = … } }`），在 param 父块下必须保守（不放行）。
  * 其余容器（`every_*`/`any_*`/`ordered_*`/`random_*` 作用域迭代，`random`/`random_list`，
  * `and`/`or`/`not`/`nor`/`nand`/`any_false`/`all_false`）的 body **只可能**是 effect/trigger 列表
- * ⇒ 即使在 param 下也放行（否则真形态 `create_character > every_country > <typo>` 整块不扫）。
+ * ⇒ 即使在 param / **neutral** 下也放行（否则真形态 `create_character > every_country > <typo>`、
+ * 以及 vanilla `events/**` 顶层 `scripted_trigger xx = { NOT = { … } }` 的 body 整块不扫）。
+ *
+ * **A17 对 neutral 父的处置（显式记录，与 `board/C2-COVERAGE.md` §0 同步）**：
+ * 放行判据与 A7 **同源**（同为 `isUnambiguousContainer` 家族，故**双用控制关键字在 neutral 下同样不放行**），
+ * **但不共用同一个函数** —— neutral 用 `isUnambiguousContainerExactCase`（**原样大小写**），
+ * 原因见后者 JSDoc（`NOR` 国家 tag 会与 `nor` 容器撞车）。
+ * `else`/`else_if` 在 vanilla 的 neutral 站点里真实出现 **15 次**（如 `common/script_values/**`
+ * 的脚本值分支），放行会把值分支当左值列表扫 ⇒ 扩大误报面（违反 GOAL #4），故与 param 同口径保守。
+ * 本卡（A17）的机理是「**父模式 = neutral 不放行**」这一个根因；不是「名字不在 ENTER 名单」（A13），
+ * 也不是「块没有名字」（A16）。
  * 判据只叠加在**派生容器集合**（A0）之上，不引入手写前缀名单。
  * A14：两处比较（`isContainerControl` / `CONTAINER_CONTROL_NAMES.has`）都改为**大小写不敏感**。
  */
 function isUnambiguousContainer(name: string): boolean {
   return isContainerControl(name) && !CONTAINER_CONTROL_NAMES.has(name);
+}
+
+/**
+ * A17-1：**neutral 父**下的放行判据 —— 与 param 父（A7，A14 大小写归一）**不同**，
+ * 这里用**原样大小写**比对容器名。
+ *
+ * 为何要分开（实测，否则会误报）：A14 把容器判定改成大小写不敏感后，
+ * vanilla `main_menu/setup/start/10_countries.txt` 的国家 tag **`NOR = { … }`** 与布尔容器
+ * `nor` 等价；若 neutral 父也归一放行，整个国家对象 body 进 context ⇒ 结构化字段
+ * `end_date = …` 被当左值候选（vanilla-as-mod C2 **1 条误报**，违反 GOAL #4）。
+ * ⇒ neutral 下只认**词典原样字面**：派生的容器名与作用域迭代前缀都是小写，故 `nor`/`not`/
+ * `or`/`every_*` 等照常放行，而 `NOR`/`AND` 这类全大写 token 不匹配。
+ * param 父保持 A14 归一（那里的大写 `NOT`/`AND`/`OR` 是真关键字 —— 如 `assert_if > NOT`）。
+ */
+function isUnambiguousContainerExactCase(name: string): boolean {
+  const isContainer =
+    Set.prototype.has.call(activeContainers.names, name) ||
+    activeContainers.prefixes.some((p) => name.startsWith(p));
+  return isContainer && !CONTAINER_CONTROL_NAMES.has(name);
 }
 
 /** 相对路径是否在 common/scripted_effects/ 或 common/scripted_triggers/ 下（目录即上下文）。 */
@@ -1296,6 +1325,11 @@ function isWs(ch: string): boolean {
  * - context 里 `name = ...` 左值（含块名）是候选；裸值、长度 <8、mod 定义名不扫。
  * - A8：扫描前剥掉**行首覆盖关键字前缀**（`REPLACE:`/`INJECT:`/`TRY_*`/`*_OR_CREATE`），
  *   于是 `KEYWORD:foo = { … }` 的 `foo` 是普通块名、覆盖体由上面这些**既有规则**处置。
+ * - A17-2：顶层内联 `scripted_trigger <名> = { … }` / `scripted_effect <名> = { … }`
+ *   （vanilla 大量写在 `events/**` 这类**非 scripted 目录**里）的 **body 是 effect/trigger 列表** ——
+ *   与 `common/scripted_effects|triggers` 目录规则**同源**。旧实现只按**目录**判定 ⇒ 这里顶层对象
+ *   得 `neutral`、body 不扫。现按「块名前一个词是 `scripted_trigger`/`scripted_effect`（大小写不敏感）
+ *   且是顶层」显式放行进 context。
  */
 function scanStickyContext(
   rawCleaned: string,
@@ -1319,7 +1353,26 @@ function scanStickyContext(
   const currentMode = (): ContextMode =>
     stack.length > 0 ? stack[stack.length - 1] : "neutral";
 
-  const pushBlock = (name: string, parentMode: ContextMode): void => {
+  // A17-2：取某位置**前一个词**（跳过空白，向回读一整段标识符字符）—— 用于识别
+  // `scripted_trigger <名> = {` / `scripted_effect <名> = {` 的内联定义（块名前的词）。
+  const prevWordBefore = (pos: number): string => {
+    let p = pos - 1;
+    while (p >= 0 && isWs(cleaned[p])) p -= 1;
+    let q = p;
+    while (q >= 0 && isIdentChar(cleaned[q])) q -= 1;
+    return q === p ? "" : cleaned.slice(q + 1, p + 1);
+  };
+  /** 顶层内联 scripted 定义的关键字（大小写不敏感，同 A14 的内置关键字口径）。 */
+  const isInlineScriptedKeyword = (word: string): boolean => {
+    const w = word.toLowerCase();
+    return w === "scripted_trigger" || w === "scripted_effect";
+  };
+
+  const pushBlock = (
+    name: string,
+    parentMode: ContextMode,
+    isInlineScriptedDecl: boolean,
+  ): void => {
     const isTopLevel = stack.length === 0;
     // 标签容器（`switch`）：**直接子键是标签/值** ⇒ 进「标签模式」——标签不当候选、
     // 其子块（case body）进 context。放在**最前**：switch 无论父块是什么，直接子键都是标签。
@@ -1333,12 +1386,25 @@ function scanStickyContext(
       stack.push("context");
       return;
     }
-    // A7（P2）：param 父块下的**非双用容器**（作用域迭代 every_/any_/ordered_/random_、
-    // random/random_list、and/or/not/nor/nand/any_false/all_false）body 仍是 effect/trigger 列表
-    // ⇒ 放行进 context；否则整块被短路成 param、body 不扫（真形态
-    // `create_character = { every_country = { <typo> } }`）。**不放行**双用控制关键字
-    // （见 isUnambiguousContainer 的 JSDoc：param 值分支的 if/else 必须保持不扫）。
-    if (parentMode === "param" && isUnambiguousContainer(name)) {
+    // A17-2：顶层内联 `scripted_trigger <名> = { … }` / `scripted_effect <名> = { … }`
+    // （non-scripted 目录，如 `events/**`）：body 是 effect/trigger 列表，与 scripted 目录同源
+    // ⇒ 进 context（否则整块 neutral、body 不扫）。只认**顶层**，不扩大嵌套面。
+    if (isInlineScriptedDecl && isTopLevel) {
+      stack.push("context");
+      return;
+    }
+    // A7（P2）+ A17-1：param / **neutral** 父块下的**非双用容器**（作用域迭代
+    // every_/any_/ordered_/random_、random/random_list、and/or/not/nor/nand/any_false/all_false）
+    // body 仍是 effect/trigger 列表 ⇒ 放行进 context；否则整块被短路成 param/neutral、body 不扫
+    // （真形态 `create_character = { every_country = { <typo> } }`，以及 vanilla `events/**` 顶层
+    // `scripted_trigger xx = { NOT = { … } }` 的 `NOT`）。**不放行**双用控制关键字
+    // （见 isUnambiguousContainer 的 JSDoc：param/neutral 里的值分支 if/else 必须保持不扫）。
+    // ⚠️ 两条父模式的放行判据**不同**：param 用 A14 归一版本；neutral 用原样大小写
+    // （原因见 isUnambiguousContainerExactCase 的 JSDoc：`NOR` 这类国家 tag 会与 `nor` 撞车）。
+    if (
+      (parentMode === "param" && isUnambiguousContainer(name)) ||
+      (parentMode === "neutral" && isUnambiguousContainerExactCase(name))
+    ) {
       stack.push("context");
       return;
     }
@@ -1407,7 +1473,11 @@ function scanStickyContext(
         let r = k + 1;
         while (r < n && isWs(cleaned[r])) r += 1;
         if (r < n && cleaned[r] === "{") {
-          pushBlock(name, mode);
+          pushBlock(
+            name,
+            mode,
+            isInlineScriptedKeyword(prevWordBefore(i)),
+          );
           i = r + 1;
           continue;
         }

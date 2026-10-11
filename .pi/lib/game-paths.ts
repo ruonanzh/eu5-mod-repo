@@ -1,35 +1,42 @@
 /**
- * 路径判据 + 运行时状态的共享实现（EU5 版；game repo 内部库，**不是**工具）。
+ * The shared implementation of the path checks and the runtime state. It is an EU5 game repo
+ * library, and it is not a tool.
  *
- * 为什么放在 `.pi/lib/`：pi 会自动加载 `.pi/extensions/*.ts` 和 `.pi/extensions/` 下子目录里的 index.ts，
- * 共享模块放进去会被当成扩展加载。这里由各工具用相对路径 import。
+ * It lives in `.pi/lib/` because pi loads `.pi/extensions/*.ts` and the index.ts in each
+ * subdirectory of `.pi/extensions/`. A shared module in that directory is loaded as an extension.
+ * Each tool imports this file by relative path.
  *
- * EU5 与 Duckov 的差别（判据也因此不同）：
- *   · gameDir        游戏目录里应有主程序 `binaries/eu5.exe`（EU5 安装布局），Windows-only
- *   · workshopDir    `<SteamLibrary>/steamapps/workshop/content/<appid>`
- *   · modInstallDir  **Paradox 启动器目录**（`~/Documents/Paradox Interactive/Europa Universalis V/mod`），
- *                    与游戏安装位置**无关** → 没有"兄弟目录哨兵"可验，改为**形状校验**
- *                    （必须是绝对路径、不是文件、且以 mod-repo.json 里声明的相对路径结尾）
- *   · 发现          必须扫 Steam（注册表 + libraryfolders.vdf 各库），不是靠 installDirHint
+ * How EU5 differs from Duckov, and why the checks differ:
+ *   - gameDir        The directory must hold the executable `binaries/eu5.exe`, which is the EU5
+ *                    install layout. Windows only.
+ *   - workshopDir    The directory `<SteamLibrary>/steamapps/workshop/content/<appid>`.
+ *   - modInstallDir  The Paradox launcher directory, which is independent of the game location:
+ *                    `~/Documents/Paradox Interactive/Europa Universalis V/mod`. There is no
+ *                    sibling-directory sentinel to check, so the tool checks the shape instead: an
+ *                    absolute path, not a file, and ending with the relative path that
+ *                    mod-repo.json declares.
+ *   - The search     The tool must scan Steam: the registry and libraryfolders.vdf in each
+ *                    library. It does not use installDirHint.
  */
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import os from "node:os";
 
-/** 游戏安装目录的哨兵：主程序 `binaries/eu5.exe`（与 Duckov 用 `TeamSoda.Duckov.Core.dll` 同理） */
+/** The game directory sentinel: the executable `binaries/eu5.exe`. Duckov uses `TeamSoda.Duckov.Core.dll` in the same way. */
 export const GAME_SENTINEL = join("binaries", "eu5.exe");
 
 export interface ModRepoConfig {
   game?: { name?: string; steamAppId?: string | number; installDirHint?: Record<string, string> };
   modInstall?: { path?: string; relativeTo?: string };
-  /** 这个游戏**有没有创意工坊**（U29/U30）。缺失 = 未知 —— **不是** false。 */
+  /** Whether this game has a Workshop. A missing field means unknown, and it does not mean false. */
   workshop?: { supported?: boolean };
 }
 
 /**
- * 契约里声明的「有没有创意工坊」：`true` / `false` / `null`（未声明 = 未知）。
- * 全仓库只留这一份判据：消费者不要再自己读 `cfg.workshop`。
+ * The Workshop declaration from the contract: `true`, `false`, or `null` for undeclared, which means
+ * unknown.
+ * This repository keeps one copy of the check, so a consumer must not read `cfg.workshop` again.
  */
 export function workshopSupported(cfg: ModRepoConfig): boolean | null {
   const value = cfg.workshop?.supported;
@@ -46,10 +53,10 @@ export interface RuntimeState {
 export interface PathVerdict {
   ok: boolean;
   path: string | null;
-  /** 失败时的机器可读码（工具把它放进 FAIL 文案的第一段） */
+  /** The machine-readable code on failure. The tool puts it in the first line of the FAIL text. */
   code?: string;
   reason?: string;
-  /** 给 agent 的下一步（可执行、面向玩家可读） */
+  /** The next step for the agent. It is actionable, and the player can read it. */
   next?: string;
 }
 
@@ -70,7 +77,10 @@ export function readState(cwd: string): RuntimeState {
   }
 }
 
-/** 读改写 + **原子替换**（写者从 1 个变多个后统一走这里：临时文件 + rename） */
+/**
+ * Reads, changes, and writes, with an atomic replace: a temporary file, then rename. Every writer
+ * goes through this function.
+ */
 export function writeState(cwd: string, patch: RuntimeState): RuntimeState {
   const next = { ...readState(cwd), ...patch };
   const file = statePath(cwd);
@@ -81,7 +91,7 @@ export function writeState(cwd: string, patch: RuntimeState): RuntimeState {
   return next;
 }
 
-/** 展开 `~` / `~/…`（历史状态或提示文本里可能出现；不展开会永远验不过） */
+/** Expands `~` and `~/...`. An older state file or a hint can hold them, and the tool can never check an unexpanded path. */
 export const expandHome = (p: string): string => {
   const t = p.trim();
   if (t !== "~" && !t.startsWith("~/")) return t;
@@ -90,7 +100,7 @@ export const expandHome = (p: string): string => {
 
 export const resolveUserPath = (cwd: string, p: string): string => resolve(cwd, expandHome(p));
 
-/** Paradox 启动器的 mod 目录（`~/Documents` + mod-repo.json 的 modInstall.path） */
+/** The Paradox launcher mod directory: `~/Documents` plus modInstall.path from mod-repo.json. */
 export function modInstallDirFor(cfg: ModRepoConfig): string | null {
   const rel = cfg.modInstall?.path;
   if (typeof rel !== "string" || !rel.trim()) return null;
@@ -98,38 +108,40 @@ export function modInstallDirFor(cfg: ModRepoConfig): string | null {
 }
 
 const NEXT_SKILL =
-  "The 'setup-workspace' skill has the full procedure (auto-discovery, using the player's hints, and what to ask if nothing works).";
+  "The 'setup-workspace' skill has the full procedure: the automatic search, the player's hints, and what to ask when nothing works.";
 
-/** 判据 1：这个目录是不是 EU5 的安装目录（看主程序 binaries/eu5.exe） */
+/** Check 1: is this directory the EU5 install directory. The check reads the main executable, binaries/eu5.exe. */
 export function checkGameDir(dir: string | null | undefined): PathVerdict {
   const p = dir ? expandHome(dir) : null;
   if (!p)
-    return { ok: false, path: null, code: "GAME_DIRECTORY_NOT_FOUND", reason: "no game directory was given", next: `Run try_set_game_dir (no arguments) to discover the game and record it (the derived paths come along), or verify candidates from the player's hints with check_game_paths. ${NEXT_SKILL}` };
+    return { ok: false, path: null, code: "GAME_DIRECTORY_NOT_FOUND", reason: "no game directory was given", next: `Run try_set_game_dir with no arguments to locate the game and record it, together with the derived paths. You can also check candidates from the player's hints with check_game_paths. ${NEXT_SKILL}` };
   if (!existsSync(join(p, GAME_SENTINEL)))
     return {
       ok: false,
       path: p,
       code: "GAME_DIRECTORY_NOT_FOUND",
       reason: `binaries/eu5.exe does not exist under this directory (not an EU5 install directory)`,
-      next: `Run try_set_game_dir (no arguments) to re-discover the real game directory (the one you passed does not look like it: no binaries/eu5.exe). ${NEXT_SKILL}`,
+      next: `Run try_set_game_dir with no arguments to locate the real game directory again. The path you passed does not look like one, because it has no binaries/eu5.exe. ${NEXT_SKILL}`,
     };
   return { ok: true, path: p };
 }
 
-/** 判据 2：mod 安装目标 —— Windows 上 Paradox 的固定位置，用**形状**校验（没有哨兵可看） */
+/** Check 2: the mod install target. It is the fixed Paradox location, checked by shape, because there is no sentinel to read. */
 export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepoConfig): PathVerdict {
   const p = dir ? expandHome(dir) : null;
   if (!p)
-    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "no mod install directory was given", next: `Run try_set_game_dir (no arguments): it records the game directory and the derived Paradox mod directory. ${NEXT_SKILL}` };
+    return { ok: false, path: null, code: "TARGET_NOT_FOUND", reason: "no mod install directory was given", next: `Run try_set_game_dir with no arguments. It records the game directory and the derived mod install directory. ${NEXT_SKILL}` };
   if (!isAbsolute(p))
-    return { ok: false, path: p, code: "TARGET_INVALID", reason: "not an absolute path", next: `Run try_set_game_dir (no arguments) to record the conventional Paradox mod directory. ${NEXT_SKILL}` };
-  // 先做**与配置无关**的校验（顺序很重要：跳过形状校验时这些也必须生效）
+    return { ok: false, path: p, code: "TARGET_INVALID", reason: "not an absolute path", next: `Run try_set_game_dir with no arguments to record the conventional mod install directory. ${NEXT_SKILL}` };
+  // Run the checks that do not need the configuration first. The order matters, because these must
+  // still run when the shape check is skipped.
   const st = statSync(p, { throwIfNoEntry: false });
   if (st && !st.isDirectory())
     return { ok: false, path: p, code: "TARGET_INVALID", reason: "this path exists but is not a directory (it is a file)", next: `Ask the player to remove or rename the file blocking that path. ${NEXT_SKILL}` };
   const rel = cfg?.modInstall?.path;
-  // 形状校验是"我们对 Paradox 目录约定的意见"，不是游戏硬规则 → 配置读不到或没写 modInstall.path 时**跳过**
-  // （配置缺字段由 try_set_game_dir 负责报出来）。
+  // The shape check is our opinion about the Paradox directory convention, and it is not a hard game
+  // rule. Skip it when the configuration is unreadable or has no modInstall.path, because
+  // try_set_game_dir reports a missing field.
   if (typeof rel !== "string" || !rel.trim()) return { ok: true, path: p };
   const norm = (v: string) => v.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
   if (!norm(p).endsWith(norm(rel)))
@@ -138,27 +150,29 @@ export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepo
       path: p,
       code: "TARGET_INVALID",
       reason: `the path does not end with ${rel} as declared in mod-repo.json (the Paradox launcher only looks there)`,
-      next: `Run try_set_game_dir (no arguments) to record the conventional Paradox mod directory. ${NEXT_SKILL}`,
+      next: `Run try_set_game_dir with no arguments to record the conventional mod install directory. ${NEXT_SKILL}`,
     };
-  // 目录不存在 = 全新机器的正常状态（安装时会创建）
+  // A missing directory is the normal state on a new machine, and the install creates it.
   return { ok: true, path: p };
 }
 
-/** 判据 3：Steam Workshop 内容目录（只读参考；必须是 …/steamapps/workshop/content/<appId>） */
+/** Check 3: the Steam Workshop directory. It is a read-only reference, and it must be `.../steamapps/workshop/content/<appId>`. */
 export function checkWorkshopDir(dir: string | null | undefined, appId: string): PathVerdict {
   const p = dir ? expandHome(dir) : null;
-  if (!p) return { ok: false, path: null, code: "WORKSHOP_NOT_FOUND", reason: "no Workshop directory was given (optional)", next: "Omit it; it is only used to read Workshop content for reference." };
-  if (!existsSync(p)) return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: "the directory does not exist", next: "Omit this argument (the Workshop directory is an optional read-only reference)." };
-  // 形状校验：归一化（反斜杠/尾斜杠/**大小写**）后比较 —— Windows 路径不区分大小写，
-  // Steam 库路径大小写也可能与常见写法不同，别因为一个字母大小写就判"不是 workshop 目录"。
-  // appid 未知（mod-repo.json 读不到）时只校验存在性：形状校验是"当我们知道规则"时才有意义。
+  if (!p) return { ok: false, path: null, code: "WORKSHOP_NOT_FOUND", reason: "no Workshop directory was given (optional)", next: "Omit it. It is only used to read Workshop content for reference." };
+  if (!existsSync(p)) return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: "the directory does not exist", next: "Omit this argument, because the Workshop directory is an optional read-only reference." };
+  // The shape check normalizes the separators, the trailing separators, and the letter case before
+  // it compares. Windows paths ignore case, and a Steam library path can differ in case from the
+  // usual spelling, so one letter must not fail the check.
+  // When the appid is unknown, because mod-repo.json is unreadable, the tool checks existence only.
+  // The shape check is meaningful only when the rule is known.
   const norm = (v: string) => v.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
   if (appId && !norm(p).endsWith(norm(`/workshop/content/${appId}`)))
-    return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: `the path does not end with workshop/content/${appId} (see the appid in mod-repo.json)`, next: "Confirm this is the Workshop content directory for this game; omit it if unsure." };
+    return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: `the path does not end with workshop/content/${appId} (see the appid in mod-repo.json)`, next: "Confirm that this is the Workshop content directory for this game, and omit it if unsure." };
   return { ok: true, path: p };
 }
 
-// ── 发现（EU5：注册表 + libraryfolders.vdf 各 Steam 库；Windows-only）──────────────
+// The search. EU5 reads the registry and libraryfolders.vdf in each Steam library. Windows only.
 
 function readRegistrySteamPath(): string | null {
   try {
@@ -202,7 +216,7 @@ function discoverSteamLibraryRoots(): string[] {
 
 export const GAME_FOLDER_NAME = "Europa Universalis V";
 
-/** 候选游戏目录：显式 → 缓存 → 平台提示（若有）→ 各 Steam 库的 steamapps/common/<游戏名> */
+/** The candidate game directories: an explicit path, the state, the platform hint when present, then steamapps/common/<game name> in each Steam library. */
 export function gameDirCandidates(cfg: ModRepoConfig, state: RuntimeState, explicit?: string): string[] {
   const out: string[] = [];
   const push = (v: unknown) => {
@@ -210,14 +224,14 @@ export function gameDirCandidates(cfg: ModRepoConfig, state: RuntimeState, expli
   };
   if (explicit?.trim()) push(explicit);
   push(state.gameDir);
-  push(cfg.game?.installDirHint?.windows); // EU5 是 Windows-only；提示键也只会有 windows
+  push(cfg.game?.installDirHint?.windows); // EU5 is Windows only, so the hint has a windows key only.
   if (process.platform === "win32") {
     for (const root of discoverSteamLibraryRoots()) out.push(join(root, "steamapps", "common", GAME_FOLDER_NAME));
   }
   return [...new Set(out)];
 }
 
-/** 依次验证候选（**发现 ≠ 信任**：每个候选都要过 checkGameDir），返回第一个通过的 */
+/** Checks the candidates in order and returns the first one that passes. A candidate is a candidate, so every one must pass checkGameDir. */
 export function discoverGameDir(
   cfg: ModRepoConfig,
   state: RuntimeState,
@@ -226,7 +240,7 @@ export function discoverGameDir(
   const tried: Array<{ path: string; reason?: string }> = [];
   const platformUnsupported = process.platform !== "win32";
   if (platformUnsupported) {
-    // 非 Windows 上 EU5 根本无法定位：如实说明，不假装成功
+    // EU5 cannot be located on a platform other than Windows. Say that, and do not pretend to succeed.
     return { gameDir: null, tried, platformUnsupported };
   }
   for (const c of gameDirCandidates(cfg, state, explicit)) {
@@ -237,7 +251,7 @@ export function discoverGameDir(
   return { gameDir: null, tried, platformUnsupported };
 }
 
-/** Workshop 目录（与 gameDir 同库或任一库） */
+/** The Workshop directory, in the same library as gameDir or in any library. */
 export function workshopDirFor(gameDir: string, cfg: ModRepoConfig): string | null {
   const appId = String(cfg.game?.steamAppId ?? "");
   if (!appId || !gameDir) return null;
@@ -248,7 +262,7 @@ export function workshopDirFor(gameDir: string, cfg: ModRepoConfig): string | nu
   return existsSync(candidate) ? candidate : null;
 }
 
-/** 由已确认的 gameDir 派生其余路径（Workshop 只读参考，不存在就不记） */
+/** Derives the other paths from a confirmed gameDir. The Workshop directory is a read-only reference, so the tool does not record it when it does not exist. */
 export function pathsFor(
   gameDir: string,
   cfg: ModRepoConfig,
@@ -261,12 +275,15 @@ export function pathsFor(
   return { modInstallDir, workshopDir, notes };
 }
 
-/** 文件名兜底用（与其它工具一致的 basename 行为） */
+/** The fallback for a file name, with the basename behavior that the other tools share. */
 export const baseName = (p: string): string => basename(p);
 
-// ── agent 入口的内部实现（**不注册为工具**）────────────────────────────────────
-// 语义：① 给路径 → 验 → 过 → 落库（PASS）② 没过 → 内部发现/派生 → 成功 → 落库 + WARN
-//       ③ 内部也失败 → FAIL（不落库）。四个 setter 共用这一份。
+// The internal implementation of the agent entry points. These are not registered as tools.
+// Semantics:
+//   1. A path is given, it passes the check, and the tool records it (PASS).
+//   2. It fails the check, and the internal search or derivation succeeds. The tool records that
+//      path with WARN.
+//   3. The internal step also fails, so the tool returns FAIL and records nothing.
 export type PathKind = "gameDir" | "workshopDir" | "modInstallDir";
 
 export interface PathOutcome {
@@ -279,7 +296,7 @@ export interface PathOutcome {
 }
 
 const ASK_PLAYER =
-  "Automatic discovery failed as well. Ask the player for the correct path (say what you already tried), then call this setter again with it. The 'setup-workspace' skill has what to ask for.";
+  "The automatic search failed as well. Ask the player for the correct path, and say what you already tried. Then call this setter again with that path. The 'setup-workspace' skill has what to ask for.";
 
 function verifyPath(kind: PathKind, p: string, cfg: ModRepoConfig, appId: string): PathVerdict {
   if (kind === "gameDir") return checkGameDir(p);
@@ -297,7 +314,7 @@ function deriveFallback(cwd: string, cfg: ModRepoConfig, kind: PathKind): { ok: 
       return { ok: false, reason: `${GAME_FOLDER_NAME} is Windows-only, so nothing can be located on this platform` };
     gameDir = found.gameDir;
   }
-  if (!gameDir) return { ok: false, reason: "automatic discovery could not find the game either" };
+  if (!gameDir) return { ok: false, reason: "the automatic search could not find the game either" };
   if (kind === "gameDir") return { ok: true, path: gameDir };
   const derived = pathsFor(gameDir, cfg);
   const path = kind === "workshopDir" ? derived.workshopDir : derived.modInstallDir;
@@ -335,7 +352,7 @@ export function setPathWithFallback(cwd: string, cfg: ModRepoConfig, kind: PathK
       given,
       recorded: fallback.path,
       reason: v.reason,
-      next: `The path you passed did not pass validation, so ${fallback.path} was located and recorded instead.${fallback.note ? ` ${fallback.note}` : ""} Tell the player which path is actually in use.`,
+      next: `Your path did not pass the check, so the tool located and recorded ${fallback.path} instead.${fallback.note ? ` ${fallback.note}` : ""} Tell the player which path is in use.`,
     };
   }
 
@@ -349,32 +366,35 @@ export function setPathWithFallback(cwd: string, cfg: ModRepoConfig, kind: PathK
   };
 }
 
-/** 四个 setter 共用的输出格式 */
+/** The output format for the path setters. */
 export function formatPathOutcome(o: PathOutcome): { text: string; ok: boolean; status: PathOutcome["status"] } {
   if (o.status === "PASS")
-    return { text: `PASS: recorded ${o.kind} ${o.recorded} (validated).`, ok: true, status: o.status };
+    return { text: `PASS: recorded ${o.kind} ${o.recorded} (correct).`, ok: true, status: o.status };
   if (o.status === "WARN")
     return {
       text:
-        `WARN: the ${o.kind} you passed (${o.given}) did not pass validation - ${o.reason}.\n` +
-        `Recorded ${o.recorded} instead.\nNEXT: ${o.next ?? "Tell the player which path is actually in use."}`,
+        `WARN: the ${o.kind} you passed (${o.given}) did not pass the check - ${o.reason}.\n` +
+        `The tool recorded ${o.recorded} instead.\nNEXT: ${o.next ?? "Tell the player which path is in use."}`,
       ok: true,
       status: o.status,
     };
   return {
-    text: `FAIL: could not record ${o.kind}.\nGiven: ${o.given ?? "(none)"}\nReason: ${o.reason ?? "unknown"}.\nNEXT: ${o.next ?? ASK_PLAYER}`,
+    text: `FAIL: could not record ${o.kind}.\nGiven: ${o.given ?? "(not given)"}\nReason: ${o.reason ?? "unknown"}.\nNEXT: ${o.next ?? ASK_PLAYER}`,
     ok: false,
     status: o.status,
   };
 }
 
-// ── try_set_game_dir 的内部实现（**不注册为工具**）──────────────────────────────
-// 语义（无参、幂等）：
-//   ① 记住的 gameDir 仍有效，且派生的两条与已记录的一致 → 什么都不写 → already
-//   ② 无效 / 过期 / 没记过 → 自动发现（每个候选都过哨兵）→ 记录 gameDir + 派生的两条 → recorded
-//   ③ 找不到 → 不写状态 → missing
-// EU5 事实：Windows-only；modInstallDir 是 Paradox 启动器目录（与 gameDir 无关，恒由
-// mod-repo.json 的 modInstall.path 现算）；workshopDir 由 gameDir 派生、只读参考。
+// The internal implementation of try_set_game_dir. It is not registered as a tool.
+// Semantics, with no arguments and idempotent:
+//   1. The remembered gameDir is still valid, and the two derived paths match the recorded ones.
+//      The tool writes nothing and returns already.
+//   2. The path is invalid, stale, or never recorded. The tool searches, and every candidate must
+//      pass the sentinel. It records gameDir and the two derived paths, and returns recorded.
+//   3. It finds nothing, writes no state, and returns missing.
+// EU5 facts: Windows only. modInstallDir is the Paradox launcher directory, which is independent of
+// gameDir and always computed from modInstall.path in mod-repo.json. The tool derives workshopDir
+// from gameDir, and the tools treat it as a read-only reference.
 
 export type EnsureOutcome =
   | { status: "already"; gameDir: string; modInstallDir: string | null; workshopDir: string | null; warnings: string[] }
@@ -384,13 +404,13 @@ export type EnsureOutcome =
 function derivedWarnings(modInstallDir: string | null, workshopDir: string | null): string[] {
   const out: string[] = [];
   if (modInstallDir && !existsSync(modInstallDir)) {
-    out.push("the mod directory does not exist yet - normal on a first install (install_mod creates it).");
+    out.push("the mod install directory does not exist yet - normal on a first install (install_mod creates it).");
   }
   if (!modInstallDir) {
     out.push("mod-repo.json declares no modInstall.path.");
   }
   if (!workshopDir) {
-    out.push("no Steam Workshop directory was found (optional; it is only used to read existing Workshop mods).");
+    out.push("no Steam Workshop directory was found. It is optional, and the tools only read it.");
   }
   return out;
 }
@@ -419,7 +439,7 @@ export function ensureGameDir(cwd: string, cfg: ModRepoConfig): EnsureOutcome {
       status: "missing",
       reason: platformUnsupported
         ? `${GAME_FOLDER_NAME} is Windows-only, so no game files can be located on this platform`
-        : "automatic discovery did not find the game (the registry and every Steam library were searched)",
+        : "the automatic search did not find the game (the tool searched the registry and every Steam library)",
     };
   }
   record(cwd, cfg, "gameDir", gameDir);

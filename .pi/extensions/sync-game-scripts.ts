@@ -5,14 +5,18 @@ import { join, relative, resolve, dirname, sep } from "node:path";
 import { checkGameDir, checkWorkshopDir, readModRepoConfig, readState } from "../lib/game-paths";
 
 /**
- * sync_game_scripts — 把 game/ 与 workshop/ 的文本/定义脚本镜像到 workspace 的 game-scripts/，
- * 作为**写 mod 前必须加载的上下文**（PDXScript 无自描述 API：没有这些脚本就不知道要 override / INJECT 哪些
- * vanilla 对象、查不到 localization key）。
+ * sync_game_scripts - it mirrors the text and definition scripts from game/ and workshop/ into the
+ * workspace's game-scripts/. That directory is the modding context you must load before you write a
+ * mod. PDXScript has no self-describing API, so without these scripts you do not know which vanilla
+ * objects to override or INJECT, and you cannot find a localization key.
  *
- * 只复制文本/定义后缀（KEEP_SUFFIXES allowlist，与 cursor main 的 sync 工具一致）；纹理/网格/音频等
- * 二进制永不复制。源路径来自 try_set_game_dir 写入的 .gamer-agent.local.json（gameDir/workshopDir）。
- * 幂等：每次执行都重新遍历源，只复制新增/变化（size+mtime）的文件，并删除源里已不存在的
- * stale 文件。game-scripts/ 不进 git。
+ * It copies text and definition suffixes only, from the KEEP_SUFFIXES allowlist. That list matches
+ * the sync tool in cursor main. It never copies a binary, so textures, meshes, and audio stay out.
+ * The source paths come from .gamer-agent.local.json, which try_set_game_dir writes (gameDir and
+ * workshopDir).
+ *
+ * It is idempotent. Every run walks the source again, copies only the new or changed files (size
+ * and mtime), and deletes the stale files that the source no longer has. git ignores game-scripts/.
  */
 
 const KEEP_SUFFIXES = new Set([
@@ -24,7 +28,8 @@ const KEEP_SUFFIXES = new Set([
 ]);
 const EXCLUDE_DIR_NAMES = new Set([".git", ".idea", ".vs"]);
 
-// 生成缓存/大数据目录（后缀是文本但内容非 mod 参考脚本）：地图网格、声音库、地形缓存、引擎二进制。
+// Generated caches and large data directories. Their suffixes are text, but the content is not a
+// mod reference script: map meshes, sound banks, terrain caches, and engine binaries.
 const EXCLUDE_REL_MARKERS = ["gfx/map/map_objects/generated", "sound/banks", "terrain_cache", "binaries"];
 
 function shouldExclude(rel: string): boolean {
@@ -97,7 +102,7 @@ function removeEmptyDirsUnder(root: string): void {
   walkUp(root);
 }
 
-/** 把 srcRoot 下 allowlist 文件镜像到 dstRoot；返回 { copied, staleRemoved }。 */
+/** Mirrors the allowlist files under srcRoot into dstRoot. Returns { copied, staleRemoved }. */
 function syncTree(srcRoot: string, dstRoot: string): { copied: number; staleRemoved: number } {
   const srcFiles = walkFiles(srcRoot);
   const srcRels = new Set<string>();
@@ -132,7 +137,10 @@ function syncTree(srcRoot: string, dstRoot: string): { copied: number; staleRemo
   return { copied, staleRemoved };
 }
 
-/** 源不存在时：把这份镜像整体清掉（旧的参考内容不该继续冒充"当前游戏内容"） */
+/**
+ * The source is gone. Wipe this whole mirror, because the old reference content must not keep posing
+ * as the current game content.
+ */
 function pruneTree(dstRoot: string): { copied: number; staleRemoved: number } {
   let removed = 0;
   if (existsSync(dstRoot)) {
@@ -154,17 +162,18 @@ export default function (pi: ExtensionAPI) {
     name: "sync_game_scripts",
     label: "Sync Game Scripts",
     description:
-      "Copies the text and definition scripts from the game and from the Workshop mods into game-scripts/ - the modding context you need before you write mods. PDXScript has no self-describing API: without these scripts you cannot write correct PDXScript (the vanilla objects, effects, triggers, and keys all live there). Text/definition suffixes only; binaries are never copied. Requires try_set_game_dir to have recorded the game directory first.",
+      "Copies the game and Workshop script files into game-scripts/, which is the modding context you need before you write a mod. It copies text and definition files only, and it never copies a binary. PDXScript has no self-describing API, so you cannot write correct PDXScript without these scripts. The vanilla objects, effects, triggers, and keys all live there. Requires try_set_game_dir to have recorded the game directory first.",
     promptSnippet: "Load the game scripts into game-scripts/ (modding context)",
     promptGuidelines: [
-      "Run sync_game_scripts before you write a mod, so the scripts are in game-scripts/; without them you cannot write correct PDXScript.",
-      "Run try_set_game_dir (no arguments) first; sync_game_scripts fails with a NEXT pointing at it when the game directory is unknown.",
+      "Run sync_game_scripts before you write a mod, so the scripts are in game-scripts/. You cannot write correct PDXScript without those scripts.",
+      "Run try_set_game_dir with no arguments first. When the game directory is unknown, sync_game_scripts fails, and its NEXT line points at try_set_game_dir.",
     ],
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const repoRoot = ctx.cwd;
-      // 状态读取与"游戏目录是否可用"的判据都走 lib（与 check_game_paths / try_set_game_dir /
-      // install_mod 同一份）：这里原本自己 JSON.parse + 只 existsSync，等于又实现了一遍同一判据。
+      // The state read and the "is the game directory usable" check both go through the lib, which
+      // check_game_paths, try_set_game_dir, and install_mod share. This file used to parse the JSON
+      // itself and call existsSync alone, which implemented the same check a second time.
       const state = readState(repoRoot);
       const gameVerdict = checkGameDir(typeof state.gameDir === "string" ? state.gameDir : null);
       if (!gameVerdict.ok) {
@@ -172,7 +181,7 @@ export default function (pi: ExtensionAPI) {
           content: [
             {
               type: "text",
-              text: `FAIL: ${gameVerdict.reason}. NEXT: run try_set_game_dir (no arguments) first to locate the EU5 install, then re-run sync_game_scripts.`,
+              text: `FAIL: ${gameVerdict.reason}.\nNEXT: run try_set_game_dir with no arguments to locate the EU5 install, then run sync_game_scripts again.`,
             },
           ],
           details: { ok: false, errors: [gameVerdict.code ?? "GAME_DIRECTORY_NOT_FOUND"] },
@@ -184,15 +193,17 @@ export default function (pi: ExtensionAPI) {
       try {
         steamAppId = String(readModRepoConfig(repoRoot).game?.steamAppId ?? "");
       } catch {
-        /* 配置读不到：下面的 workshop 形状校验会因此失败，按拒绝处理 */
+        /* The config is unreadable. The workshop shape check below therefore fails, so treat it as a rejection. */
       }
 
       const destRoot = join(repoRoot, "game-scripts");
       const g = syncTree(gameDir, join(destRoot, "game"));
-      // Workshop 源可能消失（玩家取消订阅、目录被删）→ **不能静默留着旧镜像**：它会被当成
-      // "当前游戏内容"继续给 agent 参考（B20）。但要与"路径未知"区分开：
-      //   · 路径已知但已不存在 → 源消失 → 清掉镜像并如实说明
-      //   · 路径未知（没跑过 try_set_game_dir）→ 不动镜像（可能是先前跑出来的有效镜像）
+      // The Workshop source can disappear, when the player unsubscribes or deletes the directory.
+      // The tool must not silently keep the old mirror, because the agent would keep reading it as
+      // the current game content. Distinguish that from an unknown path:
+      //   - The path is known and no longer exists: the source is gone. Clear the mirror and say so.
+      //   - The path is unknown (try_set_game_dir never ran): leave the mirror alone, because it
+      //     may be a valid mirror from an earlier run.
       const wsVerdict = checkWorkshopDir(workshopDir, steamAppId);
       const workshopGone = typeof workshopDir === "string" && !existsSync(workshopDir);
       const w = wsVerdict.ok
@@ -202,19 +213,19 @@ export default function (pi: ExtensionAPI) {
           : { copied: 0, staleRemoved: 0 };
 
       const lines = [
-        `PASS: mirrored ${g.copied + w.copied} text/definition file(s) into ${toPosix(relative(repoRoot, destRoot))}/ (game: ${g.copied}, workshop: ${w.copied})`,
+        `PASS: mirrored ${g.copied + w.copied} script file(s) into ${toPosix(relative(repoRoot, destRoot))}/ (game: ${g.copied}, workshop: ${w.copied})`,
       ];
       if (g.staleRemoved + w.staleRemoved > 0) {
         lines.push(`removed ${g.staleRemoved + w.staleRemoved} stale file(s) no longer present in the source.`);
       }
       if (workshopDir && !wsVerdict.ok && !workshopGone) {
         lines.push(
-          `NOTE: the workshop directory was rejected (${wsVerdict.reason}); the existing mirror under game-scripts/workshop was left untouched.`,
+          `NOTE: the workshop directory was rejected (${wsVerdict.reason}). The existing mirror under game-scripts/workshop was left untouched.`,
         );
       }
       if (workshopGone) {
         lines.push(
-          `NOTE: the workshop source is gone (unsubscribed or removed); its mirrored copy under game-scripts/workshop was cleared (${w.staleRemoved} file(s)) instead of being left behind.`,
+          `NOTE: the workshop source is gone (unsubscribed or removed). Its mirrored copy under game-scripts/workshop was cleared (${w.staleRemoved} file(s)) instead of being left behind.`,
         );
       }
       return {

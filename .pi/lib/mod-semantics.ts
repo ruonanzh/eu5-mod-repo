@@ -322,7 +322,7 @@ function definitionsFrom(files: string[]): Set<string> {
  * effect/trigger 名 —— `docs/script_docs` 里根本没有它们，所以**不可从 dump 派生**。
  * 依据 = 文件结构（wiki 的 `Event_modding` / `Building_modding` / `Subject_type_modding` /
  * `Cabinet_action_modding` / `Generic_action_modding` 等页面 + 实际语料形态）。
- * 对照：本名单 **0/48** 在「script_docs 结构示例派生的容器集合」（1220 个）里（A0 对照命令），
+ * 对照：本名单 **0/53** 在「script_docs 结构示例派生的容器集合」（1220 个）里（A0 对照命令），
  * 即解析不可能覆盖它们。
  * 名单**冻结**（GOAL #8）：新增覆盖须新开卡 + 用户确认；清单与逐项证据见 `board/C2-COVERAGE.md`。
  * trigger **列表容器**（`visible` / `enabled` / `on_*` / `*_trigger` …）另见 TRIGGER_CONTAINER_NAMES。
@@ -382,6 +382,35 @@ function definitionsFrom(files: string[]): Set<string> {
  *    （`DATA_DRIVEN_CONTEXT_DIRS` + `isDataDrivenContextDir`，与 scripted_effects 同一条
  *    `scanStickyContext` 通路）覆盖其**清单内**的目录；清单外的目录见该 JSDoc 的「有意排除」。
  *
+ * ===== A13（2026-10-10 用户确认纳入）：非 context 父模式（param / neutral）下的容器/结构字段 =====
+ * 根因：`pushBlock` 的分支顺序 —— 块名不在 ENTER 名单、父模式**不是 `context`**
+ * （是 `param` **或** `neutral`）⇒ 该块不进 context ⇒ body 不扫。于是**同一个名字在 context 位置
+ * 能扫、在非 context 父模式下漏**（位置相关假阴，光看块名列表发现不了）。
+ * ⚠️ 父模式 `neutral` 的主要来源：**非 scripted、非数据驱动目录的顶层对象**
+ * （`(isScripted || isDataDriven) && isTopLevel` 不成立 ⇒ 顶层块只能 neutral）——
+ * 如 `common/unit_abilities/**` 的能力对象、`common/generic_actions/**` 的 interaction 对象。
+ * 候选面枚举器（`board/container-surface.mjs`）按「父块名 ∈ 词典」反推候选，会把这些
+ * **neutral 父**一并列出 ⇒ 不可把「父块名 ∈ 词典」等同为「父位置 = param」。本卡纳入：
+ *  - `hidden`（wrapper 块，与 `hidden_effect`/`hidden_trigger` 同族）：vanilla 15 块 ——
+ *    14 块是 `common/unit_abilities/*.txt` **顶层 ability 对象**（父模式 neutral）下的
+ *    `hidden = { <trigger> }`（如 `execute_prisoners.txt:6` 的 `hidden = { has_prisoners = no }`），
+ *    另 1 块是 `main_menu/common/game_concepts/00_game_concepts.txt:3321` 的**对象名** `hidden`。
+ *    ⚠️ 「词典 effect 的 param 位置」那一形态是**合成夹具**（探针 06 / 用例 `c2-param-hidden`），
+ *    vanilla **无**此实例。
+ *  - `prev` / `root` / `ROOT` / `ruler_or_regent`（**scope 目标块**：块名是 scope 链接
+ *    关键字或链接名，body 是 effect/trigger 列表）：vanilla 实例
+ *    `create_character > prev = { set_new_ruler = prev }`（6 处）、
+ *    `create_country_from_location > ruler_or_regent = { save_scope_as = … }`、
+ *    `start_civil_war > ROOT = { change_player = PREV }`（1 处）。
+ *    ⚠️ 大小写：vanilla 两种写法都在用（`root = {` 745 块 / `ROOT = {` 70 块、
+ *    `prev = {` 31 / `PREV = {` 9）。本卡**只显式列出候选面枚举器
+ *    （`board/container-surface.mjs`）实测到的实例**（`root` 与 `ROOT`）；更一般的**关键字
+ *    大小写归一**（`AND`/`OR`/`NOT`/`NOR`/`NAND` 在 param 位置）是**卡 A14** 的范围，
+ *    本卡不做，以免碎片化 A14 的修复面。
+ *  - `limit` / `ai_prerequisite` 归 TRIGGER_CONTAINER_NAMES（见该名单的 A13 段）。
+ * 零误报门槛：7 个名字加入后 `board/verify.mjs --e2e` 全绿（33 真实 mod sweep WARN=0）；
+ * 逐名误报核对结论见 `board/C2-COVERAGE.md` 表 B1/B2 的 A13 行。
+ *
  * 回归门槛：本族在 33 个真实 mod（reference + workshop + Paradox）上跑过「C2 零误报」
  * （probe11 / tool-content-sweep）；零误报是硬门槛。
  */
@@ -399,6 +428,10 @@ const CONTEXT_ENTER_NAMES = new Set([
   "trigger",
   "hidden_effect",
   "hidden_trigger",
+  // --- A13：`hidden` 是 wrapper 块（与 hidden_effect 同族）；vanilla 真实站点是
+  //     common/unit_abilities/*.txt **顶层 ability 对象**（父模式 neutral）下的
+  //     `hidden = { <trigger> }` ⇒ 不纳入则整个 body 不扫（见本名单 JSDoc 的 A13 段）---
+  "hidden",
   // --- modifier 左值表族（判据与逐名理由见上方 JSDoc）---
   "modifier",
   "country_modifier",
@@ -435,6 +468,11 @@ const CONTEXT_ENTER_NAMES = new Set([
   "non_leader_modifier",
   "modifier_on_completion",
   "province_modifier",
+  // --- A13：scope 目标块（块名 = scope 链接关键字/链接名；body 是 effect/trigger 列表）---
+  "prev",
+  "root",
+  "ROOT",
+  "ruler_or_regent",
 ]);
 
 /**
@@ -454,7 +492,7 @@ const CONTEXT_ENTER_NAMES = new Set([
  * - ai_interaction_source_list  select_trigger 内的 AI 目标来源列表（内部 every_goods > limit 仍是 context）
  *
  * ===== A9 复核（2026-10，容器名单从 script_docs 解析后）=====
- * 对照：本名单 **0/53** 在「结构示例派生的容器集合」（1220 个）里 —— 它们**都不是** effect/trigger
+ * 对照：本名单 **0/58** 在「结构示例派生的容器集合」（1220 个）里 —— 它们**都不是** effect/trigger
  * 名，是**结构字段/列表部位**，dump 不提供 ⇒ 只能手写（与 CONTEXT_ENTER_NAMES 同理）。
  * 逐项复核后**剔除 1 条**：
  * - `select_trigger`（已删）：`c2-coverage --vanilla` 证据 = 988 个块 / body 键 6751 / 命中词典 **0**（ratio 0%）
@@ -489,11 +527,31 @@ const CONTEXT_ENTER_NAMES = new Set([
  *    （A5 卡「优先纳入」；probe11 V2 实测 33 真实 mod 零误报。）
  *    A2 卡曾把它列为「未验证容器」，A5 完成验证后正式纳入。
  *
+ * ===== A13（2026-10-10 用户确认纳入）：非 context 父模式（param / neutral）下的 trigger 列表 =====
+ * 与 A5/A7 同一根因：名字在词典里、父模式不是 `context`（`param` 或顶层对象的 `neutral`）
+ * ⇒ 旧逻辑整块不扫。
+ *  - `limit`：真 trigger 列表。vanilla 里 `limit` 的父模式**两种都存在** ——
+ *    `param`（`immediate > assert_if > limit`：`events/hre.txt:732,809,816`、
+ *    `events/colonization/settle_the_frontier.txt:523`）与 `neutral`
+ *    （`common/resolutions/hre_election.txt:227` 的 `vote_effect > assert_if` 链**从顶层对象起 neutral**）。
+ *    候选面枚举器实测 **7** 处（口径 = 父块名 ∈ 词典）；卡 A13 只把名字补进名单，位置判定不改。
+ *    注意：`limit` 在 **context 位置**（`every_country = { limit = {…} }`）本来就扫 ⇒ 这是
+ *    「位置相关」的假阴，光看块名列表发现不了。
+ *    它同时被 `attribute_columns > info > sort > sort_text > if > limit` 这条既有通路用到（A5）。
+ *  - `ai_prerequisite`：vanilla 46 块，全部是**顶层** interaction / generic_action 对象
+ *    （父模式 **neutral**）的结构字段（如 `generic_actions/culture.txt:94`
+ *    `remove_accepted_culture > ai_prerequisite = { <triggers> }`）；候选面枚举器实测 4 处。
+ *  逐名误报核对结论见 `board/C2-COVERAGE.md` 表 B2 的 A13 行。
+ *
  * 有意**不**纳入（避免再成为「未记录的洞」）：
  * - `switch`：**不是普通 ENTER**，而是「**标签容器**」（其直接子键是 case 名/值，不是 effect/trigger
  *   名）—— 见 `LABEL_CONTAINER_NAMES` 的 JSDoc：标签不当候选、case body 进 context。
  * - `limit` / `owner` / `area` / `value` / `map_color`：形态混杂（trigger 列表 / 参数表 /
  *   scope 目标 / 取值块），无法用名字判据区分，不加；其内部漏查属已知的**名字级不可判**面。
+ *   ⚠️ **A13 改判 `limit`**：它在**非 context 父模式**（`immediate > assert_if > limit` 的 param、
+ *   `vote_effect > assert_if > limit` 的 neutral）下是**真 trigger 列表**（候选面实测 7 处）；
+ *   故 `limit` 已入本名单，
+ *   `owner`/`area`/`value`/`map_color` 仍不纳入（见卡 A13）。
  * - `(top)` 伪块名与数据驱动目录里作者自起 id 的对象（如 `common/static_modifiers/**`
  *   的 `location_base_values`）：块名不可枚举，属**目录级**规则（A6，已实装为
  *   `DATA_DRIVEN_CONTEXT_DIRS`），不在本名单。
@@ -601,6 +659,12 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "custom_description_no_bullet",
   // --- A5：UI 排序里的 trigger 列表（limit）---
   "sort_text",
+  // --- A13：`limit` / `ai_prerequisite` —— 落在**非 context 父模式**（param，或顶层对象的
+  //     neutral）下的 trigger 列表（真形态 `immediate > assert_if > limit = { <triggers> }`、
+  //     `remove_accepted_culture > ai_prerequisite = { <triggers> }`）⇒ ENTER 优先于
+  //     param/neutral，否则 body 不扫（见本名单 JSDoc 的 A13 段）---
+  "limit",
+  "ai_prerequisite",
 ]);
 
 /**
@@ -1221,7 +1285,9 @@ function scanStickyContext(
       return;
     }
     let mode: ContextMode;
-    // ENTER 名单**优先**于 param（A5 G2a/G2b）：已知效果的参数块里嵌套的
+    // ENTER 名单**优先**于 param / neutral（A5 G2a/G2b；A13 又把 `limit`/`hidden`/
+    // `ai_prerequisite`/`prev`/`root`/`ROOT`/`ruler_or_regent` 纳入这条通路；父模式 `neutral`
+    // 主要来自非 scripted/非数据驱动目录的顶层对象）：已知效果的参数块里嵌套的
     // effect/trigger/hidden_effect/hidden_trigger/容器块（真实形态
     // `create_building_country_in_location > hidden_effect > <effect>`）body 仍是
     // effect/trigger 列表；先判 `parentMode === "param"` 会把整块短路成参数表而漏查。

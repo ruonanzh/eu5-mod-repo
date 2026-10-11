@@ -61,9 +61,20 @@ const TOPLEVEL_DEF_RE = /^(\w+)\s*=/;
  * A21：**顶层内联** scripted 定义声明头 —— `scripted_trigger <名> = {` / `scripted_effect <名> = {`
  * （`<名>` 可含 `.`）。`TOPLEVEL_DEF_RE` 匹配不到这种形态（关键字在最前，不是名字）⇒ 内联定义名
  * 不进 `modDefinedNames` / `modScriptedNames`。见 `topLevelInlineScriptedNames`。
+ *
+ * A22：`=` 与 `{` 之间**允许换行**（含 `\r`，兼容 CRLF）—— 收口 A21 明文留下的边界：
+ * `scanStickyContext` 找 `=` / `{` 时用 `isWs`（**含 `\n`**）⇒ **多行声明头**
+ * （`scripted_effect set_variables =` + 换行 `{`）的 body 被放行；但这条正则原先要求 `名 = {`
+ * **同行** ⇒ 同一形态的**定义名**不进自定义名集合 ⇒ 调用该名时仍被报（修前 1 条误报）。
+ * ⇒ 把**这一处**间隔放宽到与 `isWs` **同集合**（空格/制表/换行/回车），其余口径不动：
+ * 行首锚 `^[ \t]*` 与「关键字在**行首**」的判据保持（A21 的收紧不回归）。
+ * **不放宽**「关键字→名」「名→`=`」两处间隔（那两种换行形态 vanilla 与 33 真实 mod 均 **0 处**；
+ * 放宽只会扩大自定义名集合、属**缩小**检测面，但无实测依据 ⇒ 按卡 `A22` 的最小面处理）。
+ * 注意：本条与 `isInlineScriptedKeywordAtLineStart()` 是**同一判据的两个实现**，本卡的起因正是两者漂移；
+ * 只改这一处时，务必核对两者对「间隔空白」的口径一致（见 `topLevelInlineScriptedNames` 的 JSDoc）。
  */
 const INLINE_SCRIPTED_DECL_RE =
-  /^[ \t]*(?:scripted_trigger|scripted_effect)[ \t]+([A-Za-z_]\w*(?:\.[A-Za-z0-9_]+)*)[ \t]*=[ \t]*\{/i;
+  /^[ \t]*(?:scripted_trigger|scripted_effect)[ \t]+([A-Za-z_]\w*(?:\.[A-Za-z0-9_]+)*)[ \t]*=[ \t\r\n]*\{/i;
 
 /**
  * T7：wiki `Modding/Mod_structure.md` 明说 **INJECT 对 scripted effects / scripted triggers 无效** ——
@@ -336,7 +347,7 @@ function definitionsFrom(files: string[]): Set<string> {
  * 判据与 `scanStickyContext` 的内联定义通路**同源**（A21 与它一并收紧）：
  *  - 关键字在**行首**（前面到行首只有空白）—— 排除 `x = scripted_trigger` 这种**关键字作值**的写法；
  *  - 名字形如 `<段>(.<段>)*`（与 A18 的窄通路一致：`.` 后必须紧接标识符字符）；
- *  - 其后是 `=` 与 `{`；
+ *  - 其后是 `=` 与 `{`（A22：两者之间**允许换行**，与扫描器的 `isWs` 同集合）；
  *  - **只在 brace depth 0**（顶层）—— 嵌套出现同形文本不算定义（自定义名集合只**抑制**候选，
  *    放松口径只会引入假阴，故从严）。
  * 注释由调用方先剥（与 `scanTopLevel` 用同一份 `stripLineComments(text)`）。
@@ -1446,8 +1457,12 @@ function scanStickyContext(
    * （`zz_meta = scripted_trigger`）之后的**下一个顶层块**被误认成内联定义 ⇒ 该块 body 进 context
    * ⇒ 过扫（A17 引入、A18 扩到带点名字的**潜在误报面**）。真形态的关键字都在行首
    * （vanilla 全量 548 个「关键字 + 名 + `=`」站点全在行首；33 真实 mod + vanilla 里
-   * 「关键字作值」实测 0 处）；用「前一非空白字符不是 `=`」的判据排掉这种写法，
-   * 不放宽任何真命中（A17/A18 正例不回归）。
+   * 「关键字作值」实测 0 处）。
+   *
+   * A22 订正：判据是这条**更严**的「关键字必须在**行首**（关键字前到行首只有空白）」——
+   * 能排掉 `x = scripted_trigger`（关键字作值）这种写法，且不放宽任何真命中（A17/A18 正例不回归）。
+   * 旧 JSDoc 写的「前一非空白字符不是 `=`」只是本例的**等价现象**、不是实现判据（实现不比它松）；
+   * 此处把措辞与实现对齐。
    */
   const isInlineScriptedKeywordAtLineStart = (pos: number): boolean => {
     if (!isInlineScriptedKeyword(prevWordBefore(pos))) return false;

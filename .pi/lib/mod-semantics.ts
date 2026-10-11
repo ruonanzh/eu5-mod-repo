@@ -57,6 +57,13 @@ const OVERRIDE_KEYWORD = "(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?";
 const OVERRIDE_DECL_RE = new RegExp(`^(${OVERRIDE_KEYWORD}):\\s*(\\w+)\\s*=`);
 /** 顶层普通对象定义：`name =`。 */
 const TOPLEVEL_DEF_RE = /^(\w+)\s*=/;
+/**
+ * A21：**顶层内联** scripted 定义声明头 —— `scripted_trigger <名> = {` / `scripted_effect <名> = {`
+ * （`<名>` 可含 `.`）。`TOPLEVEL_DEF_RE` 匹配不到这种形态（关键字在最前，不是名字）⇒ 内联定义名
+ * 不进 `modDefinedNames` / `modScriptedNames`。见 `topLevelInlineScriptedNames`。
+ */
+const INLINE_SCRIPTED_DECL_RE =
+  /^[ \t]*(?:scripted_trigger|scripted_effect)[ \t]+([A-Za-z_]\w*(?:\.[A-Za-z0-9_]+)*)[ \t]*=[ \t]*\{/i;
 
 /**
  * T7：wiki `Modding/Mod_structure.md` 明说 **INJECT 对 scripted effects / scripted triggers 无效** ——
@@ -316,6 +323,66 @@ function definitionsFrom(files: string[]): Set<string> {
     for (const d of scanTopLevel(stripLineComments(text)).definitions) defs.add(d);
   }
   return defs;
+}
+
+/**
+ * A21：收集**文件顶层**的**内联** scripted 定义名
+ * （`scripted_trigger <名> = { … }` / `scripted_effect <名> = { … }`）。
+ *
+ * 为什么另立收集器：`scanTopLevel` 的 `TOPLEVEL_DEF_RE = /^(\w+)\s*=/` 只认「名字 + `=`」形态，
+ * 匹配不到「关键字 + 名 + `=`」⇒ 本 mod 的内联定义名不进 `modDefinedNames` / `modScriptedNames`
+ * ⇒ 调用它时被当未知名报出（**既有缺口**，A17/A18 只是把它带进新扫面）。
+ *
+ * 判据与 `scanStickyContext` 的内联定义通路**同源**（A21 与它一并收紧）：
+ *  - 关键字在**行首**（前面到行首只有空白）—— 排除 `x = scripted_trigger` 这种**关键字作值**的写法；
+ *  - 名字形如 `<段>(.<段>)*`（与 A18 的窄通路一致：`.` 后必须紧接标识符字符）；
+ *  - 其后是 `=` 与 `{`；
+ *  - **只在 brace depth 0**（顶层）—— 嵌套出现同形文本不算定义（自定义名集合只**抑制**候选，
+ *    放松口径只会引入假阴，故从严）。
+ * 注释由调用方先剥（与 `scanTopLevel` 用同一份 `stripLineComments(text)`）。
+ */
+function topLevelInlineScriptedNames(text: string): Set<string> {
+  const names = new Set<string>();
+  const n = text.length;
+  let depth = 0;
+  let inString = false;
+  let i = 0;
+  while (i < n) {
+    const ch = text[i];
+    if (inString) {
+      if (ch === '"') inString = false;
+      i += 1;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      i += 1;
+      continue;
+    }
+    if (ch === "{") {
+      depth += 1;
+      i += 1;
+      continue;
+    }
+    if (ch === "}") {
+      if (depth > 0) depth -= 1;
+      i += 1;
+      continue;
+    }
+    if (depth === 0 && (i === 0 || text[i - 1] === "\n")) {
+      let j = i;
+      while (j < n && (text[j] === " " || text[j] === "\t")) j += 1;
+      const m = INLINE_SCRIPTED_DECL_RE.exec(text.slice(j, j + 200));
+      if (m && m.index === 0) {
+        names.add(m[1]);
+        // 停在声明头最后一个字符（`{`）—— 让主循环照常计 brace 深度。
+        i = j + m[0].length - 1;
+        continue;
+      }
+    }
+    i += 1;
+  }
+  return names;
 }
 
 // ---- C2：粘性上下文拼写校验 ----
@@ -1372,6 +1439,30 @@ function scanStickyContext(
     const w = word.toLowerCase();
     return w === "scripted_trigger" || w === "scripted_effect";
   };
+  /**
+   * A21：`scripted_trigger|scripted_effect` 关键字是否位于**行首**（关键字前到行首只有空白）。
+   *
+   * 为什么要这一条：旧判据只看「块名前一个词是 scripted_* 关键字」⇒ **关键字作值**的写法
+   * （`zz_meta = scripted_trigger`）之后的**下一个顶层块**被误认成内联定义 ⇒ 该块 body 进 context
+   * ⇒ 过扫（A17 引入、A18 扩到带点名字的**潜在误报面**）。真形态的关键字都在行首
+   * （vanilla 全量 548 个「关键字 + 名 + `=`」站点全在行首；33 真实 mod + vanilla 里
+   * 「关键字作值」实测 0 处）；用「前一非空白字符不是 `=`」的判据排掉这种写法，
+   * 不放宽任何真命中（A17/A18 正例不回归）。
+   */
+  const isInlineScriptedKeywordAtLineStart = (pos: number): boolean => {
+    if (!isInlineScriptedKeyword(prevWordBefore(pos))) return false;
+    let p = pos - 1;
+    while (p >= 0 && isWs(cleaned[p])) p -= 1;
+    let q = p;
+    while (q >= 0 && isIdentChar(cleaned[q])) q -= 1;
+    let s = q; // q = 关键字（ident-run）前一个字符
+    while (
+      s >= 0 &&
+      (cleaned[s] === " " || cleaned[s] === "\t" || cleaned[s] === "\r")
+    )
+      s -= 1;
+    return s < 0 || cleaned[s] === "\n";
+  };
 
   /**
    * A18：**带点名字**的顶层内联 scripted 定义 —— 返回其 body `{` 的索引（未命中返回 -1）。
@@ -1496,14 +1587,15 @@ function scanStickyContext(
       const name = cleaned.slice(i, j);
       const prev = i > 0 ? cleaned[i - 1] : "";
       // A18：顶层内联 `scripted_trigger|scripted_effect <带点名字> = {` 的窄通路（见
-      // inlineScriptedDottedBodyStart 的 JSDoc）。**只在顶层**、且前一个词是 scripted_* 关键字时
-      // 生效 —— 该 `{` 由于 `prev !== "."` 守卫本不产生块名，这里把它单判成 context。
+      // inlineScriptedDottedBodyStart 的 JSDoc）。**只在顶层**、且关键字在**行首**时
+      // 生效（A21 收紧：排掉 `x = scripted_trigger` 这种**关键字作值**的过扫）
+      // —— 该 `{` 由于 `prev !== "."` 守卫本不产生块名，这里把它单判成 context。
       if (
         stack.length === 0 &&
         prev !== ":" &&
         prev !== "." &&
         !isIdentChar(prev) &&
-        isInlineScriptedKeyword(prevWordBefore(i))
+        isInlineScriptedKeywordAtLineStart(i)
       ) {
         const bodyStart = inlineScriptedDottedBodyStart(j);
         if (bodyStart >= 0) {
@@ -1532,7 +1624,7 @@ function scanStickyContext(
           pushBlock(
             name,
             mode,
-            isInlineScriptedKeyword(prevWordBefore(i)),
+            isInlineScriptedKeywordAtLineStart(i),
           );
           i = r + 1;
           continue;
@@ -1639,8 +1731,17 @@ export function analyzeSemantics(
     const category = categoryFromRel(rel);
     const text = readText(abs);
     if (text === null) continue;
-    const scan = scanTopLevel(stripLineComments(text));
+    const cleanedText = stripLineComments(text);
+    const scan = scanTopLevel(cleanedText);
     for (const d of scan.definitions) modDefinedNames.add(d);
+    // A21：**顶层内联** scripted 定义名同样是「本 mod 自定义名」—— `TOPLEVEL_DEF_RE` 只认
+    // 「名字 + `=`」形态、匹配不到 `scripted_trigger <名> =` ⇒ 调用它时被当未知名报出（既有缺口）。
+    // 内联定义与 `common/scripted_effects|triggers` **同源**（见 scanStickyContext 的 A17-2）
+    // ⇒ 其名同时进 modDefinedNames（抑制 C2 候选）与 modScriptedNames（调用体是参数列表 → param）。
+    for (const d of topLevelInlineScriptedNames(cleanedText)) {
+      modDefinedNames.add(d);
+      modScriptedNames.add(d);
+    }
     if (isScriptedDir(rel)) {
       for (const d of scan.definitions) modScriptedNames.add(d);
     }

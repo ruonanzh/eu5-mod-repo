@@ -405,8 +405,9 @@ function definitionsFrom(files: string[]): Set<string> {
  *    ⚠️ 大小写：vanilla 两种写法都在用（`root = {` 745 块 / `ROOT = {` 70 块、
  *    `prev = {` 31 / `PREV = {` 9）。本卡**只显式列出候选面枚举器
  *    （`board/container-surface.mjs`）实测到的实例**（`root` 与 `ROOT`）；更一般的**关键字
- *    大小写归一**（`AND`/`OR`/`NOT`/`NOR`/`NAND` 在 param 位置）是**卡 A14** 的范围，
- *    本卡不做，以免碎片化 A14 的修复面。
+ *    大小写归一**（`AND`/`OR`/`NOT`/`NOR`/`NAND` 在 param 位置）由**卡 A14 实装** ——
+ *    `normalizeKeywordLookup` 把本表（及其余内置表）的匹配改为大小写不敏感 ⇒ `ROOT` 与
+ *    `root` 等价（保留原条目只为不动名单计数）。
  *  - `limit` / `ai_prerequisite` 归 TRIGGER_CONTAINER_NAMES（见该名单的 A13 段）。
  * 零误报门槛：7 个名字加入后 `board/verify.mjs --e2e` 全绿（33 真实 mod sweep WARN=0）；
  * 逐名误报核对结论见 `board/C2-COVERAGE.md` 表 B1/B2 的 A13 行。
@@ -714,7 +715,8 @@ const TRIGGER_CONTAINER_NAMES = new Set([
  *
  * ⚠️ 与 ENTER/普通容器名单**分开判定**：标签容器名**不进** `CONTEXT_ENTER_NAMES` /
  * `TRIGGER_CONTAINER_NAMES`（那会让 pushBlock 给 context ⇒ 标签被当候选 ⇒ 误报）；
- * 由 pushBlock 的**第一分支**处置。大小写仍敏感（大写 `SWITCH` 属卡 A14，本卡不动）。
+ * 由 pushBlock 的**第一分支**处置。A14 起本表（及 `switch`）的匹配大小写不敏感 ——
+ * 大写 `SWITCH` 同样进标签模式（标签不当候选、case body 进 context），见 `normalizeKeywordLookup`。
  */
 const LABEL_CONTAINER_NAMES = new Set(["switch"]);
 
@@ -758,6 +760,44 @@ const CONTAINER_CONTROL_NAMES = new Set([
 ]);
 const CONTAINER_CONTROL_PREFIXES = ["every_", "any_", "ordered_", "random_"];
 
+/**
+ * A14：**内置关键字/容器表**的匹配改为**大小写归一**（PDXScript 关键字大小写不敏感）。
+ *
+ * 机理 = 只把**这几张内置表**的 `has` 改成大小写不敏感，**不是**新增名字：
+ * vanilla 大量用大写写法（实测 `NOT` 6478 块 / `AND` 1157 / `OR` 4753 / `NOR` 561 / `NAND` 75，
+ * 合计 ≈13000 块，`game-scripts/game/**`）。大小写敏感时这些块在 **param** 父位置
+ * （如 `trigger > assert_if > NOT`）不被认作容器 ⇒ 整块按参数表处置、body 不扫（C2 位置相关假阴）；
+ * 在 **context** 位置**侥幸能扫**（未知名块在 context 里保持 context）⇒ 光看块名列表发现不了。
+ *
+ * 边界（卡 A14 硬约束）：只对这些**内置表**归一。用户自定义名 / 对象名 / 值**不**归一 ——
+ * `checkCandidate` 的 `dict.knownNames` / `modDefined` 与 `pushBlock` 的 `dict.names` /
+ * `modScripted` 一律保持原样（C1/C3 的对象名核对大小写可能确有意义）。
+ *
+ * 实现方式（为何给实例替换 `has`，而不改调用点）：
+ *   ① 调用点保持 `SET.has(x)` 字面形状 —— 审计 harness（`probe14.mjs` / `audit2/param-gap-ab.mjs`）
+ *      以这些行为 temp 副本实验锚点；
+ *   ② `board/audits/harness/c2-coverage.mjs` 的 `setFromSource` 以 `const NAME = new Set([`
+ *      从源码解析名单 ⇒ 声明形式必须保持。
+ */
+function normalizeKeywordLookup(set: Set<string>): void {
+  const lower = new Set([...set].map((n) => n.toLowerCase()));
+  set.has = (value: string): boolean =>
+    Set.prototype.has.call(set, value) || lower.has(value.toLowerCase());
+}
+
+// A14：内置表的匹配统一大小写不敏感（机理与边界见 normalizeKeywordLookup 的 JSDoc）。
+// 注：`ROOT`（A13 为收口大写实例显式加入）在归一后与 `root` 等价；保留该条目以免改动
+//     名单计数与文档数字（表 B1 的 53 项 / plan §1.1 的 0/53）。
+for (const keywordTable of [
+  CONTEXT_ENTER_NAMES,
+  TRIGGER_CONTAINER_NAMES,
+  LABEL_CONTAINER_NAMES,
+  DUMP_INVISIBLE_CONTAINERS,
+  CONTAINER_CONTROL_NAMES,
+]) {
+  normalizeKeywordLookup(keywordTable);
+}
+
 interface ContainerModel {
   /** 容器名（解析成功时为 dump 派生集 ∪ dump 不可见容器）。 */
   names: Set<string>;
@@ -772,8 +812,10 @@ const containerModelCache = new Map<string, ContainerModel>();
 
 /** 退化容器模型（新建 Set，避免调用方意外共享可变集合）。 */
 function fallbackContainerModel(): ContainerModel {
+  const names = new Set([...CONTAINER_CONTROL_NAMES, ...DUMP_INVISIBLE_CONTAINERS]);
+  normalizeKeywordLookup(names); // A14：容器名匹配大小写不敏感（展开复制不继承 has，需重建）
   return {
-    names: new Set([...CONTAINER_CONTROL_NAMES, ...DUMP_INVISIBLE_CONTAINERS]),
+    names,
     prefixes: [...CONTAINER_CONTROL_PREFIXES],
     derived: false,
   };
@@ -867,6 +909,7 @@ function loadContainerModel(
   let model: ContainerModel;
   if (names.size > 0) {
     for (const n of DUMP_INVISIBLE_CONTAINERS) names.add(n);
+    normalizeKeywordLookup(names); // A14：容器名匹配大小写不敏感（展开复制不继承 has，需重建）
     model = { names, prefixes: [], derived: true };
   } else {
     model = fallbackContainerModel();
@@ -896,7 +939,8 @@ const LEGITIMATE_STRUCTURAL_FIELDS = new Set([
 
 function isContainerControl(name: string): boolean {
   if (activeContainers.names.has(name)) return true;
-  return activeContainers.prefixes.some((p) => name.startsWith(p));
+  // A14：前缀族只在退化模式非空（派生模式已枚举）；归一后比对小写前缀。
+  return activeContainers.prefixes.some((p) => name.toLowerCase().startsWith(p));
 }
 
 /**
@@ -910,6 +954,7 @@ function isContainerControl(name: string): boolean {
  * `and`/`or`/`not`/`nor`/`nand`/`any_false`/`all_false`）的 body **只可能**是 effect/trigger 列表
  * ⇒ 即使在 param 下也放行（否则真形态 `create_character > every_country > <typo>` 整块不扫）。
  * 判据只叠加在**派生容器集合**（A0）之上，不引入手写前缀名单。
+ * A14：两处比较（`isContainerControl` / `CONTAINER_CONTROL_NAMES.has`）都改为**大小写不敏感**。
  */
 function isUnambiguousContainer(name: string): boolean {
   return isContainerControl(name) && !CONTAINER_CONTROL_NAMES.has(name);

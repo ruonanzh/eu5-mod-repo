@@ -91,7 +91,7 @@ export function writeState(cwd: string, patch: RuntimeState): RuntimeState {
   return next;
 }
 
-/** Expands `~` and `~/...`. An older state file or a hint can hold them, and the tool can never check an unexpanded path. */
+/** Expands `~` and `~/...`. An older `.gamer-agent.local.json` or a hint can hold them, and the tool can never check an unexpanded path. */
 export const expandHome = (p: string): string => {
   const t = p.trim();
   if (t !== "~" && !t.startsWith("~/")) return t;

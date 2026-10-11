@@ -42,7 +42,7 @@ import { readModIdentity } from "../lib/mod-identity";
  * The game directory holds no files of ours. All ownership information lives in the workspace.
  */
 
-/** Files local to the author. They do not go into the game. */
+/** Files local to the workspace. They do not go into the game. */
 const EXCLUDED_DIRS = new Set([".git", "node_modules"]);
 const EXCLUDED_FILES = new Set([".DS_Store", ".pi-mod.json"]);
 
@@ -150,7 +150,7 @@ export function pickInstallDir(
   }
 }
 
-/** Copies the mod files, and skips the files local to the author. */
+/** Copies the mod files, and skips the files local to the workspace. */
 export function copyModFiles(from: string, to: string): number {
   let count = 0;
   const walk = (srcDir: string, destDir: string) => {
@@ -359,7 +359,7 @@ export default function (pi: ExtensionAPI) {
       const notes: string[] = [];
       if (targetWasMissing) {
         notes.push(
-          `\nNOTE: the mod install directory ${modRoot} did not exist and was created. That is normal on a first install, because the Paradox launcher had not created it yet. If the player expected mods somewhere else, for example after moving their Documents folder, tell them where this mod actually landed: ${installDir}.`,
+          `\nNOTE: the mod install directory ${modRoot} did not exist and was created. That is normal on a first install, because the Paradox launcher had not created it yet. If the player expected mods somewhere else, for example after moving their Documents directory, tell them where this mod actually landed: ${installDir}.`,
         );
       }
       if (mismatched) {

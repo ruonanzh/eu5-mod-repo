@@ -61,8 +61,8 @@ export default function (pi: ExtensionAPI) {
       const remembered = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v : null);
       const asPath = (v: string | undefined): string | null => (v?.trim() ? resolveUserPath(cwd, v) : null);
 
-      // The contract: check what you pass. With no arguments, check the paths remembered in the
-      // state file.
+      // The contract: check what you pass. With no arguments, check the paths recorded in
+      // .gamer-agent.local.json.
       //
       // Which paths are required, and whether the Workshop matters, comes from mod-repo.json:
       //   - The contract declares modInstall as non-null: modInstallDir is required. A type with
@@ -109,7 +109,7 @@ export default function (pi: ExtensionAPI) {
             content: [
               {
                 type: "text",
-                text: `FAIL: nothing to check - no paths were given and none are remembered in this workspace's state file (${statePath(cwd)}).\nNEXT: run try_set_game_dir with no arguments to locate the game, or pass gameDir explicitly. See the 'setup-workspace' skill if the search fails.`,
+                text: `FAIL: nothing to check - no paths were given and none are recorded in ${statePath(cwd)}.\nNEXT: run try_set_game_dir with no arguments to locate the game, or pass gameDir explicitly. See the 'setup-workspace' skill if the search fails.`,
               },
             ],
             details: { ok: false, reason: "NOTHING_TO_CHECK" },

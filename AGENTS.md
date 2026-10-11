@@ -35,7 +35,7 @@ path state. The tools in `.pi/extensions/` read and write it.
 **Only trust the copy in this workspace.** The machine may have same-named files elsewhere, from
 other clones or leftover state. Using those leads to wrong conclusions.
 **"Ready" means the recorded values plus the tool result.** Seeing a directory with `ls` does not
-mean that the state file records it. The workspace panel, `validate_mod`, `install_mod`, and
+mean that `.gamer-agent.local.json` records it. The workspace panel, `validate_mod`, `install_mod`, and
 `sync_game_scripts` all read the recorded state.
 Field meanings are in `.pi/skills/setup-workspace/SKILL.md`.
 

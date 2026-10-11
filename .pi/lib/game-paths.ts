@@ -12,9 +12,9 @@
  *   - workshopDir    The directory `<SteamLibrary>/steamapps/workshop/content/<appid>`.
  *   - modInstallDir  The Paradox launcher directory, which is independent of the game location:
  *                    `~/Documents/Paradox Interactive/Europa Universalis V/mod`. There is no
- *                    sibling-directory sentinel to check, so the tool checks the shape instead: an
- *                    absolute path, not a file, and ending with the relative path that
- *                    mod-repo.json declares.
+ *                    sibling-directory sentinel to check. The tool therefore checks the shape: an
+ *                    absolute path, not a file, and the relative path that mod-repo.json declares
+ *                    at the end.
  *   - The search     The tool must scan Steam: the registry and libraryfolders.vdf in each
  *                    library. It does not use installDirHint.
  */
@@ -137,7 +137,7 @@ export function checkModInstallDir(dir: string | null | undefined, cfg?: ModRepo
   // still run when the shape check is skipped.
   const st = statSync(p, { throwIfNoEntry: false });
   if (st && !st.isDirectory())
-    return { ok: false, path: p, code: "TARGET_INVALID", reason: "this path exists but is not a directory (it is a file)", next: `Ask the player to remove or rename the file blocking that path. ${NEXT_SKILL}` };
+    return { ok: false, path: p, code: "TARGET_INVALID", reason: "this path exists but is not a directory (it is a file)", next: `Ask the player to delete or rename the file blocking that path. ${NEXT_SKILL}` };
   const rel = cfg?.modInstall?.path;
   // The shape check is our opinion about the Paradox directory convention, and it is not a hard game
   // rule. Skip it when the configuration is unreadable or has no modInstall.path, because
@@ -168,7 +168,7 @@ export function checkWorkshopDir(dir: string | null | undefined, appId: string):
   // The shape check is meaningful only when the rule is known.
   const norm = (v: string) => v.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
   if (appId && !norm(p).endsWith(norm(`/workshop/content/${appId}`)))
-    return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: `the path does not end with workshop/content/${appId} (see the appid in mod-repo.json)`, next: "Confirm that this is the Workshop content directory for this game, and omit it if unsure." };
+    return { ok: false, path: p, code: "WORKSHOP_NOT_FOUND", reason: `the path does not end with workshop/content/${appId} (see the appid in mod-repo.json)`, next: "Use this path only if it is the Workshop content directory for this game. Omit it if you are not sure." };
   return { ok: true, path: p };
 }
 
@@ -262,7 +262,7 @@ export function workshopDirFor(gameDir: string, cfg: ModRepoConfig): string | nu
   return existsSync(candidate) ? candidate : null;
 }
 
-/** Derives the other paths from a confirmed gameDir. The Workshop directory is a read-only reference, so the tool does not record it when it does not exist. */
+/** Derives the other paths from a game directory that passed the check. The Workshop directory is a read-only reference, so the tool does not record it when it does not exist. */
 export function pathsFor(
   gameDir: string,
   cfg: ModRepoConfig,

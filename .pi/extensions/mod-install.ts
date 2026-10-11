@@ -34,8 +34,8 @@ import { readModIdentity } from "../lib/mod-identity";
  * Ownership and idempotency come from the workspace-side record
  * `your_mods/<mod name>/.pi-mod.json`, which holds `{ name, installedDir }`:
  *   - The installedDir in the record exists: update in place, so a re-install is idempotent.
- *   - The record is absent, or its directory does not exist: treat the mod as not installed, and
- *     derive the target from the your_mods directory name.
+ *   - The tool finds no record, or the recorded directory is absent. It then treats the mod as not
+ *     installed, and derives the target from the your_mods directory name.
  *   - The target exists and it is not the recorded one: another mod owns it. Install as
  *     `<directory name>_pimod`, and never overwrite.
  *
@@ -233,9 +233,9 @@ export default function (pi: ExtensionAPI) {
       // renameSync.
       // The target check is shared with check_game_paths and try_set_game_dir, in lib/game-paths.
       // The mod directory is in the Paradox launcher directory, which is independent of the game
-      // location, so the check is a shape check: absolute, not a file, and ending with the relative
-      // path that mod-repo.json declares. A missing directory is still the normal state, and the
-      // install creates it.
+      // location. The check is therefore a shape check: an absolute path, not a file, and the
+      // relative path that mod-repo.json declares at the end. A missing directory is still the
+      // normal state, and the install creates it.
       // The shape check needs mod-repo.json. When the file is unreadable, degrade to the absolute
       // path check and the not-a-file check, and do not fail the install.
       let cfgForPaths;
@@ -305,8 +305,8 @@ export default function (pi: ExtensionAPI) {
       // The same mod, with the same identity in the record, was installed under another directory
       // name before. Report that, and do not delete it.
       // The scan is necessary only when the identity differs from the directory name. When they are
-      // equal, the directory name of the previous install is necessarily this target, and
-      // pickInstallDir resolves the re-install or the clash on that target. One mod in two
+      // equal, the directory name of the previous install is necessarily this target.
+      // pickInstallDir then resolves the re-install or the clash on that target. One mod in two
       // directories is therefore impossible.
       // The common path therefore has no O(n) scan, and a mod whose identity differs from its
       // directory name still receives that report.
@@ -340,7 +340,7 @@ export default function (pi: ExtensionAPI) {
       // Write the record only after a successful install. The record does not take part in the
       // "is it installed" decision.
       writeInstallRecord(modDir, identity.name, basename(installDir));
-      // Remove the old marker from the installed copy, for compatibility with earlier versions.
+      // Delete the old marker from the installed copy, for compatibility with earlier versions.
       rmSync(join(installDir, ".pi-mod.json"), { force: true });
       } catch (error) {
         rmSync(staging, { recursive: true, force: true });
@@ -369,7 +369,7 @@ export default function (pi: ExtensionAPI) {
       }
       if (duplicateDir) {
         notes.push(
-          `\nNOTE: the same mod (id ${identity.name}) is also installed as ${duplicateDir}. This tool did not touch that copy. Tell the player which one to enable, and remove the other manually if it is stale.`,
+          `\nNOTE: the same mod (id ${identity.name}) is also installed as ${duplicateDir}. This tool did not touch that copy. Tell the player which one to enable, and delete the other manually if it is stale.`,
         );
       }
       const extraNotes = notes.join("");

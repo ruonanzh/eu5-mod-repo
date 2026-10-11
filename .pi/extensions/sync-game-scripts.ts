@@ -8,15 +8,16 @@ import { checkGameDir, checkWorkshopDir, readModRepoConfig, readState } from "..
  * sync_game_scripts - it mirrors the text and definition scripts from game/ and workshop/ into the
  * workspace's game-scripts/. That directory is the modding context you must load before you write a
  * mod. PDXScript has no self-describing API, so without these scripts you do not know which vanilla
- * objects to override or INJECT, and you cannot find a localization key.
+ * objects to override or INJECT. You also cannot find a localization key.
  *
  * It copies text and definition suffixes only, from the KEEP_SUFFIXES allowlist. That list matches
  * the sync tool in cursor main. It never copies a binary, so textures, meshes, and audio stay out.
  * The source paths come from .gamer-agent.local.json, which try_set_game_dir writes (gameDir and
  * workshopDir).
  *
- * It is idempotent. Every run walks the source again, copies only the new or changed files (size
- * and mtime), and deletes the stale files that the source no longer has. git ignores game-scripts/.
+ * It is idempotent. Every run walks the source again. It copies only the new or changed files, by
+ * size and mtime, and it deletes the stale files that the source no longer has. git ignores
+ * game-scripts/.
  */
 
 const KEEP_SUFFIXES = new Set([
@@ -216,7 +217,7 @@ export default function (pi: ExtensionAPI) {
         `PASS: mirrored ${g.copied + w.copied} script file(s) into ${toPosix(relative(repoRoot, destRoot))}/ (game: ${g.copied}, workshop: ${w.copied})`,
       ];
       if (g.staleRemoved + w.staleRemoved > 0) {
-        lines.push(`removed ${g.staleRemoved + w.staleRemoved} stale file(s) no longer present in the source.`);
+        lines.push(`deleted ${g.staleRemoved + w.staleRemoved} stale file(s) that the source no longer has.`);
       }
       if (workshopDir && !wsVerdict.ok && !workshopGone) {
         lines.push(
@@ -225,7 +226,7 @@ export default function (pi: ExtensionAPI) {
       }
       if (workshopGone) {
         lines.push(
-          `NOTE: the workshop source is gone (unsubscribed or removed). Its mirrored copy under game-scripts/workshop was cleared (${w.staleRemoved} file(s)) instead of being left behind.`,
+          `NOTE: the workshop source is gone (unsubscribed or deleted). Its mirrored copy under game-scripts/workshop was cleared (${w.staleRemoved} file(s)) instead of being left behind.`,
         );
       }
       return {

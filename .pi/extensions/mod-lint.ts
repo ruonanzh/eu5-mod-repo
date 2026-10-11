@@ -13,10 +13,10 @@ import { join, relative, resolve, sep, basename } from "node:path";
  *   - Localization YAML: the UTF-8 BOM, the encoding, the `_l_<lang>` filename, the `l_<lang>:`
  *     header, the key line format, the double-quoted value, the quote balance, duplicate keys, and
  *     a mojibake warning.
- *   - PDXScript and GUI files, which are the .txt, .gui, .gfx, and .asset files under in_game/ and
- *     main_menu/: invalid UTF-8, `{` and `}` balance, `"` balance with awareness of `#` comments and
- *     multiline strings, and the rule that the INJECT: and REPLACE: family starts only at a
- *     top-level block.
+ *   - PDXScript and GUI files: the .txt, .gui, .gfx, and .asset files under in_game/ and main_menu/.
+ *     The tool checks the UTF-8 encoding, the `{` and `}` balance, and the `"` balance, with
+ *     awareness of `#` comments and multiline strings. It also checks that the INJECT: and REPLACE:
+ *     family starts only at a top-level block.
  *
  * The contract is in docs/mod-repo-guide.md section 3.1 and game-mod-guide/eu5.md section 6. The tool
  * is read-only, and it has no third-party dependency. Its content output uses PASS or FAIL with NEXT,
@@ -415,7 +415,7 @@ function checkMetadata(modRoot: string): Finding[] {
 
 // ---- PDXScript and GUI brace and quote balance, and the INJECT: and REPLACE: top-level block ----
 
-/** Removes a `#` line comment that is outside a quoted string. It keeps the line breaks, so line numbers still match. A string can span lines. */
+/** Deletes a `#` line comment that is outside a quoted string. It keeps the line breaks, so line numbers still match. A string can span lines. */
 function stripLineComments(text: string): string {
   const outLines: string[] = [];
   let inString = false;
@@ -595,7 +595,7 @@ export default function (pi: ExtensionAPI) {
     name: "validate_mod",
     label: "Validate Mod",
     description:
-      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, the brace and quote balance in PDXScript and GUI files, and the rule that INJECT: and REPLACE: stay at the top level. It checks syntax and conventions only, and it is not a scope or type validator.",
+      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks the rule that INJECT: and REPLACE: stay at the top level. It checks syntax and conventions only, and it is not a scope or type validator.",
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
       "Use validate_mod after you write a mod, to check that it passes the rules.",

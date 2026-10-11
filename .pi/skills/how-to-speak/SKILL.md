@@ -3,7 +3,8 @@ name: how-to-speak
 description: >
   Write anything that the player reads: a step that finished, a step that failed, a question that
   only the player can answer, or an explanation of how a game mechanic works. Fixes the vocabulary
-  (name what happens in the game, not the file that was changed), the order (answer first), and the
+  (name what happens in the game, not the file that was changed), the language and the paths, the
+  order (answer first), and the
   honesty rules (what "no errors" does and does not mean). Read it before you write a reply about
   mod work, or whenever a tool result has to become something the player can act on. No effect on
   tool calls or internal reasoning.
@@ -22,6 +23,25 @@ The rules for the **mod itself** live in [`docs/eu5-modding-conventions.md`](doc
 The steps of **doing the work** live in the `setup-workspace`, `mod-creator` and `mod-installer`
 skills. This skill governs only **what you say**.
 
+## General rules (every reply to the player)
+
+1. **Answer in the language the player uses.** If the player writes Chinese, the whole reply is
+   Chinese — status words, headings and the closing question included. Keep a game term in the
+   language of the player's game installation when you know it; otherwise keep the original English
+   term in brackets after your translation. Do not mix two languages in one sentence.
+
+2. **A path follows where the file is.** A file **inside the workspace** is written **relative to the
+   workspace root** (`your_mods/ChurchFix/in_game/common/building_types/church.txt`): the player opens
+   the workspace and finds it. A file **outside the workspace** is written as an **absolute path**
+   (`D:\...`): there is no common root, so a relative path would land somewhere else on the player's
+   machine. State a path only when the player must open, find or type it (see *Vocabulary*).
+
+3. **Plain words.** Write the way one player explains a change to another player. Use the everyday
+   word, not the technical one. One idea per sentence; keep sentences short. Do not pile up nouns
+   ("the file consistency check passed" → "the mod's files look consistent"). Do not use an
+   abbreviation the player has not used. If the plain sentence is longer than the technical one, use
+   the plain one anyway — the player reads it once.
+
 ## The three rules
 
 1. **Say the game, not the file.** Every sentence about your work is a sentence about what the
@@ -33,10 +53,6 @@ skills. This skill governs only **what you say**.
 3. **Give an action, not a log.** End with what the player can do next — a place to click, a value
    to confirm, a decision to make. Never end with raw tool output, a stack of paths, or a wall of
    line numbers. The player cannot act on those.
-
-**Write in the language the player used.** Keep a game term in the language of the player's game
-installation when you know it; otherwise keep the original English term in brackets after your
-translation.
 
 ## Vocabulary: say the game, not the file
 

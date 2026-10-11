@@ -66,6 +66,11 @@ const TOPLEVEL_DEF_RE = /^(\w+)\s*=/;
  */
 const SCRIPTED_CATEGORIES = ["scripted_effects", "scripted_triggers"] as const;
 
+/** 该 `<目录>` 是否是 scripted effect/trigger 的数据库目录（T9：T7 判定按声明自身 category 收窄时要用）。 */
+function isScriptedCategory(category: string): boolean {
+  return (SCRIPTED_CATEGORIES as readonly string[]).includes(category);
+}
+
 /**
  * A8：**行首**的覆盖关键字前缀（`REPLACE:` / `INJECT:` / `TRY_*` / `*_OR_CREATE`）在 C2 扫描前剥掉，
  * 让 `KEYWORD:foo = { … }` 里的 `foo` 重新成为**块名** —— 覆盖体因此等价于「**该目录的一个普通对象**」，
@@ -1557,9 +1562,17 @@ export function analyzeSemantics(
   // 但 C1 的可用性判定（totalVanillaFiles/vanillaAvailable）仍**只统计 C1 自己的 `<目录>`**，
   // 以免新增 C3 类别把 C1 的 game-scripts 退化分支从 NOTE 变回正常核对。
   // T7：只挑 `INJECT:`（`REPLACE:` / `TRY_INJECT:` / `*_OR_CREATE` 不在本检查内）。
-  const injectOverrides: Array<{ keyword: string; name: string }> = [];
-  for (const list of overridesByCategory.values())
-    for (const o of list) if (o.keyword === "INJECT") injectOverrides.push(o);
+  // T9：同时记住**覆盖声明自身所在的 category** —— T7 的「目标是不是 scripted 名」要按 category 收窄
+  // （跨 category 同名碰撞）。例：`common/effect_localization/` 里的 `INJECT:unlock_advance_effect`
+  // 目标其实是 effect_localization 对象（该名**恰好**也是 vanilla 的 scripted_effect 名）⇒ 不是 T7 的陷阱。
+  const injectOverrides: Array<{
+    category: string;
+    keyword: string;
+    name: string;
+  }> = [];
+  for (const [category, list] of overridesByCategory)
+    for (const o of list)
+      if (o.keyword === "INJECT") injectOverrides.push({ category, ...o });
 
   const c3DefCategories = C3_CATEGORY_ORDER.filter(
     (c) => (modDefsByCategory.get(c)?.size ?? 0) > 0,
@@ -1629,8 +1642,17 @@ export function analyzeSemantics(
   // ---- C1（T7）：`INJECT:` 指向 scripted effect/trigger → WARN ----
   // 独立于上面的「目标存在性」判定：目标**存在**（正是本 mod / vanilla 的 scripted 名），
   // 但 wiki 明说 INJECT 对 scripted effects/triggers 无效、会整体覆盖 → 仍是错。
+  // T9 收窄：目标名若**在声明自身所在 category 的 vanilla 名集合里**出现 → 它指的就是该 category
+  // 的对象（如 `common/effect_localization/` 的 `INJECT:unlock_advance_effect`），不是 scripted
+  // effect/trigger ⇒ 不报（跨 category 同名碰撞的 FP）。**声明本身在 scripted 目录时不适用此豁免**：
+  // 那里的目标确实落在 scripted_effects/scripted_triggers 数据库里，正是本检查要报的陷阱。
   for (const o of injectOverrides) {
     if (!modScriptedNames.has(o.name) && !vanillaScriptedNames.has(o.name)) continue;
+    if (
+      !isScriptedCategory(o.category) &&
+      (vanillaDefsByCategory.get(o.category)?.has(o.name) ?? false)
+    )
+      continue;
     warnings.push({
       code: "semantic:c1-inject-scripted",
       message:

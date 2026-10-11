@@ -651,6 +651,14 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   //   （`any_unit = { <triggers> }`）被连带短路（真形态
   //   `country_interactions/lend_unit_to_ally.txt:162-165` 的 `ai_will_do > if > limit > calc_true_if`）。
   "calc_true_if",
+  // weighted_calc_true_if：与 calc_true_if **完全同族**的 wrapper（triggers.log
+  //   `weighted_calc_true_if = { amount = 10 5 = { <trigger> } 15 = { <trigger> } 7 = { <trigger> } }`）。
+  //   占位符同样是**单数** `<trigger>`（且子触发器藏在数值标签块里）⇒ A0 的 `<effects>`/`<triggers>`
+  //   结构示例派生看不见它（实测 `deriveScriptDocContainers` = false）。名字在 triggers 词典 ⇒
+  //   旧逻辑判 param → 加权子触发器列表整块不扫（vanilla **5 块**：`situations/red_turban_rebellions.txt`、
+  //   `events/DHE/flavor_MOS.txt`×3、`flavor_RUS.txt`）。机理 = **wrapper 名单 +1**（同 A7 的 calc_true_if），
+  //   不是大小写、也不是新增位置类；清单见 board/C2-COVERAGE.md 表 B2 / 表 F（卡 T8，2026-10-10 用户确认纳入）。
+  "weighted_calc_true_if",
   // custom_label / custom_description_no_bullet：与 custom_tooltip / custom_description /
   //   show_as_tooltip **同族 loc wrapper**（effects.log：`custom_label = { text = key subject = scope
   //   <hidden effects> }`、`custom_description_no_bullet = { … ... effects ... }`；占位符同样不是

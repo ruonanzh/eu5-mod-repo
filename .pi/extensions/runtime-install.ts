@@ -2,21 +2,23 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
 /**
- * install_runtime — 运行时契约（mod-repo-guide §4 + game-mod-guide/eu5.md §7）。
+ * install_runtime - the runtime contract (mod-repo-guide section 4, and
+ * game-mod-guide/eu5.md section 7).
  *
- * EU5 mod 是纯 PDXScript，无编译、无 SDK、无第三方运行时——install_runtime 永远成功，
- * 提示 agent 无需引入任何 runtime；游戏本体必须玩家自装（try_set_game_dir 负责定位游戏目录并记录）。
+ * An EU5 mod is pure PDXScript. There is no compilation, no SDK, and no runtime to install, so
+ * install_runtime always succeeds. The player must install the game itself. try_set_game_dir
+ * locates the game directory and records it.
  */
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "install_runtime",
     label: "Install Runtime",
     description:
-      "EU5 mods are pure PDXScript with no runtime/SDK to install. Always reports no runtime (SKIP, nothing installed) and reminds the agent that the game itself must be installed by the player; use try_set_game_dir to record game/workshop/mod directories.",
+      "An EU5 mod is pure PDXScript, with no runtime and no SDK to install. This tool reports that EU5 needs no runtime, and it installs nothing. It also tells the agent that the player must install the game itself. Use try_set_game_dir to record the game directory and the two derived directories.",
     promptSnippet: "Install runtime (EU5: nothing to install)",
     promptGuidelines: [
-      "Use install_runtime only when a missing runtime is suspected; for EU5 it always reports SKIP (no dependencies, nothing installed).",
-      "A missing game directory is NOT a runtime problem - use try_set_game_dir (no arguments) to record it, not install_runtime.",
+      "Use install_runtime only when you think a runtime is missing. For EU5 it always reports SKIP: no dependencies, and nothing installed.",
+      "A missing game directory is not a runtime problem. Record it with try_set_game_dir and no arguments, and not with install_runtime.",
     ],
     parameters: Type.Object({}),
     async execute() {
@@ -24,7 +26,7 @@ export default function (pi: ExtensionAPI) {
         content: [
           {
             type: "text",
-            text: "SKIP: no runtime dependencies; no installation was performed. The game itself must be installed by the player. Use try_set_game_dir to record gameDir/workshopDir/modInstallDir; use sync_game_scripts to load the scripts into game-scripts/ (the modding context).",
+            text: "SKIP: no runtime dependencies, and no installation was performed. The player must install the game itself.\nNEXT: run try_set_game_dir to record the game directory, the mod install directory, and the Workshop directory. Run sync_game_scripts before you write a mod.",
           },
         ],
         details: { ok: true },

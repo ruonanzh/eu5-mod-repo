@@ -1,14 +1,15 @@
 /**
- * mod 身份的判据（**共享**：mod-lint 与 mod-install 都用这一份，避免两边各自实现后漂移）。
+ * The mod identity check. mod-lint and mod-install share this copy, so the two cannot drift apart.
  *
- * 游戏规则（EU5 wiki 的 metadata 说明）：`id` 只要求是**非空字符串**
- * （"Id of the mod for recognition"）。「id = 目录名 / lower_snake_case」是本仓库的**建议**，
- * 不在这里硬校验 —— 一旦两边对"什么算合格"理解不同，就会出现 validate 说能装、install 却失败。
+ * Game rule (the EU5 wiki metadata page): the `id` is a non-empty string
+ * ("Id of the mod for recognition"). "The id equals the directory name, in lower_snake_case" is a
+ * suggestion from this repository, and this file does not enforce it. If the two tools disagree on
+ * what counts as valid, validate_mod reports a mod as installable and install_mod then fails.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-/** id 的判据（游戏规则：非空字符串） */
+/** The id check. Game rule: a non-empty string. */
 export const isValidModId = (v: unknown): v is string => typeof v === "string" && v.trim() !== "";
 
 export interface ModIdentity {
@@ -17,8 +18,9 @@ export interface ModIdentity {
 }
 
 /**
- * 读 `.metadata/metadata.json` 的 id/version。
- * 返回 null 的条件：文件不存在、JSON 非法、顶层不是对象、或 id 未通过 `isValidModId`。
+ * Read the id and the version from `.metadata/metadata.json`.
+ * Returns null when the file is absent, the JSON is invalid, the top level is not an object, or the
+ * id fails `isValidModId`.
  */
 export function readModIdentity(modDir: string): ModIdentity | null {
   const metadataPath = join(modDir, ".metadata", "metadata.json");

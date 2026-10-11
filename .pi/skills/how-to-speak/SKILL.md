@@ -2,7 +2,8 @@
 name: how-to-speak
 description: >
   Write anything that the player reads: a step that finished, a step that failed, a question that
-  only the player can answer, or an explanation of how a game mechanic works. Fixes the vocabulary
+  only the player can answer, a page that compares the options, or an explanation of how a game
+  mechanic works. Fixes the vocabulary
   (name what happens in the game, not the file that was changed), the language and the paths, the
   order (answer first), and the
   honesty rules (what "no errors" does and does not mean). Read it before you write a reply about
@@ -56,6 +57,24 @@ Write so that your reply has exactly one reading, and the answer is visible in t
    to confirm, a decision to make. Never end with raw tool output, a stack of paths, or a wall of
    line numbers. The player cannot act on those. When the action is the player's to take, say first
    what you already tried, then the steps in order, then what happens next.
+
+## The preview page (a requirement discussion)
+
+A requirement discussion differs from a report: the player must compare options, and a paragraph is
+the wrong shape for that. Write a **preview page**, then give the player its path.
+
+- **When.** The discussion has a real choice, or more values than a short reply can carry. The player
+  decides better from a page than from a wall of text.
+- **Where.** `your_mods/<ModName>/.preview/<topic>.html`. The path is inside the workspace, so write
+  it relative to the workspace root. Nothing in `.preview/` reaches the mod that the player installs.
+- **One file, no network.** Put the styles and the images in the same file. The player opens it from
+  disk, so a link to a website or a web font does not load.
+- **It shows, it does not ask.** The page compares the options, each with what it costs and what it
+  changes in the game. The player answers in the chat.
+- **Then give the path and the choice.** Name the file once, so the player can open it. Answer the
+  question in the reply as well: the player may not open the page at all.
+- **The page is for the player**, so the General rules hold for its text: the player's language, plain
+  words, the game rather than the files.
 
 ## Vocabulary: say the game, not the file
 

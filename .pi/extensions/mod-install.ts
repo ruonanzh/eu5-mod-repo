@@ -43,7 +43,7 @@ import { readModIdentity } from "../lib/mod-identity";
  */
 
 /** Files local to the workspace. They do not go into the game. */
-const EXCLUDED_DIRS = new Set([".git", "node_modules"]);
+const EXCLUDED_DIRS = new Set([".git", "node_modules", ".preview"]);
 const EXCLUDED_FILES = new Set([".DS_Store", ".pi-mod.json"]);
 
 /** The workspace-side install record for one mod. */

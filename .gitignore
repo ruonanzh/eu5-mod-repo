@@ -7,3 +7,6 @@ __pycache__/
 
 # sync_game_scripts 复制的 vanilla 脚本镜像（只读参考，不进 git）
 game-scripts/
+
+# 需求讨论的预览网页（玩家自己看，不进游戏、不进 git）
+.preview/

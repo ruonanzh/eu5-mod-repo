@@ -43,10 +43,6 @@ not remember the previous message, and may have the text machine-translated.
 
 Write so that your reply has exactly one reading, and the answer is visible in the first line.
 
-The rules for the **mod itself** live in [`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md).
-The steps of **doing the work** live in the `setup-workspace`, `mod-creator` and `mod-installer`
-skills. This skill governs only **what you say**.
-
 ## The three rules
 
 1. **Say the game, not the file.** Every sentence about your work is a sentence about what the

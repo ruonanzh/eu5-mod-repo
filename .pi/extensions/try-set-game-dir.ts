@@ -8,7 +8,7 @@
  *      `PASS: gameDir already correct`.
  *   2. The path is invalid, stale, or never recorded. The tool locates the game, checks every
  *      candidate, and records gameDir with the two derived paths. It returns
- *      `PASS: gameDir discovered and recorded`.
+ *      `PASS: gameDir located and recorded`.
  *   3. It finds nothing. The tool returns FAIL, and it writes no state.
  *
  * Why no arguments: the agent does not have to know the path first. The tool ensures the state is
@@ -63,7 +63,7 @@ export default function (pi: ExtensionAPI) {
         };
       }
       const lines = [
-        `PASS: gameDir ${r.status === "already" ? "already correct" : "discovered and recorded"} (${r.gameDir})`,
+        `PASS: gameDir ${r.status === "already" ? "already correct" : "located and recorded"} (${r.gameDir})`,
         r.modInstallDir
           ? `modInstallDir (the mod install directory) ${r.modInstallDir}`
           : "modInstallDir (none - mod-repo.json declares no mod install path)",

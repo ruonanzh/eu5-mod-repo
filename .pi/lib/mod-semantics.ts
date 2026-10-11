@@ -490,7 +490,8 @@ const CONTEXT_ENTER_NAMES = new Set([
  *    A2 卡曾把它列为「未验证容器」，A5 完成验证后正式纳入。
  *
  * 有意**不**纳入（避免再成为「未记录的洞」）：
- * - `switch`：见下方 CONTAINER_CONTROL_NAMES 注释（case 名是任意值，纳入会误报）。
+ * - `switch`：**不是普通 ENTER**，而是「**标签容器**」（其直接子键是 case 名/值，不是 effect/trigger
+ *   名）—— 见 `LABEL_CONTAINER_NAMES` 的 JSDoc：标签不当候选、case body 进 context。
  * - `limit` / `owner` / `area` / `value` / `map_color`：形态混杂（trigger 列表 / 参数表 /
  *   scope 目标 / 取值块），无法用名字判据区分，不加；其内部漏查属已知的**名字级不可判**面。
  * - `(top)` 伪块名与数据驱动目录里作者自起 id 的对象（如 `common/static_modifiers/**`
@@ -612,15 +613,18 @@ const TRIGGER_CONTAINER_NAMES = new Set([
  * 判定优先级**高于**「块名在词典 → param」。
  * 实测：`effects.log` + `triggers.log` → **1220 个**（其中 **1212 = every_/any_/ordered_/random_ 各 303**，
  * 非前缀 8 = if/else/else_if/while/trigger_if/trigger_else/trigger_else_if/**switch**）。
- * 权威对照（见 `board/C2-COVERAGE.md` 的复现命令 ①）：权威有而我们没有的**只有 `switch`**，
- * 而 `switch` **有意排除**（见下）。⇒ 「权威容器集合 ∖ {switch} ⊆ 我们的容器集合」成立。
+ * 权威对照（见 `board/C2-COVERAGE.md` 的复现命令 ①）：权威容器集合 ⊆ 我们的容器集合（差异 0）。
  *
  * **维护成本归零**：dump 刷新（游戏 patch）后**不改代码即自动跟随**；前缀族不必再手写。
  *
- * ⚠️ **不含 switch**：trigger 侧 `switch = { trigger = <t> <值> = { <triggers> } … }` 的 case 名是
- * 任意**值**（如 location_key `antigonish`），不是 trigger 名——纳入会把 case 名误报成拼写错
- * （实测 workshop mod 3633816300：`antigonish` 被报 did-you-mean `antagonism`）。零误报是硬门槛，
- * 故宁可少纳入 switch（其 case body 内部 typo 暂不查）。
+ * ⚠️ **`switch` 是「标签容器」，不是普通容器**：trigger 侧 `switch = { trigger = <t> <值> = { <triggers> } … }`
+ * 的 case 名是任意**值**（location_key `antigonish`、scope 前缀标签 `god:viracocha` …），不是
+ * trigger 名 ⇒ **其直接子键（标签）不作候选**；但 case body 仍是 effect/trigger **列表** ⇒
+ * **case body 进 context**。故它**仍在容器集合里**（A0 权威对照不再有例外），由
+ * `LABEL_CONTAINER_NAMES` + pushBlock 的「标签模式」单独处置。
+ * 历史（卡 A12，用户 2026-10-10 裁定）：早期把 switch 从容器集**排除**以避免标签误报
+ * （实测 workshop 3633816300 的 `antigonish` → did-you-mean `antagonism`），副作用是
+ * case body 整块不扫（C2 假阴）；现改为「标签容器」：标签仍不当候选、case body 要扫。
  *
  * **dump 看不见的容器（少量）** —— `DUMP_INVISIBLE_CONTAINERS`：dump 页面写了「body 是
  * effect/trigger 列表」但示例行没有 `<effects>`/`<triggers>` 占位符（`random` = `effects...`；
@@ -628,8 +632,27 @@ const TRIGGER_CONTAINER_NAMES = new Set([
  * 文档无示例行）⇒ 解析天然漏掉，显式列出（逐条证据见该常量注释）。
  */
 
-/** 有意排除的权威容器（解析后删除）：`switch`（理由见上方）。 */
-const DERIVED_CONTAINER_EXCLUSIONS = new Set(["switch"]);
+/**
+ * **标签容器**（label container）：该块**是** effect/trigger 列表容器，但其**直接子键是「标签」**
+ * （case 名 / 分支名 —— 是**值**不是 effect/trigger 名）⇒ 标签本身**不作候选**、其 body 进 context。
+ *
+ * 成员与依据：
+ *  - `switch`（script_docs 结构示例：effects.log 与 triggers.log 都是
+ *    `switch = { trigger = <单 trigger> case_1 = { <effects|triggers> } … fallback = { … } }`）。
+ *    判据：`trigger =` 的值是**标量** trigger 名（vanilla 70 块中 68 块如此、0 块是块形式），
+ *    其余顶层键（case 标签 + `fallback`）的 body 都是 effect/trigger 列表；标签含
+ *    **裸名**（`alpha`、`eventopt1`）与 **scope 前缀形**（`god:viracocha`、`location:constantinople`）
+ *    两种写法，后者在扫描器里是「裸 `{`」路径（`prev === ":"` 守卫不产生块名）。
+ *    vanilla 规模：70 块 / 75 个 distinct 标签（`board/container-surface.mjs`）。
+ *    历史（卡 A12，用户 2026-10-10 裁定）：早期把 switch 从容器集**排除**以避免标签误报
+ *    （实测 workshop 3633816300 的 `antigonish` → did-you-mean `antagonism`），副作用是
+ *    **case body 整块不扫**（C2 假阴，vanilla 75 个标签）。现改为「标签容器」。
+ *
+ * ⚠️ 与 ENTER/普通容器名单**分开判定**：标签容器名**不进** `CONTEXT_ENTER_NAMES` /
+ * `TRIGGER_CONTAINER_NAMES`（那会让 pushBlock 给 context ⇒ 标签被当候选 ⇒ 误报）；
+ * 由 pushBlock 的**第一分支**处置。大小写仍敏感（大写 `SWITCH` 属卡 A14，本卡不动）。
+ */
+const LABEL_CONTAINER_NAMES = new Set(["switch"]);
 
 /**
  * dump 文档语义是「effect/trigger 列表」但示例行**无**占位符（解析漏掉）的容器，显式补入。
@@ -744,20 +767,19 @@ function containersFromLogText(text: string): Set<string> {
 
 /**
  * 从 effects.log / triggers.log 文本解析容器名（不含退化名单、不含 dump 不可见容器）。
- * 有意排除的权威容器（`switch`）在这里就删掉。
+ * 不含有意排除项：A12 起 `switch` 也是容器（「标签容器」，由 `LABEL_CONTAINER_NAMES` 处置）。
  */
 function deriveContainerNames(effectsText: string, triggersText: string): Set<string> {
   const names = new Set<string>();
   for (const n of containersFromLogText(effectsText)) names.add(n);
   for (const n of containersFromLogText(triggersText)) names.add(n);
-  for (const n of DERIVED_CONTAINER_EXCLUSIONS) names.delete(n);
   return names;
 }
 
 /**
  * 测试/审计入口：给定 `docs/script_docs` 目录，返回结构示例派生的容器集合
- * （= 权威容器集合 ∖ 有意排除；文件缺失/无示例时为空集）。
- * A0 验收 1（「权威容器集合 ∖ {switch} ⊆ 我们的容器集合」）与 `board/C2-COVERAGE.md` 用它。
+ * （= 权威容器集合；文件缺失/无示例时为空集）。
+ * A0 验收 1（「权威容器集合 ⊆ 我们的容器集合」）与 `board/C2-COVERAGE.md` 用它。
  */
 export function deriveScriptDocContainers(scriptDocsDir: string): Set<string> {
   const effects = readText(join(scriptDocsDir, "effects.log"));
@@ -1127,7 +1149,7 @@ function checkCandidate(
   }
 }
 
-type ContextMode = "context" | "param" | "neutral";
+type ContextMode = "context" | "param" | "neutral" | "label";
 
 function isIdentStart(ch: string): boolean {
   return (ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z") || ch === "_";
@@ -1142,6 +1164,9 @@ function isWs(ch: string): boolean {
 /**
  * 粘性上下文扫描（注释/字符串感知的 char 级扫描，栈记每层块的 interior 模式）：
  * - 进入 context：块名 ∈ 名单，或 scripted_effects/scripted_triggers 的顶层对象；
+ * - **标签模式（label）**：块名 ∈ `LABEL_CONTAINER_NAMES`（`switch`）⇒ 该块内为 label ——
+ *   直接子键（case 标签）**不作候选**，其子块（case body / `trigger = { … }`）进 context；
+ *   标签的 **scope 前缀形**（`location:constantinople = { … }`）走裸 `{` 路径，同样进 context；
  * - 保持：scope 块（块名不在词典）不退出 context；
  * - 退出：块名在词典（已知 effect/trigger/modifier 的参数块），或块名 ∈ mod 自定义的
  *   scripted effect/trigger 名（调用体是参数列表，如 `_cmm_register_bool_setting_internal = { is_global = 0 }`）
@@ -1174,6 +1199,18 @@ function scanStickyContext(
 
   const pushBlock = (name: string, parentMode: ContextMode): void => {
     const isTopLevel = stack.length === 0;
+    // 标签容器（`switch`）：**直接子键是标签/值** ⇒ 进「标签模式」——标签不当候选、
+    // 其子块（case body）进 context。放在**最前**：switch 无论父块是什么，直接子键都是标签。
+    if (LABEL_CONTAINER_NAMES.has(name)) {
+      stack.push("label");
+      return;
+    }
+    // 标签模式下的任何子块都是 case body（`<label> = { … }`）或 switch 的 `trigger = { … }`：
+    // 二者 body 都是 effect/trigger 列表 ⇒ 进 context（否则 case body 整块不扫）。
+    if (parentMode === "label") {
+      stack.push("context");
+      return;
+    }
     // A7（P2）：param 父块下的**非双用容器**（作用域迭代 every_/any_/ordered_/random_、
     // random/random_list、and/or/not/nor/nand/any_false/all_false）body 仍是 effect/trigger 列表
     // ⇒ 放行进 context；否则整块被短路成 param、body 不扫（真形态
@@ -1212,8 +1249,10 @@ function scanStickyContext(
       continue;
     }
     if (ch === "{") {
-      // 裸 `{`（`?=`、`scope:actor =` 等之后）：视作 scope 块，继承父模式
-      stack.push(currentMode());
+      // 裸 `{`（`?=`、`scope:actor =` 等之后）：视作 scope 块，继承父模式。
+      // ⚠️ 标签模式下例外：`location:constantinople = {` 这类 **scope 前缀标签**不产生块名
+      // （`prev === ":"` 守卫），这里遇到的 `{` 就是 **case body** ⇒ 进 context。
+      stack.push(currentMode() === "label" ? "context" : currentMode());
       i += 1;
       continue;
     }

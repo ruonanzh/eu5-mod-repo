@@ -7,12 +7,13 @@ The game is **Windows-only**.
 ## Directory map
 
 - `docs/` — the knowledge layer. Start at [`docs/INDEX.md`](docs/INDEX.md) for the map.
-  The authoring rules live **only** in
+  The modding conventions live **only** in
   [`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md). They cover override,
   load order, localization, and metadata.
-- `game-scripts/` — the vanilla script mirror. `sync_game_scripts` generates it, and git ignores
-  it. This is the context you must load before writing mods. PDXScript has no self-describing API,
-  so you cannot write a correct override or `INJECT` without it.
+- `game-scripts/` — the script mirror. `sync_game_scripts` copies the vanilla `game/` scripts and
+  the `workshop/` scripts into it, and git ignores it. This is the modding context you must load
+  before writing mods. PDXScript has no self-describing API, so you cannot write a correct override
+  or `INJECT` without it.
 - `.pi/skills/` — three role-split skills: `setup-workspace`, `mod-creator`, and `mod-installer`.
   Each skill describes its own scope and trigger. Pi keeps the descriptions in context, so read
   the matching skill. This repo's step guidance lives there, not in the product prompt.
@@ -45,16 +46,16 @@ The session sets one of two roles. The agent does not choose the role.
 - **Q&A (Game Helper):** read-only. Answer game-mechanics and mod API questions from `docs/`.
   May run the read-only tools `check_game_paths`, `check_runtime`, `install_runtime`, and
   `validate_mod`. Must **not** write or edit any mod file, locate or record paths, or mirror the
-  vanilla scripts.
-- **Authoring:** write only under `your_mods/<ModName>/`. The session role and binding decide
+  scripts into `game-scripts/`.
+- **Mod development:** write only under `your_mods/<ModName>/`. The session role and binding decide
   whether writing is allowed and which mod directory is writable. This file does not decide that.
 
 The repository owner maintains everything else (`docs/`, `.pi/`, `reference/`, `mod-repo.json`).
 Do not write there.
 
-## Author-time checklist (before writing)
+## Checklist before you write a mod
 
-Keep these in mind while authoring. They prevent most `validate_mod` failures.
+Keep these in mind while you write a mod. They prevent most `validate_mod` failures.
 
 - Keep `{` and `}` balanced. Keep `"` balanced. A `#` starts a line comment, and `#` is literal
   inside a string.

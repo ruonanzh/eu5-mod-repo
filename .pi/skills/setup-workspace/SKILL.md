@@ -1,12 +1,12 @@
 ---
 name: setup-workspace
-description: Prepare the EU5 (pdx-script) environment and the paths. Locate the game directory, the mod install directory, and the Steam Workshop directory. Mirror the vanilla scripts into `game-scripts/` as the authoring context. Read it when a path is unknown or wrong, when the player gives a path to check, or on a new machine. EU5 has no runtime and no compilation.
+description: Prepare the EU5 (pdx-script) environment and the paths. Locate the game directory, the mod install directory, and the Steam Workshop directory. Mirror the vanilla `game/` scripts and the `workshop/` scripts into `game-scripts/` as the modding context. Read it when a path is unknown or wrong, when the player gives a path to check, or on a new machine. EU5 has no runtime and no compilation.
 ---
 
 # Environment and paths (EU5)
 
 Get the facts straight, then record them: where the game is, what the three paths are, and whether
-the vanilla context is ready.
+the modding context is ready.
 **This step produces facts only.** It does not produce a mod.
 Loading this skill does not grant write permission. In a consulting session you can explain the
 method without recording anything.
@@ -51,7 +51,7 @@ Do not mix these tools up. They share one implementation in `.pi/lib/game-paths.
 | `set_game_dir` | **Record one concrete game directory**, either from the player or one you found. It checks the path first, then records it. | Writes path state. |
 | `check_game_paths` | **Check only.** Read-only. It checks the paths you give or the remembered ones, and it records nothing. | None. |
 | `check_runtime` | **Report the runtime prerequisites only.** EU5 has none, so it always passes. It does **not** locate the game, and it does not touch the paths. | None. |
-| `sync_game_scripts` | **Mirror the vanilla scripts into `game-scripts/`.** This is the context you need before you write mods. | Writes `game-scripts/`. |
+| `sync_game_scripts` | **Mirror the vanilla and Workshop scripts into `game-scripts/`.** This is the context you need before you write mods. | Writes `game-scripts/`. |
 
 ## How to use
 
@@ -70,9 +70,10 @@ Do not mix these tools up. They share one implementation in `.pi/lib/game-paths.
      right-click the game, Manage, Browse local files. You can also ask the player to paste the path.
   **Do not** guess a path. **Do not** create a directory yourself.
 - **The player gave a path.** Use `set_game_dir`. It checks the path first, then records it.
-- **Before you write any mod, you must run `sync_game_scripts`** to mirror the vanilla scripts into
-  `game-scripts/`. PDXScript has no self-describing API, so you cannot write correct PDXScript
-  without this context. This step is **required**, and it is not a "find it when needed" step.
+- **Before you write any mod, you must run `sync_game_scripts`** to mirror the game and Workshop
+  scripts into `game-scripts/`. PDXScript has no self-describing API, so you cannot write correct
+  PDXScript without this context. This step is **required**, and it is not a "find it when needed"
+  step.
   For exact effect, trigger, and modifier names and their scopes, use `docs/script_docs/` and
   `docs/data_types/`, the semantic dumps. Do not confuse those with `game-scripts/`.
 - **Failures.** Follow the `NEXT` line the tool gives. When the same failure repeats, resolve the
@@ -80,6 +81,6 @@ Do not mix these tools up. They share one implementation in `.pi/lib/game-paths.
 
 ## Related skills
 
-- Authoring or modifying the mod itself: the structure, metadata, localization, and `INJECT` or
+- Writing or modifying the mod itself: the structure, metadata, localization, and `INJECT` or
   `REPLACE`. Use `mod-creator`.
 - Getting the mod into the game. Use `mod-installer`.

@@ -3,7 +3,7 @@
 The modding environment for **Europa Universalis V** (Paradox, `pdx-script` mod type).
 The player and the agent both use this workspace.
 
-1. Read `docs/` for the game mechanics and the authoring rules.
+1. Read `docs/` for the game mechanics and the modding conventions.
 2. Write each mod under `your_mods/<ModName>/`.
 3. Check each mod with the `validate_mod` tool.
 

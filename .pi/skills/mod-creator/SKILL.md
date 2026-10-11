@@ -1,13 +1,13 @@
 ---
 name: mod-creator
-description: Author and modify EU5 (pdx-script) mods. Covers the mod structure, the `metadata.json` fields, localization YAML, PDXScript and GUI syntax, `INJECT:` and `REPLACE:` overrides, load order and naming, `validate_mod` errors, and the semantic lookup path. Read it when a task touches one of these. Q&A is read-only. Writing depends on the session role and binding.
+description: Write and modify EU5 (pdx-script) mods. Covers the mod structure, the `metadata.json` fields, localization YAML, PDXScript and GUI syntax, `INJECT:` and `REPLACE:` overrides, load order and naming, `validate_mod` errors, and the semantic lookup path. Read it when a task touches one of these. Q&A is read-only. Writing depends on the session role and binding.
 ---
 
-# Authoring EU5 mods (pdx-script)
+# Writing EU5 mods (pdx-script)
 
 An EU5 mod is a directory of **pure PDXScript text files**: `.txt`, `.gui`, `.gfx`, `.asset`, and
-`.yml`. There is no compilation and no runtime SDK. Author under `your_mods/<ModName>/`, then check
-the result with the `validate_mod` tool.
+`.yml`. There is no compilation and no runtime SDK. Write the mod under `your_mods/<ModName>/`, then
+check the result with the `validate_mod` tool.
 All paths below are relative to the workspace root, not to the skill directory.
 
 This skill provides domain method only, and it **grants no permissions**. Reading it does not allow
@@ -19,10 +19,11 @@ and its bound directory gate those actions.
 - **Q&A and consultation (read-only).** Answer game-mechanics and mod API questions by reading the
   knowledge layer. Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source. Do **not**
   create files or prepare the environment, unless the player explicitly asks about their
-  environment. Preparing the environment means locating paths and mirroring the vanilla scripts.
-- **Authoring and modifying the mod (writes).** Do these steps in this order.
+  environment. Preparing the environment means locating paths and mirroring the scripts into
+  `game-scripts/`.
+- **Writing or modifying the mod.** Do these steps in this order.
   1. **Research the real values first.** EU5 is pure PDXScript, with no self-describing API and no
-     framework. Run `sync_game_scripts` to load the vanilla context into `game-scripts/`. Then grep
+     framework. Run `sync_game_scripts` to load the modding context into `game-scripts/`. Then grep
      that directory carefully to pin down the real vanilla values and their connections: which
      goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
      names alone.
@@ -37,7 +38,7 @@ and its bound directory gate those actions.
   4. **Then check the UI side.** A mod here is mostly PDXScript code, but an in-game check often
      fails without the UI part. Before you finish, ask: does this modification need an icon, a UI
      label (localization), a menu entry, a column, a filter, or a panel? Add what is missing. Reuse
-     an existing in-game icon or asset when one fits, because you do not have to author new art. Do
+     an existing in-game icon or asset when one fits, because you do not have to create new art. Do
      not wait for the player to ask about the icon.
 - **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name starts with
   a lowercase letter, then holds only lowercase letters, digits, and underscores, at most 40
@@ -184,9 +185,9 @@ For the question "does X exist, and what is the vanilla value?", follow the look
 
 - Exact effect, trigger, and modifier names, and their scopes: `docs/script_docs/` and
   `docs/data_types/`, the game dumps.
-- Exact vanilla object definitions, field values, INJECT targets, and loc keys: `game-scripts/`,
+- Exact vanilla object definitions, field values, INJECT targets, and loc keys: `game-scripts/game/`,
   which `sync_game_scripts` generates, or the local game directory.
-- Mechanics concepts: `docs/mod-wiki/`. Authoring rules and the reason behind them:
+- Mechanics concepts: `docs/mod-wiki/`. The modding conventions and the reason behind them:
   `docs/eu5-modding-conventions.md`.
 
 ## Reference
@@ -199,7 +200,7 @@ For the question "does X exist, and what is the vanilla value?", follow the look
   GUIs and a context menu), and `globalization_age` (a full situation and event mechanic).
 - Knowledge-layer navigation, and what to load when: `docs/INDEX.md`.
 - The game overview: `docs/game.md`.
-- The authoring rules, the single source of truth: `docs/eu5-modding-conventions.md`.
+- The modding conventions, the single source of truth: `docs/eu5-modding-conventions.md`.
 
 ## Related skills
 

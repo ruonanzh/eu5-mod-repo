@@ -13,6 +13,8 @@ enforces nothing.
   [`../.pi/skills/mod-creator/SKILL.md`](../.pi/skills/mod-creator/SKILL.md).
 - The exact semantic names (effects, triggers, modifiers, scope links, data types) are authoritative
   in the game-generated dumps: [`script_docs/`](script_docs/) and [`data_types/`](data_types/).
+- A mod is PDXScript text only. The game engine is C++, and it is out of scope. A mod cannot add
+  behavior that the engine does not expose.
 
 > Sources: the EU5 wiki grounds the mechanics below. Online pages:
 > [Mod files load order](https://eu5.paradoxwikis.com/Mod_files_load_order),

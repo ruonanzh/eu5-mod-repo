@@ -65,9 +65,9 @@ Do not mix these tools up. They share one implementation in `.pi/lib/game-paths.
   1. Turn the player's vague hints ("it is on D:", "in Steam", "the one I downloaded") into candidate
      directories. Check each one read-only with `check_game_paths`. Record the winner with
      `set_game_dir`.
-  2. Ask the player only if step 1 fails. First say what you already tried: which libraries you
-     searched and which candidates you checked. Then give a copyable entry point: Steam, Library,
-     right-click the game, Manage, Browse local files. You can also ask the player to paste the path.
+  2. Ask the player only if step 1 fails. Use `how-to-speak` for the wording. Give a copyable entry
+     point: Steam, Library, right-click the game, Manage, Browse local files. You can also ask the
+     player to paste the path.
   **Do not** guess a path. **Do not** create a directory yourself.
 - **The player gave a path.** Use `set_game_dir`. It checks the path first, then records it.
 - **Before you write any mod, you must run `sync_game_scripts`** to mirror the game and Workshop

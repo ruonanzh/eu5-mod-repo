@@ -1,17 +1,18 @@
 /**
  * EU5 mod page editor.
  *
- * Shows a generated mod page (a `*.plannotator.html` file) and lets the player mark it up:
+ * Shows a generated mod page (a `*.modpage.html` file) and lets the player mark it up:
  * select text, then comment on it, mark it for deletion, or write a replacement.
  *
  * Reads and writes only the file the host opened. The marks land in the same HTML file, inside a
- * `<script type="application/json" id="plannotator-annotations">` block at the end of the body, so
- * the agent finds them when the player says the page is marked.
+ * `<script type="application/json" id="pi-page-marks">` block at the end of the body, together with
+ * the values of the page's named form controls. The agent finds them there when the player says the
+ * page is marked.
  *
  * The host bridge is the one in EditorHost.tsx: `editor:init` and `editor:theme` arrive here;
  * `editor:readFile` and `editor:save` go back out.
  */
-const ANNOTATIONS_ID = "plannotator-annotations";
+const ANNOTATIONS_ID = "pi-page-marks";
 const SCRIPT_RE = new RegExp(`<script[^>]*id="${ANNOTATIONS_ID}"[^>]*>[\\s\\S]*?</script>\\s*`, "i");
 const BLOCK_RE = new RegExp(`<script[^>]*id="${ANNOTATIONS_ID}"[^>]*>([\\s\\S]*?)</script>`, "i");
 
@@ -30,6 +31,7 @@ let revision = null;
 let source = "";
 let writable = false;
 let marks = [];
+let baseline = {};
 let pendingKind = null;
 let selectedMarkId = null;
 let seq = 0;
@@ -59,9 +61,16 @@ function say(text) {
   state.textContent = text;
 }
 
+function sameControls(left, right) {
+  const names = new Set([...Object.keys(left), ...Object.keys(right)]);
+  for (const name of names) if ((left[name] ?? "") !== (right[name] ?? "")) return false;
+  return true;
+}
+
 function updateBar() {
+  const dirty = marks.length > 0 || !sameControls(readControls(), baseline);
   count.textContent = marks.length === 1 ? "1 mark" : `${marks.length} marks`;
-  saveButton.disabled = marks.length === 0 || !writable;
+  saveButton.disabled = !dirty || !writable;
   removeButton.hidden = selectedMarkId === null;
 }
 
@@ -69,19 +78,23 @@ function updateBar() {
 
 function readBlock(content) {
   const match = content.match(BLOCK_RE);
-  if (!match) return [];
+  if (!match) return { marks: [], controls: {} };
   try {
     const parsed = JSON.parse(match[1]);
-    return Array.isArray(parsed && parsed.marks) ? parsed.marks : [];
+    return {
+      marks: Array.isArray(parsed && parsed.marks) ? parsed.marks : [],
+      controls:
+        parsed && typeof parsed.controls === "object" && parsed.controls !== null ? parsed.controls : {},
+    };
   } catch {
-    return [];
+    return { marks: [], controls: {} };
   }
 }
 
-function withBlock(content, nextMarks) {
+function withBlock(content, nextMarks, controls) {
   const cleaned = content.replace(SCRIPT_RE, "");
-  if (nextMarks.length === 0) return cleaned;
-  const payload = JSON.stringify({ version: 1, marks: nextMarks }, null, 2);
+  if (nextMarks.length === 0 && Object.keys(controls).length === 0) return cleaned;
+  const payload = JSON.stringify({ version: 1, marks: nextMarks, controls }, null, 2);
   const block = `<script type="application/json" id="${ANNOTATIONS_ID}">\n${payload}\n</script>\n`;
   const bodyEnd = cleaned.toLowerCase().lastIndexOf("</body>");
   if (bodyEnd === -1) return `${cleaned.replace(/\s*$/, "\n")}${block}`;
@@ -141,6 +154,39 @@ function paintMarks() {
     if (range) wrapRange(range, mark);
   });
   updateBar();
+}
+
+/* ---------- the page's own form controls ---------- */
+
+/** Read every named control of the rendered page, so a ticked box survives the save. */
+function readControls() {
+  const values = {};
+  page.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
+    const name = element.getAttribute("name");
+    if (!name) return;
+    if (element.type === "checkbox" || element.type === "radio") {
+      if (element.checked) values[name] = element.value || "on";
+      else if (!(name in values)) values[name] = "";
+      return;
+    }
+    values[name] = element.value;
+  });
+  return values;
+}
+
+/** Put saved control values back after a render. */
+function applyControls(values) {
+  if (!values) return;
+  page.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
+    const name = element.getAttribute("name");
+    if (!name || !(name in values)) return;
+    const saved = values[name];
+    if (element.type === "checkbox" || element.type === "radio") {
+      element.checked = saved !== "" && saved === (element.value || "on");
+      return;
+    }
+    element.value = saved;
+  });
 }
 
 /* ---------- marking ---------- */
@@ -227,6 +273,11 @@ document.addEventListener("selectionchange", () => {
   showToolbar();
 });
 
+page.addEventListener("change", () => {
+  updateBar();
+  if (marks.length === 0) say("A choice changed. Save to send it to the agent.");
+});
+
 page.addEventListener("click", (event) => {
   const mark = event.target.closest?.("mark[data-mark]");
   selectedMarkId = mark ? mark.dataset.mark : null;
@@ -249,10 +300,11 @@ removeButton.addEventListener("click", () => {
 saveButton.addEventListener("click", async () => {
   saveButton.disabled = true;
   say("Saving…");
-  const result = await request("editor:save", { data: withBlock(source, marks), baseRevision: revision });
+  const next = withBlock(source, marks, readControls());
+  const result = await request("editor:save", { data: next, baseRevision: revision });
   if (result?.type === "editor:saved") {
     revision = result.revision;
-    source = withBlock(source, marks);
+    source = next;
     say("Saved. Back in the chat, tell the agent that the page is marked.");
   } else {
     const code = result?.code ?? "SAVE_FAILED";
@@ -279,8 +331,11 @@ window.addEventListener("message", (event) => {
   if (data.type === "editor:fileContent") {
     revision = data.revision ?? null;
     source = typeof data.data === "string" ? data.data : "";
-    marks = readBlock(source);
+    const block = readBlock(source);
+    marks = block.marks;
     renderPage(source);
+    applyControls(block.controls);
+    baseline = readControls();
     paintMarks();
     say(marks.length ? "Marks from the last round are shown." : "Select text to mark it.");
     return;

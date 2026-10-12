@@ -2,7 +2,7 @@
   "apiVersion": 1,
   "id": "eu5_mod_page",
   "name": "EU5 mod page",
-  "match": ["your_mods/*/.preview/*.plannotator.html"],
+  "match": ["your_mods/*/.preview/*.modpage.html"],
   "entry": "index.html",
   "mode": "edit",
   "description": "Show the generated mod page, let the player mark it, and save the marks."

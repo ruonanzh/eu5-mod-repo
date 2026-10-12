@@ -354,12 +354,17 @@ interface PendingPlanReview {
 }
 
 /**
- * `defaultActive: false` for `pi.registerTool`, spread in rather than written
- * as a literal key because the Pi floor's types (0.79.1) do not declare it.
- * Pi 0.99+ then leaves the tool inactive until the extension activates it;
- * older Pi ignores the key and activates every registered tool.
+ * PATCHED (see .pi/vendor/README.md): upstream registers the tool with
+ * `defaultActive: false`. The desktop host's tool policy refuses a tool that is
+ * active but carries `defaultActive: false` and is missing from the session's
+ * tool selection, and the desktop app is where this tool runs.
+ *
+ * The spread stays (rather than a literal key) because the Pi floor's types
+ * (0.79.1) do not declare the field. Older Pi ignores it and activates every
+ * registered tool. Pi 0.99+ honors it, and the session_start hook still takes
+ * the tool out of a run that has no interactive UI.
  */
-const NOT_ACTIVE_ON_REGISTRATION = { defaultActive: false } as const;
+const NOT_ACTIVE_ON_REGISTRATION = { defaultActive: true } as const;
 
 /** Host seams for tests. Production passes nothing. */
 export interface PlannotatorExtensionDeps {

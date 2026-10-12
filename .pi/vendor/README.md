@@ -14,8 +14,9 @@
 1. **删** `plannotator/review-editor.html`（17 MB，代码评审界面）。批注那条路不用它。上游自己也处理缺文件的情况：`index.ts:950` 会让 `/plannotator-review` 返回一句错误。
 2. **删** `plannotator/**/*.test.ts`（上游测试，运行用不到）。
 3. **改** `plannotator/generated/config.ts` 里 `AGENT_TOOL_DEFAULTS.pi`，`false` 改成 `true`。理由：pi 上 `plannotator` 工具默认关，开关只从 `~/.plannotator/config.json` 或环境变量读，而那个文件在玩家的主目录里，游戏仓发不了。所以只能在 vendored 副本里改默认值。
+4. **改** `plannotator/index.ts` 里 `NOT_ACTIVE_ON_REGISTRATION`，`defaultActive: false` 改成 `true`。理由：桌面版的工具授权层（设计仓 `pi-desktop/src/agent-host/session-tool-policy.ts`）会**拒绝**一个「已激活但 `defaultActive` 为 `false`、又不在会话工具选择里的工具」，报 `TOOL_PERMISSION_DENIED`。上游那样写是为了「注册时不自动激活」，但桌面版不认这个做法。改成 `true` 后，上游自己的 `session_start` 钩子仍会在**没有交互界面**的运行里把它移出激活集，原意保留。
 
-**升级时**：重新 `npm install @plannotator/pi-extension@<版本>`，再把上面三处做一遍。
+**升级时**：重新 `npm install @plannotator/pi-extension@<版本>`，再把上面四处做一遍。
 
 ## 许可
 

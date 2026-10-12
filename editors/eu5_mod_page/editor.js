@@ -166,6 +166,9 @@ function findQuoteStart(quote, occurrence) {
   }
 }
 
+/** 表格的结构元素：在里面插 <mark> 会被浏览器当成新行或新列。 */
+const TABLE_STRUCTURE = new Set(["TABLE", "TBODY", "THEAD", "TFOOT", "TR", "COLGROUP", "CAPTION"]);
+
 /** 把一段全局区间拆成每个文本节点里的一段（跨节点选中也能高亮，且不动原标签）。 */
 function segmentsFor(start, length) {
   const { nodes } = textIndex();
@@ -174,7 +177,16 @@ function segmentsFor(start, length) {
   for (const { node, from } of nodes) {
     const nodeEnd = from + node.nodeValue.length;
     if (nodeEnd <= start || from >= end) continue;
-    out.push({ node, start: Math.max(0, start - from), end: Math.min(node.nodeValue.length, end - from) });
+    const slice = node.nodeValue.slice(Math.max(0, start - from), Math.min(node.nodeValue.length, end - from));
+    // 只含空白的段不包：跨行选中会碰上行与行之间的换行文本，包了会在表格里多一行。
+    if (!slice.trim()) continue;
+    // 表格结构元素（tbody、tr …）里不能插 mark，浏览器会拿它当行或列。
+    if (TABLE_STRUCTURE.has(node.parentNode?.tagName)) continue;
+    out.push({
+      node,
+      start: Math.max(0, start - from),
+      end: Math.min(node.nodeValue.length, end - from),
+    });
   }
   return out;
 }

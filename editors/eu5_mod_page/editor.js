@@ -264,17 +264,32 @@ function addComment(kind, quote, text, occurrence) {
   say("已添加。点『保存批注』发给 agent。");
 }
 
-document.getElementById("promptCancel").addEventListener("click", () => {
+function closePrompt() {
   pending = null;
+  lastRange = null;
   promptForm.hidden = true;
+}
+
+document.getElementById("promptCancel").addEventListener("click", closePrompt);
+
+// 点弹框以外的地方就收起它（点弹框内部的按钮不算）。
+document.addEventListener("mousedown", (event) => {
+  if (promptForm.hidden) return;
+  if (promptForm.contains(event.target)) return;
+  closePrompt();
+});
+
+// 焦点离开弹框也收起（按 Tab 走开、点空白处等）。
+promptForm.addEventListener("focusout", (event) => {
+  if (promptForm.contains(event.relatedTarget)) return;
+  if (document.activeElement && promptForm.contains(document.activeElement)) return;
+  closePrompt();
 });
 
 function commitPrompt() {
   if (!pending) return;
   addComment(pending.kind, pending.quote, promptText.value.trim(), pending.occurrence);
-  pending = null;
-  promptForm.hidden = true;
-  lastRange = null;
+  closePrompt();
   window.getSelection()?.removeAllRanges();
 }
 
@@ -284,10 +299,7 @@ document.getElementById("promptAdd").addEventListener("click", commitPrompt);
 
 promptText.addEventListener("keydown", (event) => {
   if (event.key === "Enter") commitPrompt();
-  if (event.key === "Escape") {
-    pending = null;
-    promptForm.hidden = true;
-  }
+  if (event.key === "Escape") closePrompt();
 });
 
 /* ---------- 选词与工具栏 ---------- */
@@ -396,7 +408,7 @@ saveButton.addEventListener("click", async () => {
   if (result?.type === "editor:saved") {
     revision = result.revision;
     source = next;
-    say("已保存。回对话里告诉 agent「批注好了」。");
+    say("已发送。回对话里说一句，agent 就会读到。");
   } else {
     const code = result?.code ?? "SAVE_FAILED";
     say(code === "READ_ONLY" ? "这个文件不能写，批注只留在这里。" : `保存失败：${code}`);

@@ -6,6 +6,11 @@
   --border: #d8d8dc;
   --panel: #f6f6f8;
   --accent: #2f6fed;
+  /* 工具栏／顶部栏／弹框的底色：刻意与页面内容区分开 */
+  --chrome: #e8edf6;
+  --chrome-border: #aeb9cc;
+  --field: #ffffff;
+  --field-border: #7f8ea8;
   --mark-comment: #fff3bf;
   --mark-delete: #ffd6d6;
   --mark-replace: #d6e8ff;
@@ -17,6 +22,10 @@ body[data-theme="dark"] {
   --border: #34343a;
   --panel: #232327;
   --accent: #6ea0ff;
+  --chrome: #2b3140;
+  --chrome-border: #4c5670;
+  --field: #151a24;
+  --field-border: #6b7b99;
   --mark-comment: #4a4220;
   --mark-delete: #4a2626;
   --mark-replace: #23364f;
@@ -45,8 +54,8 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
+  border-bottom: 1px solid var(--chrome-border);
+  background: var(--chrome);
   flex: 0 0 auto;
 }
 
@@ -132,10 +141,10 @@ button:disabled {
   display: flex;
   gap: 4px;
   padding: 4px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--chrome);
+  border: 1px solid var(--chrome-border);
   border-radius: 6px;
-  box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 32%);
 }
 
 #prompt {
@@ -144,23 +153,37 @@ button:disabled {
   bottom: 24px;
   transform: translateX(-50%);
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 380px;
+  padding: 10px 12px;
+  background: var(--chrome);
+  border: 1px solid var(--chrome-border);
   border-radius: 8px;
-  box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
+  box-shadow: 0 8px 26px rgb(0 0 0 / 34%);
+}
+
+#prompt label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#promptButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 #prompt input {
   font: inherit;
   color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--field);
+  border: 1px solid var(--field-border);
   border-radius: 5px;
-  padding: 4px 8px;
-  min-width: 320px;
+  padding: 5px 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 [hidden] {

@@ -1513,6 +1513,44 @@ function scanStickyContext(
     return r < n && cleaned[r] === "{" ? r : -1;
   };
 
+  /**
+   * A16：当前位置的裸 `{` 是否紧跟**被 `prev === ":"` 守卫跳过的 `name =` 形态**。
+   *
+   * 机理：`scope:zz_case_tgt = { … }` / `ROOT.province:zzz = { … }` / `location:constantinople = { … }`
+   * 里的「名字」前一个字符是 `:` ⇒ 主循环 ident 分支的守卫（`prev !== ":"`）跳过它、
+   * 该 `{` **不产生块名** ⇒ 走裸 `{` 分支、只继承父模式。父模式是 `param` / `neutral` 时
+   * 整个 body（effect/trigger 列表）不扫 —— **C2 假阴**。
+   * （这是 A13 的同族、**机制不同**：A13 是「名字在 ENTER 名单里但位置在 param」，
+   *  A18 是「带点名字 + scripted 关键字」，本卡是「**根本没有块名**可比对」。）
+   *
+   * 判据（严、只看紧邻文本）：从 `{` 向左 —— 空白（含换行，与 `isWs` 同集合）→ `=`（且不是 `==`）
+   * → 空白 → **一整段标识符**（且以标识符起始字符开头，即确是一个「名字」）→ 紧邻的 **`:`**。
+   * 其它形态（`?= {`、`"…" = {`、`name = {`、`0.5 = {`）都不命中，仍继承父模式。
+   *
+   * ⚠️ **为何只认 `:`、不认 `.`**（与卡上「`prev === ':'` / `'.'`」的字面差、务必保留此说明）：
+   * 卡的两条对照行（`scope:xxx` / `ROOT.province:xxx`）**都**以 `:` 紧邻赋值名，所以 `:` 已覆盖卡的全部验收面；
+   * 而 `.` 紧邻的赋值名还有一类**不是 scope 路径**的形态 —— 带点**对象 id**（`zz_ns.zz_t = { … }`）。
+   * 把它也判成 context 会直接反掉 A21 的负用例 `c2-negative-inline-scripted-kw-value-dotted`
+   * （`some_kind = scripted_effect` 之后的 `zz_ns.zz_t = { has_traitq = yes }` 必须保持 **0 条**）
+   * ⇒ 与卡自身「验收 3：`verify.mjs --e2e` 全绿」直接冲突。
+   * 带 `:` 的路径（`scope:x` / `X.y:z` / `location:constantinople`）一定是"**带目标的 scope 引用**"、
+   * body 就是 effect/trigger 列表；而无 `:` 的 `a.b = {` 无法与对象 id 区分 ⇒ 只认 `:` 是最小且被否证风险最低的修法。
+   * **守卫本身不动**（A8 的覆盖前缀剥离、A18 的窄通路都不受影响：后者在 ident 分支就已
+   * `i = bodyStart + 1` 跳过该 `{`）。
+   */
+  const isScopePrefixedBodyBrace = (pos: number): boolean => {
+    let p = pos - 1;
+    while (p >= 0 && isWs(cleaned[p])) p -= 1;
+    if (p < 0 || cleaned[p] !== "=" || cleaned[p - 1] === "=") return false;
+    p -= 1;
+    while (p >= 0 && isWs(cleaned[p])) p -= 1;
+    const nameEnd = p;
+    while (p >= 0 && isIdentChar(cleaned[p])) p -= 1;
+    if (p === nameEnd) return false; // `=` 左边没有标识符
+    if (!isIdentStart(cleaned[p + 1])) return false; // 段以数字开头 ⇒ 不是「名字」（如 `flavor.1`）
+    return cleaned[p] === ":";
+  };
+
   const pushBlock = (
     name: string,
     parentMode: ContextMode,
@@ -1587,7 +1625,15 @@ function scanStickyContext(
       // 裸 `{`（`?=`、`scope:actor =` 等之后）：视作 scope 块，继承父模式。
       // ⚠️ 标签模式下例外：`location:constantinople = {` 这类 **scope 前缀标签**不产生块名
       // （`prev === ":"` 守卫），这里遇到的 `{` 就是 **case body** ⇒ 进 context。
-      stack.push(currentMode() === "label" ? "context" : currentMode());
+      // A16：`scope:xxx = {` / `ROOT.province:xxx = {` / `location:constantinople = {` 的 body
+      // 同样是 effect/trigger 列表，但该 `{` 因 `prev === ":"` 守卫**不产生块名** ⇒ 旧实现只继承
+      // 父模式、param/neutral 时整块不扫。命中 `isScopePrefixedBodyBrace` 时同样进 context
+      // （守卫仍不动；只认 `:`、不认 `.` 的理由见该 helper 的 JSDoc）。
+      stack.push(
+        currentMode() === "label" || isScopePrefixedBodyBrace(i)
+          ? "context"
+          : currentMode(),
+      );
       i += 1;
       continue;
     }

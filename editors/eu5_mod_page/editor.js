@@ -268,7 +268,7 @@ function addComment(kind, quote, text, occurrence) {
     ...(occurrence ? { occurrence } : {}),
   });
   paintComments();
-  say("已添加。点『保存批注』发给 agent。");
+  say("已添加。最后点『保存批注』，然后到对话里发送 /page-annotated。");
 }
 
 function closePrompt() {
@@ -385,7 +385,7 @@ document.addEventListener("selectionchange", () => {
 
 page.addEventListener("change", () => {
   updateBar();
-  if (comments.length === 0) say("选项已改。点『保存批注』发给 agent。");
+  if (comments.length === 0) say("选项已改。点『保存批注』，再到对话里发送 /page-annotated。");
 });
 
 page.addEventListener("click", (event) => {
@@ -425,7 +425,7 @@ saveButton.addEventListener("click", async () => {
     revision = result.revision;
     source = next;
     baseline = readControls();
-    say("已发送。回对话里说一句，agent 就会读到。");
+    say("已写入页面。到对话里发送 /page-annotated。");
   } else {
     const code = result?.code ?? "SAVE_FAILED";
     say(SAVE_ERROR_TEXT[code] ?? `发送失败：${code}`);

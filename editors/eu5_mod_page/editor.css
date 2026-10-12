@@ -6,14 +6,15 @@
   --border: #d8d8dc;
   --panel: #f6f6f8;
   --accent: #ff8a00;
-  /* 工具栏／顶部栏／弹框：鲜艳的橘色系，与页面内容明显区分 */
-  --chrome: #fff4e5;
-  --chrome-border: #ffb547;
-  --field: #ffffff;
-  --field-border: #ffb547;
-  --mark-comment: #ffe08a;
-  --mark-delete: #ffb3b3;
-  --mark-replace: #a5d8ff;
+  /* 工具栏／顶部栏／弹框：鲜艳的橘色，与页面内容明显区分 */
+  --chrome: #ffb547;
+  --chrome-fg: #3a2400;
+  --chrome-border: #d98400;
+  --field: #fffdf7;
+  --field-border: #d98400;
+  --mark-comment: #ffd54a;
+  --mark-delete: #ff9c9c;
+  --mark-replace: #8ecbff;
 }
 body[data-theme="dark"] {
   --bg: #1b1b1d;
@@ -22,13 +23,14 @@ body[data-theme="dark"] {
   --border: #34343a;
   --panel: #232327;
   --accent: #ffa733;
-  --chrome: #3a2a18;
-  --chrome-border: #ff9f45;
-  --field: #241807;
+  --chrome: #ff9f45;
+  --chrome-fg: #241300;
+  --chrome-border: #c96f00;
+  --field: #2a1b06;
   --field-border: #ff9f45;
-  --mark-comment: #6b4f12;
-  --mark-delete: #5e2a2a;
-  --mark-replace: #22405f;
+  --mark-comment: #a37b12;
+  --mark-delete: #8a3a3a;
+  --mark-replace: #2f5b85;
 }
 
 * {
@@ -54,8 +56,9 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--chrome-border);
+  border-bottom: 2px solid var(--chrome-border);
   background: var(--chrome);
+  color: var(--chrome-fg);
   flex: 0 0 auto;
 }
 
@@ -65,14 +68,15 @@ body {
 
 #state,
 #count {
-  color: var(--muted);
+  color: var(--chrome-fg);
+  font-weight: 600;
 }
 
 button {
   font: inherit;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  color: var(--chrome-fg);
+  background: var(--field);
+  border: 1px solid var(--chrome-border);
   border-radius: 5px;
   padding: 4px 10px;
   cursor: pointer;
@@ -136,24 +140,24 @@ button:disabled {
 }
 
 #toolbar button[data-kind="comment"] {
-  background: #ffb547;
-  border-color: #d98b00;
-  color: #201400;
-  font-weight: 600;
+  background: #ff9d00;
+  border-color: #b26a00;
+  color: #1a0f00;
+  font-weight: 700;
 }
 
 #toolbar button[data-kind="delete"] {
-  background: #ff8a8a;
-  border-color: #d64545;
-  color: #2a0000;
-  font-weight: 600;
+  background: #ff4d4d;
+  border-color: #b32b2b;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 #toolbar button[data-kind="replace"] {
-  background: #7cc4ff;
-  border-color: #2f8fd6;
-  color: #001a2a;
-  font-weight: 600;
+  background: #2f9bff;
+  border-color: #1a6bb5;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 #save:not(:disabled) {
@@ -177,6 +181,7 @@ button:disabled {
   gap: 4px;
   padding: 4px;
   background: var(--chrome);
+  color: var(--chrome-fg);
   border: 1px solid var(--chrome-border);
   border-radius: 6px;
   box-shadow: 0 6px 20px rgb(0 0 0 / 32%);
@@ -194,14 +199,16 @@ button:disabled {
   min-width: 380px;
   padding: 10px 12px;
   background: var(--chrome);
-  border: 1px solid var(--chrome-border);
+  color: var(--chrome-fg);
+  border: 2px solid var(--chrome-border);
   border-radius: 8px;
   box-shadow: 0 8px 26px rgb(0 0 0 / 34%);
 }
 
 #prompt label {
-  color: var(--muted);
+  color: var(--chrome-fg);
   font-size: 12px;
+  font-weight: 600;
 }
 
 #promptButtons {

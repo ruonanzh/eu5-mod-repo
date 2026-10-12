@@ -480,8 +480,11 @@ window.addEventListener("message", (event) => {
   if (data.type === "editor:fileContent") {
     const reload = pendingReload;
     pendingReload = null;
+    const incoming = data.revision ?? null;
+    // 内容没变（例如刚刚是我们自己保存触发的变化）→ 什么都不做，别把状态栏盖掉。
+    if (reload === "changed" && incoming !== null && incoming === revision) return;
     const dropped = comments.length > 0 && !savedSinceLoad;
-    revision = data.revision ?? null;
+    revision = incoming;
     source = typeof data.data === "string" ? data.data : "";
     const block = readBlock(source);
     comments = block.comments;

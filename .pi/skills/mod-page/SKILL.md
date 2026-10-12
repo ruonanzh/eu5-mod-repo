@@ -46,6 +46,8 @@ one click, and it pays for itself as soon as there is a choice to make.
 - **Real controls for a choice.** To let the player pick something, use a form control with a `name`
   (`<input type="checkbox">`, `<input type="radio">`, or `<select>`). A drawn box such as `☐` cannot
   be clicked, and the panel saves a named control's value with the comments.
+- **Room to write.** When the page asks the player to write a sentence or more, use a `<textarea>` with
+  about four rows. A one-line field is for a value, not for a thought.
 
 ## Hand the page to the player
 

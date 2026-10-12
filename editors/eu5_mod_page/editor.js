@@ -432,7 +432,8 @@ saveButton.addEventListener("click", async () => {
     say(
       sent?.type === "editor:sent"
         ? "已发送给 agent。它会去读批注，然后改 mod。"
-        : "已写入页面。到对话里发送 /page-annotated。", // 旧版 app 没有这个桥动作，降级成手动
+        // 旧版 app 没有这个桥动作，或宿主拒了（错误码写明原因，方便定位）
+        : `已写入页面。发送失败（${sent?.code ?? "NO_REPLY"}）：到对话里发送 /page-annotated。`,
     );
   } else {
     const code = result?.code ?? "SAVE_FAILED";

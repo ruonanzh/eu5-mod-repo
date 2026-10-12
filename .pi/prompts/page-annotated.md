@@ -1,9 +1,9 @@
 ---
-description: Tell the agent that the mod page is marked
+description: Tell the agent that the player commented on the mod page
 argument-hint: "[page path]"
 ---
-The player marked the generated mod page. Read the marks before you change anything:
+The player left comments on the generated mod page. Read the comments before you change anything:
 
 1. Read the page: `${1:-the *.modpage.html file under your_mods/*/.preview/}`.
-2. Read the marks and the form values in the `pi-page-marks` block at the end of that file.
-3. Change the mod from the marks, following the `mod-page` skill.
+2. Read the comments and the form values in the `pi-page-feedback` block at the end of that file.
+3. Change the mod from the comments, following the `mod-page` skill.

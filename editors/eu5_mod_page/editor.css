@@ -108,7 +108,7 @@ button:disabled {
   padding: 4px 8px;
 }
 
-.page mark[data-mark] {
+.page mark[data-comment] {
   border-radius: 3px;
   padding: 0 1px;
 }

@@ -1,20 +1,18 @@
 /**
- * EU5 mod page editor.
+ * EU5 mod 页面编辑器。
  *
- * Shows a generated mod page (a `*.modpage.html` file) and lets the player mark it up:
- * select text, then comment on it, mark it for deletion, or write a replacement.
+ * 显示 agent 生成的 mod 页面（`*.modpage.html`），让玩家标批注：选中文字，然后批注、标删除或写替换。
  *
- * Reads and writes only the file the host opened. The marks land in the same HTML file, inside a
- * `<script type="application/json" id="pi-page-marks">` block at the end of the body, together with
- * the values of the page's named form controls. The agent finds them there when the player says the
- * page is marked.
+ * 只读写宿主打开的那一个文件。批注落在同一份 HTML 文件里、`<body>` 末尾的
+ * `<script type="application/json" id="pi-page-feedback">` 块中，连同页面上带 `name` 的表单控件的值。
+ * 玩家说「批注好了」时，agent 从那里读。
  *
- * The host bridge is the one in EditorHost.tsx: `editor:init` and `editor:theme` arrive here;
- * `editor:readFile` and `editor:save` go back out.
+ * 桥就是 EditorHost.tsx 那一套：`editor:init` 与 `editor:theme` 进来，`editor:readFile` 与
+ * `editor:save` 出去。
  */
-const ANNOTATIONS_ID = "pi-page-marks";
-const SCRIPT_RE = new RegExp(`<script[^>]*id="${ANNOTATIONS_ID}"[^>]*>[\\s\\S]*?</script>\\s*`, "i");
-const BLOCK_RE = new RegExp(`<script[^>]*id="${ANNOTATIONS_ID}"[^>]*>([\\s\\S]*?)</script>`, "i");
+const FEEDBACK_ID = "pi-page-feedback";
+const SCRIPT_RE = new RegExp(`<script[^>]*id="${FEEDBACK_ID}"[^>]*>[\\s\\S]*?</script>\\s*`, "i");
+const BLOCK_RE = new RegExp(`<script[^>]*id="${FEEDBACK_ID}"[^>]*>([\\s\\S]*?)</script>`, "i");
 
 const state = document.getElementById("state");
 const count = document.getElementById("count");
@@ -30,10 +28,11 @@ const promptText = document.getElementById("promptText");
 let revision = null;
 let source = "";
 let writable = false;
-let marks = [];
+let comments = [];
 let baseline = {};
-let pendingKind = null;
-let selectedMarkId = null;
+let pending = null;
+let selectedId = null;
+let lastRange = null;
 let seq = 0;
 const waiting = new Map();
 
@@ -61,57 +60,84 @@ function say(text) {
   state.textContent = text;
 }
 
-function sameControls(left, right) {
-  const names = new Set([...Object.keys(left), ...Object.keys(right)]);
-  for (const name of names) if ((left[name] ?? "") !== (right[name] ?? "")) return false;
-  return true;
-}
-
-function updateBar() {
-  const dirty = marks.length > 0 || !sameControls(readControls(), baseline);
-  count.textContent = marks.length === 1 ? "1 mark" : `${marks.length} marks`;
-  saveButton.disabled = !dirty || !writable;
-  removeButton.hidden = selectedMarkId === null;
-}
-
-/* ---------- reading and writing the file ---------- */
+/* ---------- 读文件与写文件 ---------- */
 
 function readBlock(content) {
   const match = content.match(BLOCK_RE);
-  if (!match) return { marks: [], controls: {} };
+  if (!match) return { comments: [], controls: {} };
   try {
     const parsed = JSON.parse(match[1]);
     return {
-      marks: Array.isArray(parsed && parsed.marks) ? parsed.marks : [],
+      comments: Array.isArray(parsed && parsed.comments) ? parsed.comments : [],
       controls:
         parsed && typeof parsed.controls === "object" && parsed.controls !== null ? parsed.controls : {},
     };
   } catch {
-    return { marks: [], controls: {} };
+    return { comments: [], controls: {} };
   }
 }
 
-function withBlock(content, nextMarks, controls) {
+function withBlock(content, nextComments, controls) {
   const cleaned = content.replace(SCRIPT_RE, "");
-  if (nextMarks.length === 0 && Object.keys(controls).length === 0) return cleaned;
-  const payload = JSON.stringify({ version: 1, marks: nextMarks, controls }, null, 2);
-  const block = `<script type="application/json" id="${ANNOTATIONS_ID}">\n${payload}\n</script>\n`;
+  if (nextComments.length === 0 && Object.keys(controls).length === 0) return cleaned;
+  const payload = JSON.stringify({ version: 1, comments: nextComments, controls }, null, 2);
+  const block = `<script type="application/json" id="${FEEDBACK_ID}">\n${payload}\n</script>\n`;
   const bodyEnd = cleaned.toLowerCase().lastIndexOf("</body>");
   if (bodyEnd === -1) return `${cleaned.replace(/\s*$/, "\n")}${block}`;
   return `${cleaned.slice(0, bodyEnd)}${block}${cleaned.slice(bodyEnd)}`;
 }
 
-/* ---------- showing the page ---------- */
+/* ---------- 显示页面 ---------- */
 
 function renderPage(content) {
   const doc = new DOMParser().parseFromString(content, "text/html");
-  doc.querySelector(`#${ANNOTATIONS_ID}`)?.remove();
+  doc.querySelector(`#${FEEDBACK_ID}`)?.remove();
   doc.querySelectorAll("script").forEach((element) => element.remove());
 
   page.replaceChildren();
   doc.head.querySelectorAll("style").forEach((element) => page.append(element.cloneNode(true)));
   Array.from(doc.body.childNodes).forEach((node) => page.append(node.cloneNode(true)));
 }
+
+/* ---------- 页面上的表单控件 ---------- */
+
+/** 读页面上所有带 name 的控件，这样勾选框的状态也存得下来。 */
+function readControls() {
+  const values = {};
+  page.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
+    const name = element.getAttribute("name");
+    if (!name) return;
+    if (element.type === "checkbox" || element.type === "radio") {
+      if (element.checked) values[name] = element.value || "on";
+      else if (!(name in values)) values[name] = "";
+      return;
+    }
+    values[name] = element.value;
+  });
+  return values;
+}
+
+function applyControls(values) {
+  if (!values) return;
+  page.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
+    const name = element.getAttribute("name");
+    if (!name || !(name in values)) return;
+    const saved = values[name];
+    if (element.type === "checkbox" || element.type === "radio") {
+      element.checked = saved !== "" && saved === (element.value || "on");
+      return;
+    }
+    element.value = saved;
+  });
+}
+
+function sameControls(left, right) {
+  const names = new Set([...Object.keys(left), ...Object.keys(right)]);
+  for (const name of names) if ((left[name] ?? "") !== (right[name] ?? "")) return false;
+  return true;
+}
+
+/* ---------- 批注 ---------- */
 
 function findRange(quote) {
   const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
@@ -129,11 +155,11 @@ function findRange(quote) {
   return null;
 }
 
-function wrapRange(range, mark) {
+function wrapRange(range, comment) {
   const element = document.createElement("mark");
-  element.dataset.mark = mark.id;
-  element.dataset.kind = mark.kind;
-  element.title = mark.text || mark.kind;
+  element.dataset.comment = comment.id;
+  element.dataset.kind = comment.kind;
+  element.title = comment.text || comment.kind;
   try {
     range.surroundContents(element);
   } catch {
@@ -142,79 +168,77 @@ function wrapRange(range, mark) {
   }
 }
 
-function paintMarks() {
-  page.querySelectorAll("mark[data-mark]").forEach((element) => {
+function paintComments() {
+  page.querySelectorAll("mark[data-comment]").forEach((element) => {
     const parent = element.parentNode;
     while (element.firstChild) parent.insertBefore(element.firstChild, element);
     parent.removeChild(element);
     parent.normalize();
   });
-  marks.forEach((mark) => {
-    const range = findRange(mark.quote);
-    if (range) wrapRange(range, mark);
+  comments.forEach((comment) => {
+    const range = findRange(comment.quote);
+    if (range) wrapRange(range, comment);
   });
   updateBar();
 }
 
-/* ---------- the page's own form controls ---------- */
-
-/** Read every named control of the rendered page, so a ticked box survives the save. */
-function readControls() {
-  const values = {};
-  page.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
-    const name = element.getAttribute("name");
-    if (!name) return;
-    if (element.type === "checkbox" || element.type === "radio") {
-      if (element.checked) values[name] = element.value || "on";
-      else if (!(name in values)) values[name] = "";
-      return;
-    }
-    values[name] = element.value;
-  });
-  return values;
+function updateBar() {
+  const dirty = comments.length > 0 || !sameControls(readControls(), baseline);
+  count.textContent = comments.length === 0 ? "" : `${comments.length} 条批注`;
+  saveButton.disabled = !dirty || !writable;
+  removeButton.hidden = selectedId === null;
 }
 
-/** Put saved control values back after a render. */
-function applyControls(values) {
-  if (!values) return;
-  page.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
-    const name = element.getAttribute("name");
-    if (!name || !(name in values)) return;
-    const saved = values[name];
-    if (element.type === "checkbox" || element.type === "radio") {
-      element.checked = saved !== "" && saved === (element.value || "on");
-      return;
-    }
-    element.value = saved;
-  });
+function addComment(kind, quote, text) {
+  comments.push({ id: `c${Date.now().toString(36)}${comments.length}`, kind, quote, text: text || "" });
+  paintComments();
+  say("已添加。点『保存批注』发给 agent。");
 }
 
-/* ---------- marking ---------- */
+document.getElementById("promptCancel").addEventListener("click", () => {
+  pending = null;
+  promptForm.hidden = true;
+});
+
+promptForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!pending) return;
+  addComment(pending.kind, pending.quote, promptText.value.trim());
+  pending = null;
+  promptForm.hidden = true;
+  lastRange = null;
+  window.getSelection()?.removeAllRanges();
+});
+
+/* ---------- 选词与工具栏 ---------- */
 
 function hideToolbar() {
   toolbar.hidden = true;
 }
 
-function selectionRange() {
+function currentRange() {
   const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0) return null;
-  const range = selection.getRangeAt(0);
-  if (range.collapsed) return null;
-  if (!page.contains(range.commonAncestorContainer)) return null;
-  return range;
+  if (selection && selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    if (!range.collapsed && page.contains(range.commonAncestorContainer)) {
+      lastRange = range.cloneRange();
+      return range;
+    }
+  }
+  return null;
 }
 
 function showToolbar() {
-  const range = selectionRange();
+  const range = currentRange();
   if (!range) {
     hideToolbar();
     return;
   }
-  // Coordinates are relative to the scrolling box, which is also the containing block of #toolbar,
-  // so the toolbar sits on the selection and scrolls with the page.
-  const box = range.getBoundingClientRect();
-  const frame = scroll.getBoundingClientRect();
+  // 坐标相对滚动容器（也是 #toolbar 的包含块），所以工具栏贴在选区上，并随内容滚动。
+  const box = typeof range.getBoundingClientRect === "function" ? range.getBoundingClientRect() : null;
+  const frame = typeof scroll.getBoundingClientRect === "function" ? scroll.getBoundingClientRect() : null;
   toolbar.hidden = false;
+  if (!box || !frame) return; // 宿主给不出几何信息时，只显示、不定位
   const width = toolbar.offsetWidth || 200;
   const left = box.left - frame.left + scroll.scrollLeft;
   const top = box.bottom - frame.top + scroll.scrollTop + 6;
@@ -223,44 +247,31 @@ function showToolbar() {
 }
 
 function askForText(kind) {
-  const range = selectionRange();
-  if (!range) return;
-  pendingKind = { kind, quote: range.toString() };
-  promptLabel.textContent = kind === "replace" ? "New text" : "Note";
+  // 点按钮会先清掉选区，所以这里用选词时记下的那个 range。
+  if (!lastRange) return;
+  pending = { kind, quote: lastRange.toString() };
+  if (!pending.quote) return;
+  promptLabel.textContent = kind === "replace" ? "替换为" : "批注内容";
   promptText.value = "";
   promptForm.hidden = false;
   promptText.focus();
   hideToolbar();
 }
 
-function addMark(kind, quote, text) {
-  const mark = { id: `m${Date.now().toString(36)}${marks.length}`, kind, quote, text: text || "" };
-  marks.push(mark);
-  paintMarks();
-  say("Mark added. Save it to send it to the agent.");
-}
-
-promptForm.addEventListener("submit", (event) => {
+toolbar.addEventListener("mousedown", (event) => {
+  // 保住选区：不这样，浏览器会在 click 之前把选区清掉。
   event.preventDefault();
-  if (!pendingKind) return;
-  addMark(pendingKind.kind, pendingKind.quote, promptText.value.trim());
-  pendingKind = null;
-  promptForm.hidden = true;
-  window.getSelection()?.removeAllRanges();
-});
-
-document.getElementById("promptCancel").addEventListener("click", () => {
-  pendingKind = null;
-  promptForm.hidden = true;
 });
 
 toolbar.addEventListener("click", (event) => {
   const kind = event.target.dataset?.kind;
   if (!kind) return;
   if (kind === "delete") {
-    const range = selectionRange();
-    if (!range) return;
-    addMark("delete", range.toString(), "");
+    if (!lastRange) return;
+    const quote = lastRange.toString();
+    if (!quote) return;
+    addComment("delete", quote, "");
+    lastRange = null;
     window.getSelection()?.removeAllRanges();
     hideToolbar();
     return;
@@ -275,52 +286,52 @@ document.addEventListener("selectionchange", () => {
 
 page.addEventListener("change", () => {
   updateBar();
-  if (marks.length === 0) say("A choice changed. Save to send it to the agent.");
+  if (comments.length === 0) say("选项已改。点『保存批注』发给 agent。");
 });
 
 page.addEventListener("click", (event) => {
-  const mark = event.target.closest?.("mark[data-mark]");
-  selectedMarkId = mark ? mark.dataset.mark : null;
-  if (selectedMarkId) {
-    const found = marks.find((item) => item.id === selectedMarkId);
-    say(found ? `${found.kind}: ${found.text || found.quote}` : "");
+  const mark = event.target.closest?.("mark[data-comment]");
+  selectedId = mark ? mark.dataset.comment : null;
+  if (selectedId) {
+    const found = comments.find((item) => item.id === selectedId);
+    say(found ? `${found.kind}：${found.text || found.quote}` : "");
   }
   updateBar();
 });
 
 removeButton.addEventListener("click", () => {
-  marks = marks.filter((item) => item.id !== selectedMarkId);
-  selectedMarkId = null;
-  paintMarks();
-  say("Mark removed.");
+  comments = comments.filter((item) => item.id !== selectedId);
+  selectedId = null;
+  paintComments();
+  say("已移除。");
 });
 
-/* ---------- saving ---------- */
+/* ---------- 保存 ---------- */
 
 saveButton.addEventListener("click", async () => {
   saveButton.disabled = true;
-  say("Saving…");
-  const next = withBlock(source, marks, readControls());
+  say("正在保存…");
+  const next = withBlock(source, comments, readControls());
   const result = await request("editor:save", { data: next, baseRevision: revision });
   if (result?.type === "editor:saved") {
     revision = result.revision;
     source = next;
-    say("Saved. Back in the chat, tell the agent that the page is marked.");
+    say("已保存。回对话里告诉 agent「批注好了」。");
   } else {
     const code = result?.code ?? "SAVE_FAILED";
-    say(code === "READ_ONLY" ? "This file cannot be written, so the marks stay here." : `Save failed: ${code}`);
+    say(code === "READ_ONLY" ? "这个文件不能写，批注只留在这里。" : `保存失败：${code}`);
   }
   updateBar();
 });
 
-/* ---------- host bridge ---------- */
+/* ---------- 宿主桥 ---------- */
 
 window.addEventListener("message", (event) => {
   const data = event.data ?? {};
   if (data.type === "editor:init") {
     writable = data.writable === true;
     if (data.theme) document.body.dataset.theme = data.theme;
-    if (!writable) saveButton.title = "This file is outside the mod, so it cannot be written.";
+    if (!writable) saveButton.title = "这个文件在 mod 之外，不能写入。";
     post({ type: "editor:readFile", requestId: `r${++seq}` });
     return;
   }
@@ -332,12 +343,12 @@ window.addEventListener("message", (event) => {
     revision = data.revision ?? null;
     source = typeof data.data === "string" ? data.data : "";
     const block = readBlock(source);
-    marks = block.marks;
+    comments = block.comments;
     renderPage(source);
     applyControls(block.controls);
     baseline = readControls();
-    paintMarks();
-    say(marks.length ? "Marks from the last round are shown." : "Select text to mark it.");
+    paintComments();
+    say(comments.length ? "上一轮的批注已显示。" : "选中文字后可以标批注。");
     return;
   }
   if (data.type === "editor:saved" || data.type === "editor:error") {

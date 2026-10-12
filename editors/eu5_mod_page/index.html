@@ -1,35 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>EU5 mod page</title>
+    <title>mod 页面</title>
     <link rel="stylesheet" href="editor.css" />
   </head>
   <body data-theme="dark">
     <header id="bar">
-      <span id="state" role="status">Loading the page…</span>
+      <span id="state" role="status">正在加载页面…</span>
       <span class="spacer"></span>
       <span id="count"></span>
-      <button id="remove" type="button" hidden>Remove mark</button>
-      <button id="save" type="button" disabled>Save marks</button>
+      <button id="remove" type="button" hidden>移除这条批注</button>
+      <button id="save" type="button" disabled>保存批注</button>
     </header>
 
     <main id="scroll">
       <article id="page" class="page"></article>
 
       <div id="toolbar" hidden>
-        <button type="button" data-kind="comment">Comment</button>
-        <button type="button" data-kind="delete">Delete</button>
-        <button type="button" data-kind="replace">Replace</button>
+        <button type="button" data-kind="comment">批注</button>
+        <button type="button" data-kind="delete">删除</button>
+        <button type="button" data-kind="replace">替换</button>
       </div>
     </main>
 
     <form id="prompt" hidden>
-      <label id="promptLabel" for="promptText">Note</label>
+      <label id="promptLabel" for="promptText">批注内容</label>
       <input id="promptText" type="text" autocomplete="off" />
-      <button type="submit">Add mark</button>
-      <button type="button" id="promptCancel">Cancel</button>
+      <button type="submit">添加批注</button>
+      <button type="button" id="promptCancel">取消</button>
     </form>
 
     <script src="editor.js"></script>

@@ -164,10 +164,16 @@ function showToolbar() {
     hideToolbar();
     return;
   }
+  // Coordinates are relative to the scrolling box, which is also the containing block of #toolbar,
+  // so the toolbar sits on the selection and scrolls with the page.
   const box = range.getBoundingClientRect();
+  const frame = scroll.getBoundingClientRect();
   toolbar.hidden = false;
-  toolbar.style.left = `${Math.max(8, box.left + scroll.scrollLeft)}px`;
-  toolbar.style.top = `${Math.max(8, box.bottom + scroll.scrollTop + 6)}px`;
+  const width = toolbar.offsetWidth || 200;
+  const left = box.left - frame.left + scroll.scrollLeft;
+  const top = box.bottom - frame.top + scroll.scrollTop + 6;
+  toolbar.style.left = `${Math.max(8, Math.min(left, scroll.clientWidth - width - 8))}px`;
+  toolbar.style.top = `${Math.max(8, top)}px`;
 }
 
 function askForText(kind) {

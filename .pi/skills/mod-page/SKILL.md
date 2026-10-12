@@ -67,10 +67,11 @@ one click, and it pays for itself as soon as there is a choice to make.
 ## How the comments reach you
 
 The player comments on the page in the app panel. The panel writes the comments into the page itself,
-in a block with the id `pi-page-feedback` at the end of the file, and it cannot send a message to you.
+in a block with the id `pi-page-feedback` at the end of the file, and then sends the
+`/page-annotated` prompt.
 
-- When the player says the page has comments, **read that block first**, and only then change the mod.
-  Do not work from memory.
+- When that prompt arrives, or when the player says the page has comments, **read that block first**,
+  and only then change the mod. Do not work from memory.
 - The block also carries the page's form values, so a ticked box reaches you the same way a comment
   does.
 

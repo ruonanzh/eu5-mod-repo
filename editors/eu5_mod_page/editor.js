@@ -268,7 +268,7 @@ function addComment(kind, quote, text, occurrence) {
     ...(occurrence ? { occurrence } : {}),
   });
   paintComments();
-  say("已添加。最后点『保存批注』，然后到对话里发送 /page-annotated。");
+  say("已添加。最后点『发送给 Agent』。");
 }
 
 function closePrompt() {
@@ -385,7 +385,7 @@ document.addEventListener("selectionchange", () => {
 
 page.addEventListener("change", () => {
   updateBar();
-  if (comments.length === 0) say("选项已改。点『保存批注』，再到对话里发送 /page-annotated。");
+  if (comments.length === 0) say("选项已改。点『发送给 Agent』就行。");
 });
 
 page.addEventListener("click", (event) => {
@@ -425,7 +425,15 @@ saveButton.addEventListener("click", async () => {
     revision = result.revision;
     source = next;
     baseline = readControls();
-    say("已写入页面。到对话里发送 /page-annotated。");
+    say("已写入页面。正在通知 agent…");
+    // 让面板替玩家把 /page-annotated 发进会话（产品的编辑器桥动作 `editor:sendPrompt`）。
+    // pi 会把这条模板展开成提示词，agent 于是知道要去读批注块。
+    const sent = await request("editor:sendPrompt", { text: "/page-annotated" });
+    say(
+      sent?.type === "editor:sent"
+        ? "已发送给 agent。它会去读批注，然后改 mod。"
+        : "已写入页面。到对话里发送 /page-annotated。", // 旧版 app 没有这个桥动作，降级成手动
+    );
   } else {
     const code = result?.code ?? "SAVE_FAILED";
     say(SAVE_ERROR_TEXT[code] ?? `发送失败：${code}`);
@@ -460,7 +468,7 @@ window.addEventListener("message", (event) => {
     say(comments.length ? "上一轮的批注已显示。" : "选中文字后可以标批注。");
     return;
   }
-  if (data.type === "editor:saved" || data.type === "editor:error") {
+  if (data.type === "editor:saved" || data.type === "editor:sent" || data.type === "editor:error") {
     settle(data.requestId, data);
   }
 });

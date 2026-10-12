@@ -405,7 +405,7 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  * effect/trigger 名 —— `docs/script_docs` 里根本没有它们，所以**不可从 dump 派生**。
  * 依据 = 文件结构（wiki 的 `Event_modding` / `Building_modding` / `Subject_type_modding` /
  * `Cabinet_action_modding` / `Generic_action_modding` 等页面 + 实际语料形态）。
- * 对照：本名单 **0/53** 在「script_docs 结构示例派生的容器集合」（1220 个）里（A0 对照命令），
+ * 对照：本名单 **0/53** 在「script_docs 结构示例派生的容器集合」（1221 个）里（A0 对照命令），
  * 即解析不可能覆盖它们。
  * 名单**冻结**（GOAL #8）：新增覆盖须新开卡 + 用户确认；清单与逐项证据见 `board/C2-COVERAGE.md`。
  * trigger **列表容器**（`visible` / `enabled` / `on_*` / `*_trigger` …）另见 TRIGGER_CONTAINER_NAMES。
@@ -576,7 +576,7 @@ const CONTEXT_ENTER_NAMES = new Set([
  * - ai_interaction_source_list  select_trigger 内的 AI 目标来源列表（内部 every_goods > limit 仍是 context）
  *
  * ===== A9 复核（2026-10，容器名单从 script_docs 解析后）=====
- * 对照：本名单 **0/58** 在「结构示例派生的容器集合」（1220 个）里 —— 它们**都不是** effect/trigger
+ * 对照：本名单 **0/58** 在「结构示例派生的容器集合」（1221 个）里 —— 它们**都不是** effect/trigger
  * 名，是**结构字段/列表部位**，dump 不提供 ⇒ 只能手写（与 CONTEXT_ENTER_NAMES 同理）。
  * 逐项复核后**剔除 1 条**：
  * - `select_trigger`（已删）：`c2-coverage --vanilla` 证据 = 988 个块 / body 键 6751 / 命中词典 **0**（ratio 0%）
@@ -767,8 +767,11 @@ const TRIGGER_CONTAINER_NAMES = new Set([
  * 只要示例块含 `<effects>` 或 `<triggers>`，该 name 的 body 就是 effect/trigger **列表** ⇒ 容器
  * ⇒ 进入后**继续** context 扫描（否则 `if = { add_prestigez = … }` 里的 typo 会漏）。
  * 判定优先级**高于**「块名在词典 → param」。
- * 实测：`effects.log` + `triggers.log` → **1220 个**（其中 **1212 = every_/any_/ordered_/random_ 各 303**，
- * 非前缀 8 = if/else/else_if/while/trigger_if/trigger_else/trigger_else_if/**switch**）。
+ * 实测：`effects.log` + `triggers.log` → **1221 个**（其中 **1212 = every_/any_/ordered_/random_ 各 303**，
+ * 非前缀 9 = if / else / else_if / while / trigger_if / trigger_else / trigger_else_if / switch / conditional_effect）。
+ * §A23：示例行**不一定行首**对齐 —— `conditional_effect` 的 dump 写法是行中单行
+ * `… Usage: conditional_effect = { effect = <effects> limit = <triggers> [else = <effects>] }`
+ * ⇒ 判据**分段两步**（见 `containersFromLogText`）。
  * 权威对照（见 `board/C2-COVERAGE.md` 的复现命令 ①）：权威容器集合 ⊆ 我们的容器集合（差异 0）。
  *
  * **维护成本归零**：dump 刷新（游戏 patch）后**不改代码即自动跟随**；前缀族不必再手写。
@@ -914,8 +917,12 @@ function fallbackContainerModel(): ContainerModel {
 
 /**
  * 从 effects.log / triggers.log 的**结构示例行**解析容器名。
- * 逐 `## <name>` 块：找 `^\s*<name>\s*=\s*\{`（大小写不敏感）起始的**平衡大括号**示例块，
- * 块内含 `<effects>` 或 `<triggers>` ⇒ 容器。未找到示例行/无占位符 ⇒ 不加入（如 `random`）。
+ * 逐 `## <name>` 块，**两步**找示例起始行（大小写不敏感）：
+ *   ① 行首对齐：`^\s*<name>\s*=\s*\{`；
+ *   ② A23 回退：段内**任意位置**含 `\b<name>\s*=\s*\{`（dump 把示例写在行中，如
+ *      `conditional_effect` 的 `… Usage: conditional_effect = { … }`）。
+ * 从起始行起取**平衡大括号**示例块，块内含 `<effects>` 或 `<triggers>` ⇒ 容器。
+ * 两步都找不到起始行/无占位符 ⇒ 不加入（如 `random`）。
  */
 function containersFromLogText(text: string): Set<string> {
   const found = new Set<string>();
@@ -935,6 +942,17 @@ function containersFromLogText(text: string): Set<string> {
     while (j < lines.length && !/^##\s+\w/.test(lines[j])) {
       if (blockStart < 0 && exampleRe.test(lines[j])) blockStart = j;
       j += 1;
+    }
+    // A23 回退：行首没有示例时，退一步用「段内任意位置含 `<name> = {`」
+    // （`\b` + 名字后紧跟 `\s*=` 已排除更长标识符的前缀/后缀误配）。
+    if (blockStart < 0) {
+      const anywhereRe = new RegExp(`\\b${name}\\s*=\\s*\\{`, "i");
+      for (let k = i + 1; k < j; k += 1) {
+        if (anywhereRe.test(lines[k])) {
+          blockStart = k;
+          break;
+        }
+      }
     }
     if (blockStart >= 0) {
       let depth = 0;

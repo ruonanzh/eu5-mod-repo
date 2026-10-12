@@ -49,6 +49,72 @@ one click, and it pays for itself as soon as there is a choice to make.
 - **Room to write.** When the page asks the player to write a sentence or more, use a `<textarea>` with
   about four rows. A one-line field is for a value, not for a thought.
 
+## The page styles
+
+The page styles come from the game's own interface. Use the same styles on every page. The styles do
+not follow the app theme.
+
+The values below are the colors of the game's interface textures. The names are the game's names.
+
+| Token | Value | Use |
+|---|---|---|
+| `--ground` | `#101821` | the page background |
+| `--ground-deep` | `#100c19` | the darkest area |
+| `--panel` | `#212029` | a raised panel |
+| `--frame` | `#ad8642` | a 1px frame or rule |
+| `--frame-bright` | `#ffc673` | the frame of a selected item |
+| `--heading-band` | `#634521` | the band behind a heading |
+| `--paper` | `#ceae7b` | a pale panel, and warm text |
+| `--select` | `#21717b` | a selected control |
+| `--text` | `#ffffff` | headings and body text |
+| `--text-muted` | `#948273` | a note or a caption |
+| `--alert` | `#8c2829` | a problem |
+| `--warn` | `#ce8600` | a warning |
+
+Put the values in `:root`, and use the tokens everywhere. Do not write a color twice.
+
+### Type
+
+1. Use a serif stack for headings, and a sans stack for body text and controls.
+2. Use `"Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, Georgia, serif` for a heading.
+3. Use `system-ui, "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif` for body text and
+   controls.
+4. Use `font-variant-numeric: tabular-nums` on a column of numbers.
+5. Do not link a font file. A Chinese font file is large, and the page must stay one file.
+
+### Shape
+
+1. Use square corners. A radius above 2px is not the game's interface.
+2. Draw a frame with a 1px line in `--frame`. Use `--frame-bright` for the item the player selected.
+3. Put a heading on a `--heading-band` band, with `--text` on it.
+4. Keep gold on frames, headings, and selected items. Do not fill a large area with gold.
+5. Do not use an image as decoration. One color, or a faint gradient, is enough.
+6. Do not put every paragraph in a rounded card.
+7. Do not use an emoji as a section marker.
+
+### Section colors
+
+A section that covers one subject may take the color of that subject. Use a color for that subject
+only.
+
+- `#521419` for military
+- `#634119` for economy
+- `#214d5a` for diplomacy
+- `#3a2d4a` for government
+- `#213d29` for society
+- `#733921` for production
+
+### Before you hand the page over
+
+Check three things:
+
+1. The page shows the player's subject in the game's styles.
+2. The page carries no copied logo, no copied artwork, and no copied font file.
+3. A player of another historical strategy game would not name this game from the styles alone.
+
+The test for the styles: if another game's name replaced this game's name, and the styles still fit,
+the styles are too general. Change the composition, the frames, or the color use.
+
 ## Hand the page to the player
 
 1. Write the page.

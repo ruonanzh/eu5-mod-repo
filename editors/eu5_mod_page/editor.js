@@ -200,14 +200,25 @@ document.getElementById("promptCancel").addEventListener("click", () => {
   promptForm.hidden = true;
 });
 
-promptForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+function commitPrompt() {
   if (!pending) return;
   addComment(pending.kind, pending.quote, promptText.value.trim());
   pending = null;
   promptForm.hidden = true;
   lastRange = null;
   window.getSelection()?.removeAllRanges();
+}
+
+// 故意不用 <form>：编辑器 iframe 的 sandbox 是 allow-scripts，没有 allow-forms，
+// 浏览器会直接拦下表单提交（"Blocked form submission … sandboxed"），处理函数根本不会跑。
+document.getElementById("promptAdd").addEventListener("click", commitPrompt);
+
+promptText.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") commitPrompt();
+  if (event.key === "Escape") {
+    pending = null;
+    promptForm.hidden = true;
+  }
 });
 
 /* ---------- 选词与工具栏 ---------- */

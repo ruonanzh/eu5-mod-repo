@@ -74,12 +74,26 @@ body {
 
 button {
   font: inherit;
-  color: var(--chrome-fg);
+  color: var(--fg);
   background: var(--field);
   border: 1px solid var(--chrome-border);
   border-radius: 5px;
   padding: 4px 10px;
   cursor: pointer;
+}
+
+/* 次要按钮（取消、移除这条批注）：满色橘 + 深字，在任何底色上都看得见。 */
+#remove,
+#promptCancel {
+  background: var(--accent);
+  border-color: var(--chrome-border);
+  color: #1a1000;
+  font-weight: 700;
+}
+
+#remove:hover,
+#promptCancel:hover {
+  filter: brightness(1.08);
 }
 
 button:hover:not(:disabled) {
@@ -160,18 +174,13 @@ button:disabled {
   font-weight: 700;
 }
 
-#save:not(:disabled) {
-  background: var(--accent);
-  border-color: transparent;
-  color: #1a1000;
-  font-weight: 600;
-}
-
+/* 主操作（保存批注、添加批注）：深橘底白字，与次要按钮区分开 */
+#save:not(:disabled),
 #promptAdd {
-  background: var(--accent);
-  border-color: transparent;
-  color: #1a1000;
-  font-weight: 600;
+  background: #c25d00;
+  border-color: #8a4200;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 #toolbar {
@@ -221,7 +230,7 @@ button:disabled {
   font: inherit;
   color: var(--fg);
   background: var(--field);
-  border: 1px solid var(--field-border);
+  border: 2px solid var(--chrome-border);
   border-radius: 5px;
   padding: 5px 8px;
   width: 100%;

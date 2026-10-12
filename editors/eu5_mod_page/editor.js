@@ -236,6 +236,13 @@ function updateBar() {
   removeButton.hidden = selectedId === null;
 }
 
+const SEND_ERROR_TEXT = {
+  AGENT_BUSY: "已写入页面。agent 正在运行，稍等一下再点『发送给 Agent』。",
+  NO_SESSION: "已写入页面。这个面板没挂到会话上：到对话里发送 /page-annotated。",
+  NOT_ALLOWED: "已写入页面。这个文件在 mod 之外，不能替你发消息：到对话里发送 /page-annotated。",
+  SEND_FAILED: "已写入页面。消息没发出去：到对话里发送 /page-annotated。",
+};
+
 const SAVE_ERROR_TEXT = {
   READ_ONLY: "这个文件在 mod 之外，不能写入。",
   WRITE_DENIED: "只能写 your_mods/ 里的文件。",
@@ -429,12 +436,13 @@ saveButton.addEventListener("click", async () => {
     // 让面板替玩家把 /page-annotated 发进会话（产品的编辑器桥动作 `editor:sendPrompt`）。
     // pi 会把这条模板展开成提示词，agent 于是知道要去读批注块。
     const sent = await request("editor:sendPrompt", { text: "/page-annotated" });
-    say(
-      sent?.type === "editor:sent"
-        ? "已发送给 agent。它会去读批注，然后改 mod。"
-        // 旧版 app 没有这个桥动作，或宿主拒了（错误码写明原因，方便定位）
-        : `已写入页面。发送失败（${sent?.code ?? "NO_REPLY"}）：到对话里发送 /page-annotated。`,
-    );
+    if (sent?.type === "editor:sent") {
+      say("已发送给 agent。它会去读批注，然后改 mod。");
+    } else {
+      const code = sent?.code ?? "NO_REPLY";
+      // 旧版 app 没有这个桥动作，或宿主拒了（错误码写明原因）
+      say(SEND_ERROR_TEXT[code] ?? `已写入页面。发送失败（${code}）：到对话里发送 /page-annotated。`);
+    }
   } else {
     const code = result?.code ?? "SAVE_FAILED";
     say(SAVE_ERROR_TEXT[code] ?? `发送失败：${code}`);

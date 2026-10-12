@@ -3,9 +3,9 @@ name: mod-page
 description: >
   Write a mod page: one self-contained HTML file under the mod directory's `.preview/` that shows
   what a mod changes, which values it sets, and which choices are still open. Then let the player
-  mark the page in Plannotator and revise from the marks. Read it when the player asks what a mod
-  does, when you and the player must agree on a value before you write the mod, or when a result
-  needs numbers or options. No effect on tool calls or internal reasoning.
+  mark the page in Plannotator and revise from the marks. Read it before you answer with options, a
+  scope, or a value to agree on, and before you describe what a mod does. The answer is a page, not a
+  long reply. No effect on tool calls or internal reasoning.
 ---
 
 # The mod page (EU5 mod workspace)
@@ -15,13 +15,17 @@ sets, and which choices are still open. The player marks the page, and you revis
 
 ## When to write a page
 
-Write a page when the answer needs more than a short reply:
+Write a page. Do not put the options in a long reply and ask.
 
-- The player must agree on a value before you write the mod.
+Write a page when any of these is true:
+
+- You and the player must agree on a scope or a value before you write the mod.
 - The player asks what the mod does, or what changed.
 - The result needs numbers, options, or a comparison.
+- The player says the work is thin, vague, or incomplete.
 
-Do not write a page for a short answer. A page costs the player a file to open.
+A plain reply is enough only when the answer fits in one short paragraph. The page costs the player
+one click, and it pays for itself as soon as there is a choice to make.
 
 ## Where the page goes
 

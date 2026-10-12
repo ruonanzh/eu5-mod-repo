@@ -1,12 +1,15 @@
 /**
- * set_game_dir —— **agent 入口**：**记录一个具体的游戏安装目录**（玩家给的，或你自己找到的）。
+ * set_game_dir - the agent entry point. It records one concrete game directory, from the player or
+ * from your own search.
  *
- * 与 `try_set_game_dir` 的分工：这里是你**已经有路径**、要把它记下来；
- * 没有路径、只想「确保游戏目录已就绪」时用 `try_set_game_dir`（无参，它自己会找）。
+ * The split from try_set_game_dir: use this tool when you already have a path and must record it.
+ * Use try_set_game_dir (no arguments) when you have no path and want the tool to ensure the game
+ * directory is ready.
  *
- *   ① 给的路径**通过判据** → 落库（PASS）
- *   ② 没通过 → 自动发现 → 找到就落库 + **WARN**（说明为什么没用你给的那条）
- *   ③ 都失败 → **FAIL**（不落库）
+ *   1. The path you give passes the check: the tool records it (PASS).
+ *   2. It fails: the tool locates the game. When it finds one, it records that path (WARN), and it
+ *      says why it did not use yours.
+ *   3. Both fail: FAIL, and the tool records nothing.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
@@ -17,16 +20,16 @@ export default function (pi: ExtensionAPI) {
     name: "set_game_dir",
     label: "Set Game Directory",
     description:
-      "Record a concrete Europa Universalis V install directory. Validates it (binaries/eu5.exe must exist); if it does not validate, the game is located and that path is recorded instead (WARN). Use try_set_game_dir when you have no path and want the paths located for you.",
-    promptSnippet: "Record a specific game directory (validates; falls back to locating it)",
+      "Record one concrete game directory for Europa Universalis V. The tool checks the path, and `binaries/eu5.exe` must exist. If the path fails the check, the tool locates the game and records that path instead, and returns WARN. Use try_set_game_dir when you have no path, and you want the tool to locate the paths.",
+    promptSnippet: "Record one specific game directory (it checks the path, or locates the game)",
     promptGuidelines: [
-      "Use set_game_dir when you have a concrete game install directory to record (the player gave one, or you found one): it validates and records it.",
-      "If it returns WARN, the path you passed did not validate and a different one was recorded - tell the player which one is in use.",
-      "If it returns FAIL, nothing was recorded (neither the path you passed nor automatic discovery validated).",
-      "Use try_set_game_dir instead when you have no path: it locates the game and records the derived paths itself.",
+      "Use set_game_dir when you have one concrete game directory to record, from the player or from your own search. It checks the path, then records it.",
+      "If it returns WARN, your path failed the check, and the tool recorded a different path. Tell the player which path is in use.",
+      "If it returns FAIL, the tool recorded nothing. Your path failed the check, and the search found no other path.",
+      "Use try_set_game_dir instead when you have no path. It locates the game and records the derived paths.",
     ],
     parameters: Type.Object({
-      path: Type.String({ description: "Game install directory to record; relative paths use the workspace root." }),
+      path: Type.String({ description: "Game directory to record. Relative paths use the workspace root." }),
     }),
     async execute(_id, params, _s, _u, ctx) {
       const cwd = ctx.cwd;
@@ -35,7 +38,7 @@ export default function (pi: ExtensionAPI) {
         cfg = readModRepoConfig(cwd);
       } catch {
         throw new Error(
-          "INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json. Reopen or update the game workspace; do not edit its maintainer configuration.",
+          "INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json. Reopen or update the game workspace. Do not edit its maintainer configuration.",
         );
       }
       const out = setPathWithFallback(cwd, cfg, "gameDir", resolveUserPath(cwd, params.path));

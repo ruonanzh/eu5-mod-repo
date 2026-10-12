@@ -1,18 +1,22 @@
 /**
- * try_set_game_dir —— **确保游戏目录已就绪**（无参、幂等）。
+ * try_set_game_dir - it ensures the game directory is ready. No arguments, and idempotent.
  *
- * 语义（判据与发现都在 `.pi/lib/game-paths.ts`，本工具只是入口）：
- *   ① 记住的 gameDir 仍有效，且派生的 mod 安装目录 / 创意工坊目录与已记录的一致 → 什么都不写
- *      → `PASS: gameDir already correct`
- *   ② 无效 / 过期 / 从没记过 → 自动发现（每个候选都过哨兵）→ 记录 gameDir + 派生的两条
- *      → `PASS: gameDir discovered and recorded`
- *   ③ 找不到 → `FAIL`（不写状态）
+ * The check and the search live in `.pi/lib/game-paths.ts`. This tool is only the entry point.
  *
- * 为什么无参：agent 不需要先知道路径 —— "确保它已就绪"这件事由工具自己做；它自己找过之后仍然失败，
- * 才轮到 agent 去想办法（找线索、问玩家）。
+ *   1. The remembered gameDir is still valid, and the derived mod install directory and Workshop
+ *      directory match the recorded ones. The tool writes nothing, and returns
+ *      `PASS: gameDir already correct`.
+ *   2. The path is invalid, stale, or never recorded. The tool locates the game, checks every
+ *      candidate, and records gameDir with the two derived paths. It returns
+ *      `PASS: gameDir located and recorded`.
+ *   3. It finds nothing. The tool returns FAIL, and it writes no state.
  *
- * EU5 事实：纯 PDXScript、Windows-only、无运行时。modInstallDir 是 Paradox 启动器目录
- * （~/Documents/…，与 gameDir 无关）；workshopDir 由 gameDir 派生、只读参考。
+ * Why no arguments: the agent does not have to know the path first. The tool ensures the state is
+ * ready by itself. Only after the tool fails does the agent look for clues or ask the player.
+ *
+ * EU5 facts: pure PDXScript, Windows only, and no runtime. modInstallDir is the Paradox launcher
+ * directory, which is independent of gameDir. The tool derives workshopDir from gameDir, and the
+ * tools treat workshopDir as a read-only reference.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
@@ -23,12 +27,12 @@ export default function (pi: ExtensionAPI) {
     name: "try_set_game_dir",
     label: "Ensure Game Directory",
     description:
-      "Makes sure the Europa Universalis V game directory, the Paradox mod install directory, and the Steam Workshop content directory are recorded and still valid. Takes no arguments: it either confirms the recorded paths are already correct, or locates the game and records them.",
+      "Makes sure the game directory, the mod install directory, and the Steam Workshop directory are recorded and still valid. It takes no arguments. It either checks that the recorded paths are correct, or it locates the game and records the paths.",
     promptSnippet: "Ensure the game directory is recorded (locates it when needed)",
     promptGuidelines: [
-      "Use try_set_game_dir when a task needs the game location (installing a mod, syncing vanilla scripts) and you are not sure the paths are recorded or still valid.",
-      "It takes no arguments: it confirms the recorded paths or locates and records them, so you do not have to find the path yourself first.",
-      "It only records paths in .gamer-agent.local.json; it never creates or changes anything inside the game.",
+      "Use try_set_game_dir when a task needs the game location, for example to install a mod or to sync the game scripts. Use it also when you are not sure that the paths are recorded and still valid.",
+      "It takes no arguments. It checks the recorded paths, or it locates and records them, so you do not have to find the path yourself.",
+      "It only records paths in .gamer-agent.local.json. It never creates and never changes anything inside the game.",
     ],
     parameters: Type.Object({}),
     async execute(_id, _params, _s, _u, ctx) {
@@ -38,7 +42,7 @@ export default function (pi: ExtensionAPI) {
         cfg = readModRepoConfig(cwd);
       } catch {
         throw new Error(
-          "INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json. Reopen or update the game workspace; do not edit its maintainer configuration.",
+          "INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json. Reopen or update the game workspace. Do not edit its maintainer configuration.",
         );
       }
       const r = ensureGameDir(cwd, cfg);
@@ -47,7 +51,7 @@ export default function (pi: ExtensionAPI) {
           content: [
             {
               type: "text",
-              text: `FAIL: gameDir not found - ${r.reason}.\nSee the 'setup-workspace' skill.`,
+              text: `FAIL: gameDir not found - ${r.reason}.\nNEXT: see the 'setup-workspace' skill.`,
             },
           ],
           details: {
@@ -59,13 +63,13 @@ export default function (pi: ExtensionAPI) {
         };
       }
       const lines = [
-        `PASS: gameDir ${r.status === "already" ? "already correct" : "discovered and recorded"} (${r.gameDir})`,
+        `PASS: gameDir ${r.status === "already" ? "already correct" : "located and recorded"} (${r.gameDir})`,
         r.modInstallDir
-          ? `modInstallDir (Paradox launcher mod directory) ${r.modInstallDir}`
+          ? `modInstallDir (the mod install directory) ${r.modInstallDir}`
           : "modInstallDir (none - mod-repo.json declares no mod install path)",
         r.workshopDir
           ? `workshopDir (derived, read-only reference) ${r.workshopDir}`
-          : "workshopDir (not found; optional)",
+          : "workshopDir (not found, optional)",
       ];
       for (const w of r.warnings) lines.push(`WARN: ${w}`);
       return {

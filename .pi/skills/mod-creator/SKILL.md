@@ -1,70 +1,77 @@
 ---
 name: mod-creator
-description: Authoring and modifying EU5 (pdx-script) mods: artifact structure, metadata.json fields, localization YAML (UTF-8 BOM, `_l_<language>` filename, `l_<lang>:` header, key format), PDXScript/GUI syntax, INJECT:/REPLACE: overrides, load order & naming, validate_mod troubleshooting, and the semantic lookup path. Read when a task touches any of these. Q&A/consultation is read-only; writing depends on session role and binding.
+description: Write and modify EU5 (pdx-script) mods. Covers the mod structure, the `metadata.json` fields, localization YAML, PDXScript and GUI syntax, `INJECT:` and `REPLACE:` overrides, load order and naming, `validate_mod` errors, and the semantic lookup path. Read it when a task touches one of these. Q&A is read-only. Writing depends on the session role and binding.
 ---
 
-# Authoring EU5 mods (pdx-script)
+# Writing EU5 mods (pdx-script)
 
-An EU5 mod is a directory of **pure PDXScript text files** (`.txt` / `.gui` / `.gfx` / `.asset` / `.yml`) — no
-compilation, no runtime SDK. Author under `your_mods/<ModName>/`, then check with the `validate_mod` tool.
-All paths below are relative to the workspace root (not the skill directory).
+An EU5 mod is a directory of **pure PDXScript text files**: `.txt`, `.gui`, `.gfx`, `.asset`, and
+`.yml`. There is no compilation and no runtime SDK. Write the mod under `your_mods/<ModName>/`, then
+check the result with the `validate_mod` tool.
+All paths below are relative to the workspace root, not to the skill directory.
 
-This skill provides domain method only and **grants no permissions**: reading it does not authorise creating
-directories, checking/installing runtimes, or modifying source files (those stay gated by the session role and
-its bound directory).
+This skill provides domain method only, and it **grants no permissions**. Reading it does not allow
+you to create directories, to check or install runtimes, or to modify source files. The session role
+and its bound directory gate those actions.
 
 ## Usage modes (two roles)
 
-- **Q&A / consultation (read-only):** answer game-mechanics or mod-API questions by reading the knowledge layer.
-  Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source. Do **not** create files or prepare the
-  environment (locate paths, sync vanilla scripts) unless the player explicitly asks about their environment.
-- **Authoring / modifying (writes):** in this order:
-  1. **Research the real values first** — EU5 is pure PDXScript (no self-describing API, no framework), so run
-     `sync_game_scripts` to load the vanilla context into `game-scripts/`, then grep it carefully to pin down the
-     actual vanilla values and their connections (which goods/buildings/modifiers exist, what consumes or produces
-     what). Do not guess from names alone.
-  2. **Agree with the player before writing** — give a short mod content description (what it changes, its scope,
-     the artifact shape) and wait for their confirmation. Do this **even when the request looks specific**; only
-     skip it when the player explicitly says to just start (e.g. "直接开始不用确认").
-  3. **Then write** — produce or change a mod under `your_mods/<ModName>/`. Reuse `reference/example_mod/`. Writes
-     are limited to the bound mod directory; with no binding, call `create_mod_folder` with a `lower_snake_case`
-     name; do not create a second binding if one already exists.
-  4. **Then check the UI side** — mods here are mostly PDXScript code, but a code/data change is often invisible or
-     broken in-game without its UI part. Before finishing, ask: does this change need an icon, a UI label
-     (localization), a menu entry, a column, a filter, or a panel? Add whatever is missing — and reuse an
-     existing in-game icon/asset when it fits (you do not need to author new art). Do not wait for the player to
-     ask about the icon.
-- **Directory name (our rule, enforced by `create_mod_folder`)**: starts with a lowercase letter, then only
-  lowercase letters/digits/underscores, max 40 characters, and not a Windows reserved device name
-  (con/prn/aux/nul/com1-9/lpt1-9).
+- **Q&A and consultation (read-only).** Answer game-mechanics and mod API questions by reading the
+  knowledge layer. Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source. Do **not**
+  create files or prepare the environment, unless the player explicitly asks about their
+  environment. Preparing the environment means locating paths and mirroring the scripts into
+  `game-scripts/`.
+- **Writing or modifying the mod.** Do these steps in this order.
+  1. **Research the real values first.** EU5 is pure PDXScript, with no self-describing API and no
+     framework. Run `sync_game_scripts` to load the modding context into `game-scripts/`. Then grep
+     that directory carefully to pin down the real vanilla values and their connections: which
+     goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
+     names alone.
+  2. **Agree with the player before you write.** Give a short description of the mod content: what it
+     modifies, its scope, and the shape of the mod. Then wait for the player's confirmation. Do this
+     **even when the request looks specific**. Skip it only when the player explicitly says to start,
+     for example "start now, no confirmation".
+  3. **Then write.** Produce or modify a mod under `your_mods/<ModName>/`. Reuse
+     `reference/example_mod/`. You may write only inside the bound mod directory. With no binding,
+     call `create_mod_folder` with a `lower_snake_case` name. Do not create a second binding when
+     one already exists.
+  4. **Then check the UI side.** A mod here is mostly PDXScript code, but an in-game check often
+     fails without the UI part. Before you finish, ask: does this modification need an icon, a UI
+     label (localization), a menu entry, a column, a filter, or a panel? Add what is missing. Reuse
+     an existing in-game icon or asset when one fits, because you do not have to create new art. Do
+     not wait for the player to ask about the icon.
+- **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name starts with
+  a lowercase letter, then holds only lowercase letters, digits, and underscores, at most 40
+  characters. It must not be a Windows reserved device name: `con`, `prn`, `aux`, `nul`, `com1` to
+  `com9`, and `lpt1` to `lpt9`.
 
-## Mod artifact structure
+## Mod structure
 
 ```
 <ModName>/
 ├── .metadata/
-│   ├── metadata.json        # required; the game errors without it
-│   └── thumbnail.png        # launcher/workshop image (optional; may live only locally)
-├── in_game/                 # in-game content (common/ events/ gui/ localization/ …)
-├── main_menu/               # main-menu content (localization/ gui/ …)
-└── loading_screen/          # (optional)
+│   ├── metadata.json        # required, or the game errors
+│   └── thumbnail.png        # launcher and Workshop image (optional, may live only locally)
+├── in_game/                 # in-game content, subdirectories mirror the game's layout
+├── main_menu/               # main-menu content, subdirectories mirror the game's layout
+└── loading_screen/          # optional
 ```
 
 ## metadata.json
 
-`.metadata/metadata.json` — valid JSON object. Standard fields:
+`.metadata/metadata.json` holds one valid JSON object. Standard fields:
 
 | Field | Rule |
 |---|---|
-| `name` | non-empty string (human-readable mod title) |
-| `id` | non-empty string. 游戏只要求它**能识别这个 mod**（EU5 wiki）。**本仓库建议**（不是游戏要求）：用小写蛇形、并让它与 `your_mods/<目录名>` 一致 —— 安装用的目录名就是它，一致了玩家更好对号入座；`validate_mod` 现在**不会**因为不一致而报错 |
-| `version` | `x.x` or `x.x.x` (two- or three-part semver) |
-| `supported_game_version` | `1.*` form |
-| `short_description` | one-line summary — the field is **`short_description`**, not `description` |
-| `tags` | array of strings |
-| `picture` | `"thumbnail.png"`, placed **after `tags`** |
-| `relationships` | `[]` (optional) |
-| `game_custom_data` | `{}` (optional) |
+| `name` | A non-empty string: the mod title that the player reads. |
+| `id` | A non-empty string. The game requires only that the value identifies the mod (EU5 wiki). **This repository suggests** lowercase snake_case that matches the `your_mods/` directory name. That is not a game rule. `install_mod` uses the `your_mods/` directory name as the install directory name, so a match helps the player. `validate_mod` does **not** report an error when the two differ. |
+| `version` | `x.x` or `x.x.x`, two or three parts. |
+| `supported_game_version` | The `1.*` form. |
+| `short_description` | A one-line summary. The field is **`short_description`**, not `description`. |
+| `tags` | An array of strings. |
+| `picture` | `"thumbnail.png"`, placed **after `tags`**. |
+| `relationships` | `[]`, optional. |
+| `game_custom_data` | `{}`, optional. |
 
 ```json
 {
@@ -82,41 +89,46 @@ its bound directory).
 
 ## Localization YAML
 
-`**/localization/**/*.yml` (under `in_game/` and `main_menu/`):
+The files are `**/localization/**/*.yml`, under `in_game/` and `main_menu/`.
 
-- **Encoding must be UTF-8 with BOM** (`EF BB BF`). Without a BOM the game silently ignores the
-  file — fatal, not cosmetic.
-- Filename must end with `_l_<language>`, matching the language folder.
-- First content line is `l_<lang>:` and must match the folder.
-- Entry format: `  key: "value"` or `  key:0 "value"` (explicit version). Values double-quoted,
-  quotes balanced, `[`/`]` placeholders balanced.
-- No duplicate keys within one file.
-- To override vanilla loc keys, use a `replace/` subfolder:
-  `<lang>/replace/overwriting_l_<lang>.yml` — keys there overwrite identical keys elsewhere.
+- **The encoding must be UTF-8 with BOM** (`EF BB BF`). Without a BOM the game ignores the file in
+  silence. That failure is fatal, not cosmetic.
+- The filename must end with `_l_<language>`, which matches the language directory.
+- The first content line is `l_<lang>:`, and it must match the directory.
+- An entry is `  key: "value"` or `  key:0 "value"` with an explicit version. Put the value in
+  double quotes, keep the quotes balanced, and keep the `[` and `]` placeholders balanced.
+- One file must not hold duplicate keys.
+- To override a vanilla loc key, use a `replace/` subdirectory:
+  `<lang>/replace/overwriting_l_<lang>.yml`. Keys there overwrite identical keys elsewhere.
 
-## PDXScript / GUI
+## PDXScript and GUI
 
-`.txt` / `.gui` / `.gfx` / `.asset` under `in_game/` and `main_menu/`:
+The `.txt`, `.gui`, `.gfx`, and `.asset` files are under `in_game/` and `main_menu/`.
 
-- UTF-8 encoding; `{`/`}` balanced; `"` balanced (`#` is a line comment outside strings, literal
-  inside; GUI strings may span multiple lines).
-- `INJECT:`/`REPLACE:` family keywords only in **top-level blocks**, formatted `KEYWORD:key = {`.
+- The encoding is UTF-8. Keep the `{` and `}` balanced, and keep the `"` balanced. A `#` starts a
+  line comment outside a string, and `#` is literal inside a string. A GUI string can span several
+  lines.
+- The `INJECT:` and `REPLACE:` keywords go in **top-level blocks** only, in the form
+  `KEYWORD:key = {`.
 
 ## Overriding vanilla
 
-Three mechanisms (the *why* and edge cases are in
-[`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md)):
+Three mechanisms exist. The reason and the edge cases are in
+[`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md).
 
-1. **Direct file overwrite** — same path+filename replaces the vanilla file entirely (brittle).
-2. **Implicit replace** — in non-keyword folders, a later top-level object with the same name wins.
-3. **`INJECT:`/`REPLACE:` keywords** — required in keyword folders (most `common/` subfolders) to
-   modify an existing object; implicit replace does not work there.
+1. **Direct file overwrite.** A file with the same path and filename replaces the vanilla file
+   entirely. This is brittle.
+2. **Implicit replace.** In a directory that is not a keyword directory, a later top-level object
+   with the same name wins.
+3. **The `INJECT:` and `REPLACE:` keywords.** A keyword directory, which is most `common/`
+   subdirectories, requires a keyword to modify an existing object. Implicit replace does not work
+   there.
 
 | Keyword | Effect |
 |---|---|
-| `INJECT:` / `REPLACE:` | append / replace; errors if the object does not exist |
-| `TRY_INJECT:` / `TRY_REPLACE:` | same, no error if absent |
-| `INJECT_OR_CREATE:` / `REPLACE_OR_CREATE:` | same, create if absent |
+| `INJECT:` or `REPLACE:` | Append or replace. The game errors when the object does not exist. |
+| `TRY_INJECT:` or `TRY_REPLACE:` | The same, without the error when the object is absent. |
+| `INJECT_OR_CREATE:` or `REPLACE_OR_CREATE:` | The same, and the game creates the object when it is absent. |
 
 ```txt
 REPLACE:expensive_in_depth_education = {
@@ -124,62 +136,73 @@ REPLACE:expensive_in_depth_education = {
 }
 ```
 
-**Rule of thumb:** prefer additive new objects; use `INJECT:`/`REPLACE:` for surgical changes in
-keyword folders; reserve full-file overwrite for when you must change most of a file.
+**Rule of thumb.** Prefer additive new objects. Use `INJECT:` or `REPLACE:` for a surgical
+modification in a keyword directory. Reserve a full-file overwrite for a modification to most of a
+file.
 
-## Load order & naming
+## Load order and naming
 
-- Files load in **ASCII order**: `00_foo.txt` before `01_bar.txt`; files in a subfolder load after
-  files in the parent folder.
-- Prefix idioms: `00_` forces early (foundation); `zz_`/`98_`/`99_` forces late (so overrides win).
-- **GUI exception:** `type`/`template` clashes across mods resolve by **mod load order** (playlist
-  position), not filename.
-- Mod dir name: `lower_snake_case`. Do not leave scratch files (`temp_*`, `_tmp_*`, editor backups)
-  in the mod directory.
+- Files load in **ASCII order**: `00_foo.txt` before `01_bar.txt`. A file in a subdirectory loads
+  after the files in the parent directory.
+- Prefix idioms: `00_` forces an early load, and `zz_`, `98_`, or `99_` forces a late load, so an
+  override wins.
+- **GUI exception.** A `type` or `template` clash across mods resolves by **mod load order**, which
+  is the playlist position, and not by filename.
+- The mod directory name is `lower_snake_case`. Do not leave scratch files in the mod directory:
+  `temp_*`, `_tmp_*`, and editor backups.
 
-## validate_mod tool
+## The validate_mod tool
 
 Call `validate_mod` with `modDir = your_mods/<ModName>/`.
 
-- `PASS: <name> is valid` — the static syntax/convention check passed; this does not mean it ran in
-  the game.
-- `FAIL: <reason>` (one per line, English) — points at the offending file/field; use the `NEXT:`
-  line to locate it. Fix each ERROR; do not modify other mods.
-- The tool is a **syntax/convention linter**, not a semantic validator — it cannot catch a
-  misspelled effect/trigger/modifier or a wrong scope. Always say what was generated vs what was
-  actually checked.
+- `PASS: <name> is valid` means the static syntax and convention check passed. It does not mean the
+  mod ran in the game.
+- `FAIL: <reason>` gives one reason per line, in English, and points at the offending file or field.
+  Use the `NEXT:` line to locate it. Fix every ERROR, and do not modify another mod.
+- The tool is a **syntax and convention linter**, not a semantic validator. It cannot catch a
+  misspelled effect, trigger, or modifier, and it cannot catch a wrong scope. Use `how-to-speak` to
+  report the result to the player.
 
-## Common errors (validate_mod FAIL → fix)
+## Common errors
 
-- `FAIL: .metadata/metadata.json not found` → create it with the standard fields above.
-- `FAIL: metadata.json is not valid JSON` / `not an object` → fix the JSON.
-- `FAIL: metadata.version is not semver` → use `x.x` or `x.x.x`.
-- `FAIL: localization file is not UTF-8 with BOM` → save as UTF-8 **with BOM** (`EF BB BF`).
-- `FAIL: filename must end with _l_<language>` → rename to `…_l_<language>.yml`.
-- `FAIL: missing/incorrect l_<lang>: header` → first content line must be `l_<lang>:`.
-- `FAIL: key line not in 'key: "value"' form` → `  key: "value"` (double quotes, balanced).
-- `FAIL: unbalanced { } / unbalanced "` → fix the brace/quote balance.
-- `FAIL: INJECT:/REPLACE: must be in a top-level block` → move the keyword to the top level.
+The `FAIL` messages below are the common ones. The text after each one is the fix.
+
+- `FAIL: .metadata/metadata.json not found`: create the file with the standard fields above.
+- `FAIL: metadata.json is not valid JSON` or `not an object`: fix the JSON.
+- `FAIL: metadata.version is not semver`: use `x.x` or `x.x.x`.
+- `FAIL: localization file is not UTF-8 with BOM`: save the file as UTF-8 **with BOM** (`EF BB BF`).
+- `FAIL: filename must end with _l_<language>`: rename the file to `<name>_l_<language>.yml`.
+- `FAIL: missing/incorrect l_<lang>: header`: the first content line must be `l_<lang>:`.
+- `FAIL: key line not in 'key: "value"' form`: write `  key: "value"` with double quotes that are
+  balanced.
+- `FAIL: unbalanced { }` or `unbalanced "`: fix the brace or quote balance.
+- `FAIL: INJECT:/REPLACE: must be in a top-level block`: move the keyword to the top level.
 
 ## Semantic lookup path
 
-For "does X exist / what is vanilla's exact value?", follow the lookup hierarchy in
-[`docs/INDEX.md`](docs/INDEX.md) — the single authoritative map of which source to use:
+For the question "does X exist, and what is the vanilla value?", follow the lookup hierarchy in
+[`docs/INDEX.md`](docs/INDEX.md). It is the single authoritative map of which source to use.
 
-- exact effect/trigger/modifier names + scopes → `docs/script_docs/` + `docs/data_types/` (game dumps)
-- exact vanilla object definitions / field values / INJECT targets / loc keys → `game-scripts/`
-  (generated by `sync_game_scripts`) or the local gameDir
-- mechanics concepts → `docs/mod-wiki/`; authoring rules & why → `docs/eu5-modding-conventions.md`
+- Exact effect, trigger, and modifier names, and their scopes: `docs/script_docs/` and
+  `docs/data_types/`, the game dumps.
+- Exact vanilla object definitions, field values, INJECT targets, and loc keys: `game-scripts/game/`,
+  which `sync_game_scripts` generates, or the local game directory.
+- Mechanics concepts: `docs/mod-wiki/`. The modding conventions and the reason behind them:
+  `docs/eu5-modding-conventions.md`.
 
 ## Reference
 
-- Runnable sample (minimal, must pass `validate_mod`): `reference/example_mod/`.
-- **Real-world pattern references** (read-only, copy the pattern you need): `reference/README.md` maps each to what it demonstrates — `megalopolis_core_upgrade` (simplest tweak), `sync_market_ui_focus` (GUI-only), `character_traits_on_cards` (GUI + attribute columns + filters), `slave_redistribute` (scripted GUIs / context menu), `globalization_age` (full situation/event mechanic).
-- Knowledge-layer navigation (what to load when): `docs/INDEX.md`.
-- Game overview (mechanics): `docs/game.md`.
-- Authoring rules (single source of truth): `docs/eu5-modding-conventions.md`.
+- A runnable sample, which must pass `validate_mod`: `reference/example_mod/`.
+- **Real-world pattern references.** They are read-only, so copy the pattern you need.
+  `reference/README.md` maps each one to what it demonstrates. The five mods are
+  `megalopolis_core_upgrade` (the simplest tweak), `sync_market_ui_focus` (GUI only),
+  `character_traits_on_cards` (GUI, attribute columns, and filters), `slave_redistribute` (scripted
+  GUIs and a context menu), and `globalization_age` (a full situation and event mechanic).
+- Knowledge-layer navigation, and what to load when: `docs/INDEX.md`.
+- The game overview: `docs/game.md`.
+- The modding conventions, the single source of truth: `docs/eu5-modding-conventions.md`.
 
 ## Related skills
 
-- Paths not ready → `setup-workspace` (EU5 has no runtime to install).
-- Getting the artifact into the game (Paradox mod directory) → `mod-installer`.
+- The paths are not ready. Use `setup-workspace`. EU5 has no runtime to install.
+- Getting the mod into the game, which uses the Paradox mod directory. Use `mod-installer`.

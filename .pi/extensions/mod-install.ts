@@ -16,30 +16,37 @@ import { checkModInstallDir, readModRepoConfig, readState } from "../lib/game-pa
 import { readModIdentity } from "../lib/mod-identity";
 
 /**
- * install_mod — EU5 (pdx-script) 安装契约（mod-repo-guide §4.1）。
+ * install_mod - the EU5 (pdx-script) install contract (mod-repo-guide section 4.1).
  *
- * 把 your_mods/<id>/ 复制到 Paradox launcher 的 mod 目录
- * （.gamer-agent.local.json 的 modInstallDir，由 try_set_game_dir 写入；不自己探测）。
+ * It copies your_mods/<id>/ into the mod install directory, which is the modInstallDir value in
+ * .gamer-agent.local.json. try_set_game_dir writes that value, and this tool does not search for the
+ * directory itself.
  *
- * 同名冲突：目标目录被**别的 mod** 占用时**改名安装**到 `<id>_pimod`（再撞顺延 _pimod2…）——
- * **绝不覆盖别人的内容**，也不阻塞安装。
- * 「两个 mod 在游戏里身份相同」是 mod 冲突问题，不属安装职责：安装只复制文件，**不改副本里的
- * metadata.json 等 mod 内容**。
+ * A name clash: when another mod occupies the target directory, the tool installs under a new name,
+ * `<directory name>_pimod`. A further clash adds a number: `<directory name>_pimod2`, then
+ * `<directory name>_pimod3`. The tool never overwrites another mod's content, and it never blocks
+ * the install.
  *
- * 归属与幂等看**工作区侧记录** `your_mods/<mod名>/.pi-mod.json`（`{ name, installedDir }`）：
- *  · 记录里的 installedDir 存在 → 就地更新（重装幂等）；
- *  · 记录没有/指向的目录不存在 → 当作没装过，按「your_mods 目录名」推算目标；
- *  · 目标存在且不是记录里那个 → 视为别人占着 → 改名装 `<目录名>_pimod`，绝不覆盖。
- * **游戏目录里不再放我们的文件**（归属信息都在工作区）。
+ * Two mods with the same identity in the game is a mod conflict, and it is not the job of the
+ * installer. The installer copies files only, and it does not change mod content such as the
+ * metadata.json in the copy.
+ *
+ * Ownership and idempotency come from the workspace-side record
+ * `your_mods/<mod name>/.pi-mod.json`, which holds `{ name, installedDir }`:
+ *   - The installedDir in the record exists: update in place, so a re-install is idempotent.
+ *   - The tool finds no record, or the recorded directory is absent. It then treats the mod as not
+ *     installed, and derives the target from the your_mods directory name.
+ *   - The target exists and it is not the recorded one: another mod owns it. Install as
+ *     `<directory name>_pimod`, and never overwrite.
+ *
+ * The game directory holds no files of ours. All ownership information lives in the workspace.
  */
 
-/** 作者本地的东西，不装进游戏 */
-const EXCLUDED_DIRS = new Set([".git", "node_modules"]);
+/** Files local to the workspace. They do not go into the game. */
+const EXCLUDED_DIRS = new Set([".git", "node_modules", ".preview"]);
 const EXCLUDED_FILES = new Set([".DS_Store", ".pi-mod.json"]);
 
-/** 读 mod 身份：`.metadata/metadata.json` 的 id（游戏规则只要求非空字符串；`lower_snake_case` 是建议） */
-
-/** 这个目录是不是本 mod 上次装的 */
+/** The workspace-side install record for one mod. */
 export interface ModInstallRecord {
   name?: string;
   installedDir?: string;
@@ -48,11 +55,12 @@ export interface ModInstallRecord {
 const RECORD_FILE = ".pi-mod.json";
 
 /**
- * 安装记录（**工作区侧**）：`your_mods/<mod名>/.pi-mod.json`
- * `{ "name": <mod 身份>, "installedDir": <装到哪个目录名> }`
+ * The install record on the workspace side: `your_mods/<mod name>/.pi-mod.json`, which holds
+ * `{ "name": <mod identity>, "installedDir": <installed directory name> }`.
  *
- * 见 duckov 同名实现的说明：归属/幂等看这份记录，游戏目录里不再放我们的文件；
- * 记录指向的目录不存在时当作没装过（不做重建/对账）。
+ * Ownership and idempotency read this record, and the game directory holds no files of ours. When
+ * the recorded directory does not exist, treat the mod as not installed. The tool does not rebuild
+ * and does not reconcile.
  */
 export function readInstallRecord(modDir: string): ModInstallRecord | null {
   const recordPath = join(modDir, RECORD_FILE);
@@ -72,7 +80,7 @@ export function writeInstallRecord(modDir: string, name: string, installedDir: s
   renameSync(tmp, recordPath);
 }
 
-/** 扫**工作区** your_mods/ 下其它 mod 的记录：谁记着「我装到 <目录名> 了」。 */
+/** Scans the other mod records under the workspace your_mods/: which one says "I installed to <directory name>". */
 export function workspaceOccupantOf(yourModsRoot: string, dirName: string): string | null {
   for (const entry of existsSync(yourModsRoot) ? readdirSync(yourModsRoot, { withFileTypes: true }) : []) {
     if (!entry.isDirectory()) continue;
@@ -81,7 +89,7 @@ export function workspaceOccupantOf(yourModsRoot: string, dirName: string): stri
   return null;
 }
 
-/** 扫**工作区**里其它 mod 的记录：有没有另一个 mod 自报的身份与它相同。 */
+/** Scans the other mod records in the workspace: does another mod claim the same identity. */
 export function workspaceSameIdentityAs(
   yourModsRoot: string,
   selfDirName: string,
@@ -95,11 +103,16 @@ export function workspaceSameIdentityAs(
 }
 
 /**
- * 选落地目录。
- * - `modName`：候选目录名（用 your_mods 的目录名，单层、已校验）→ 决定装到哪
- * - `recordedDir`：本 mod **工作区记录**里的 installedDir（绝对路径，可能为 null）→ 判断"目标是不是我上次装的"
- * - `yourModsRoot`：扫其它 mod 的记录，用于回答"目标被我的哪个 mod 占着"
- * 命中记录 → 覆盖更新（不留两份）；被别的 mod 占了 → 顺延 `<名>_pimod`、`_pimod2`…
+ * Picks the directory to install into.
+ * - `modName`: the candidate directory name, from your_mods. It is one path segment, and it is
+ *   already checked. It decides the target.
+ * - `recordedDir`: the installedDir in this mod's workspace record, as an absolute path, or null. It
+ *   answers whether the target is this mod's previous install.
+ * - `yourModsRoot`: the root to scan for other mod records. It answers which mod of yours owns the
+ *   target.
+ *
+ * A recorded target is updated in place, so two copies never remain. When another mod owns the
+ * target, the tool adds a suffix: `<name>_pimod`, then `<name>_pimod2`.
  */
 export function pickInstallDir(
   modRoot: string,
@@ -113,7 +126,7 @@ export function pickInstallDir(
   reused: boolean;
 } {
   const primary = join(modRoot, modName);
-  // 归属看**工作区记录**（不再读游戏目录里的文件）
+  // Ownership reads the workspace record. It no longer reads a file in the game directory.
   const free = (dir: string) =>
     !existsSync(dir) || (recordedDir !== null && resolve(dir) === resolve(recordedDir));
   if (free(primary))
@@ -137,7 +150,7 @@ export function pickInstallDir(
   }
 }
 
-/** 复制 mod 文件（跳过作者本地文件） */
+/** Copies the mod files, and skips the files local to the workspace. */
 export function copyModFiles(from: string, to: string): number {
   let count = 0;
   const walk = (srcDir: string, destDir: string) => {
@@ -167,23 +180,23 @@ export default function (pi: ExtensionAPI) {
     name: "install_mod",
     label: "Install Mod",
     description:
-      "Copy a mod from your_mods/<id>/ into the Paradox launcher mod directory (modInstallDir from try_set_game_dir's .gamer-agent.local.json). Re-installing the same mod updates it in place. If the target directory is taken by another mod it installs as <id>_pimod instead of overwriting it. Does not validate or compile, and does not edit mod content.",
-    promptSnippet: "Install mod into the Paradox launcher mod directory",
+      "Copies a mod from your_mods/<id>/ into the mod install directory, which is the modInstallDir value in .gamer-agent.local.json. Re-installing the same mod updates it in place. When another mod occupies the target directory, the tool installs as <directory name>_pimod instead of overwriting it. The tool does not validate, does not compile, and does not edit mod content.",
+    promptSnippet: "Install mod into the mod install directory",
     promptGuidelines: [
       "Use install_mod after validate_mod passes, so the player can enable the mod in the launcher.",
-      "If install_mod reports the mod was installed as <id>_pimod, tell the player: the other mod in that directory was left untouched; this mod's files (including its metadata id) are unchanged.",
+      "If install_mod reports the mod as <directory name>_pimod, tell the player two facts. The other mod in that directory was left untouched. This mod's files, including its metadata id, are unchanged.",
     ],
     parameters: Type.Object({
       modDir: Type.String({
         minLength: 1,
         description:
-          "Mod directory, absolute or relative to the workspace root, e.g. your_mods/my_mod",
+          "Mod directory, absolute or relative to the workspace root, for example your_mods/my_mod",
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       if (!params.modDir?.trim())
         throw new Error(
-          "INVALID_MOD_DIR: Provide a mod directory, e.g. your_mods/my_mod.",
+          "INVALID_MOD_DIR: Provide a mod directory, for example your_mods/my_mod.",
         );
       const modDir = resolve(ctx.cwd, params.modDir);
       if (!statSync(modDir, { throwIfNoEntry: false })?.isDirectory()) {
@@ -192,8 +205,9 @@ export default function (pi: ExtensionAPI) {
         );
       }
 
-      // 目标目录来自 try_set_game_dir 的记录（install_mod 不自己探测）
-      // 状态读取走 lib（与 check_game_paths / try_set_game_dir 同一个读法，别自己 JSON.parse）
+      // The target comes from the record that try_set_game_dir writes. install_mod does not search.
+      // The state read goes through the lib, which check_game_paths and try_set_game_dir share. Do
+      // not parse the JSON here.
       const remembered = readState(ctx.cwd).modInstallDir;
       let modRoot: string | null =
         typeof remembered === "string" && remembered.trim() ? remembered.trim() : null;
@@ -202,20 +216,28 @@ export default function (pi: ExtensionAPI) {
           content: [
             {
               type: "text",
-              text: "FAIL: mod install directory unknown (no usable modInstallDir in .gamer-agent.local.json).\nNEXT: run try_set_game_dir (no arguments) first to locate the Paradox mod directory, then re-run install_mod.",
+              text: "FAIL: mod install directory unknown (no usable modInstallDir in .gamer-agent.local.json).\nNEXT: run try_set_game_dir with no arguments to locate the mod install directory, then run install_mod again.",
             },
           ],
           details: { ok: false, reason: "TARGET_NOT_FOUND" },
         };
       }
-      // 目标目录「不存在」是全新机器的正常状态（Paradox 启动器/游戏还没跑过）→ **不是错误**：继续往下走，
-      // 由下面的 mkdirSync(destDir, { recursive: true }) 连缺失的父级一起创建。
-      // 旧行为要求「必须已存在」：try_set_game_dir 报可安装 → install 因目标不存在失败 → 再 check 仍不创建 → 死循环（B18）。
-      // 仍然拒绝的只有两种：路径不是绝对路径 / 路径存在但不是目录（否则继续只会在 cp/rename 阶段抛出更难懂的错）。
-      // 目标路径的判据与 check_game_paths / try_set_game_dir 共用一份（lib/game-paths）：
-      // EU5 的 mod 目录在 Paradox 启动器目录、与游戏安装位置无关 → 形状校验（绝对路径、不是文件、
-      // 以 mod-repo.json 声明的相对路径结尾）。目录不存在仍是正常状态（安装时创建）。
-      // 形状校验需要 mod-repo.json；读不到就降级（只做绝对路径/非文件校验），不让安装因此失败。
+      // A missing target directory is the normal state on a new machine, because the Paradox
+      // launcher and the game have not run yet. It is not an error, so continue. The mkdirSync call
+      // below creates the target together with any missing parent.
+      // The old behavior demanded an existing target. try_set_game_dir reported the install as
+      // possible, install_mod then failed on the missing target, and a later check still created
+      // nothing, which looped forever.
+      // The tool still rejects two cases: a path that is not absolute, and a path that exists but is
+      // not a directory. To continue would only raise a less clear error later, in cpSync or
+      // renameSync.
+      // The target check is shared with check_game_paths and try_set_game_dir, in lib/game-paths.
+      // The mod directory is in the Paradox launcher directory, which is independent of the game
+      // location. The check is therefore a shape check: an absolute path, not a file, and the
+      // relative path that mod-repo.json declares at the end. A missing directory is still the
+      // normal state, and the install creates it.
+      // The shape check needs mod-repo.json. When the file is unreadable, degrade to the absolute
+      // path check and the not-a-file check, and do not fail the install.
       let cfgForPaths;
       try {
         cfgForPaths = readModRepoConfig(ctx.cwd);
@@ -247,14 +269,19 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      // 安装目录名 = your_mods 下的**目录名**（不是 metadata 里的 id）：
-      // · basename 一定是单层名字 → 构造上不可能越界（旧版用 metadata 的 id 拼路径，id 带 ../ 就能写到安装根之外）
-      // · 目录名在 create_mod_folder 时已按规则校验过（小写蛇形、长度、保留名）
-      // · 玩家在启动器里看到的与工作区里的目录名一致，便于对号入座
+      // The install directory name is the directory name under your_mods, and not the id from the
+      // metadata:
+      //   - basename always gives one path segment, so the path cannot escape the install root. The
+      //     old version built the path from the metadata id, and an id with "../" could write
+      //     outside the install root.
+      //   - create_mod_folder already checked the directory name against the rules: lowercase
+      //     snake_case, the length limit, and the reserved names.
+      //   - The player sees the same directory name in the launcher as in the workspace.
       const modName = basename(modDir);
 
-      // 上次替换在「旧版本挪开、新版本换入」之间崩溃 → 目标缺失但旁边留着 .previous-*
-      // （与 pi-desktop 的 L01 同类教训：绝不能把这种残局当垃圾删掉，先恢复）
+      // The previous replace crashed between moving the old version aside and moving the new one in.
+      // The target is then missing, and a .previous-* directory sits beside it. Do not delete that
+      // state as junk. Restore it first.
       if (existsSync(modRoot))
         for (const entry of readdirSync(modRoot)) {
           if (entry.startsWith(`${modName}.previous-`) && !existsSync(join(modRoot, modName))) {
@@ -275,10 +302,14 @@ export default function (pi: ExtensionAPI) {
         yourModsRoot,
       );
 
-      // 同一个 mod（marker 里的身份相同）曾以别的目录名装过 → 只提示，不删它
-      // 只在「身份 ≠ 目录名」时才需要扫：两者相同时，上次安装用的目录名必然就是本次的目标目录名，
-      // 重装/冲突都由 pickInstallDir 在目标目录上解决 → 不可能出现"同一个 mod 装在两个目录名"。
-      // （这样常见路径上没有 O(n) 扫描，而"身份≠目录名"的类型仍能拿到那条提示。）
+      // The same mod, with the same identity in the record, was installed under another directory
+      // name before. Report that, and do not delete it.
+      // The scan is necessary only when the identity differs from the directory name. When they are
+      // equal, the directory name of the previous install is necessarily this target.
+      // pickInstallDir then resolves the re-install or the clash on that target. One mod in two
+      // directories is therefore impossible.
+      // The common path therefore has no O(n) scan, and a mod whose identity differs from its
+      // directory name still receives that report.
       const duplicateDir =
         identity.name !== modName ? workspaceSameIdentityAs(yourModsRoot, modName, identity.name) : null;
 
@@ -289,12 +320,14 @@ export default function (pi: ExtensionAPI) {
       let files = 0;
       try {
         files = copyModFiles(modDir, staging);
-        // 这里**不再**往安装副本写任何我们的文件（2026-09-26 起）：归属改由工作区侧记录
-        // `your_mods/<mod名>/.pi-mod.json`（`{ name, installedDir }`）负责；游戏目录里只留游戏自己的东西。
-                // 不再往安装副本写我们的文件：归属由工作区侧记录负责
+        // The tool no longer writes any file of ours into the installed copy. Ownership moved to the
+        // workspace-side record `your_mods/<mod name>/.pi-mod.json`. The game directory holds the
+        // game's own files only.
 
-        // 事务化替换：旧版本先 rename 到旁边（**不删**）→ 换入新版本 → 成功后才删旧的；
-        // 换入失败就把旧版本挪回来。旧版是「先 rmSync 再 rename」，中间失败会让新旧两份都丢。
+        // A transactional replace. Rename the old version aside, and do not delete it. Move the new
+        // version in, and delete the old one only after that succeeds. When the move fails, move the
+        // old version back. The old version called rmSync first and renameSync second, and a failure
+        // between them lost both copies.
         const hadPrevious = existsSync(installDir);
         if (hadPrevious) renameSync(installDir, previous);
         try {
@@ -304,9 +337,10 @@ export default function (pi: ExtensionAPI) {
           throw error;
         }
         if (hadPrevious) rmSync(previous, { recursive: true, force: true });
-      // 装成功后才写记录（记录不参与“装没装”的判定）
+      // Write the record only after a successful install. The record does not take part in the
+      // "is it installed" decision.
       writeInstallRecord(modDir, identity.name, basename(installDir));
-      // 历史遗留：清掉安装副本里的旧标记
+      // Delete the old marker from the installed copy, for compatibility with earlier versions.
       rmSync(join(installDir, ".pi-mod.json"), { force: true });
       } catch (error) {
         rmSync(staging, { recursive: true, force: true });
@@ -325,23 +359,23 @@ export default function (pi: ExtensionAPI) {
       const notes: string[] = [];
       if (targetWasMissing) {
         notes.push(
-          `\nNOTE: the mod directory ${modRoot} did not exist and was created (normal on a first install - the Paradox launcher had not created it yet). If the player expected mods somewhere else (e.g. they moved their Documents folder), tell them where this mod actually landed: ${installDir}.`,
+          `\nNOTE: the mod install directory ${modRoot} did not exist and was created. That is normal on a first install, because the Paradox launcher had not created it yet. If the player expected mods somewhere else, for example after moving their Documents directory, tell them where this mod actually landed: ${installDir}.`,
         );
       }
       if (mismatched) {
         notes.push(
-          `\nNOTE: the installed folder is named ${modName} (the your_mods directory name), while the mod declares id ${identity.name} - that difference is fine: the launcher matches mods by the declared id, not by the folder name.`,
+          `\nNOTE: the installed directory is named ${modName}, which is the your_mods directory name, while the mod declares id ${identity.name}. That difference is fine, because the launcher matches mods by the declared id and not by the directory name.`,
         );
       }
       if (duplicateDir) {
         notes.push(
-          `\nNOTE: the same mod (id ${identity.name}) is also installed as ${duplicateDir}; this tool did not touch it - tell the player which one to enable, and remove the other manually if it is stale.`,
+          `\nNOTE: the same mod (id ${identity.name}) is also installed as ${duplicateDir}. This tool did not touch that copy. Tell the player which one to enable, and delete the other manually if it is stale.`,
         );
       }
       const extraNotes = notes.join("");
       const note = renamed
-        ? `\nNOTE: ${identity.name} was already taken by ${occupiedBy ? `another mod (${occupiedBy})` : "content this tool did not install"}, ` +
-          `so it went to ${basename(installDir)} instead; that directory was left untouched and the mod's own files (including its metadata id) were not modified.` +
+        ? `\nNOTE: ${modName} was already in use, by ${occupiedBy ? `another mod (${occupiedBy})` : "content this tool did not install"}. ` +
+          `The tool installed as ${basename(installDir)} instead. That directory was left untouched, and the mod's own files, including its metadata id, were not modified.` +
           `\nNEXT: tell the player it installs as ${basename(installDir)}, then let them enable it in the launcher.`
         : `\nNEXT: ask the player to enable the mod in the Paradox launcher (and restart the game if it was running).`;
       const noteWithExtras = `${extraNotes}${note}`;

@@ -6,16 +6,22 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, resolve, sep, basename } from "node:path";
 
 /**
- * validate_mod — EU5 mod 校验工具（pdx-script 类型）。
- * 移植自 eu5-starry-night-project 的 lint_mod.py，只查语法/约定硬规则：
- *   - metadata.json：存在 / 合法 JSON / 顶层对象 / version semver / 标准字段 / picture
- *   - localization YAML：UTF-8 BOM / 编码 / 文件名 _l_<lang> / l_<lang>: 头 / key 行格式 /
- *     值双引号 / 引号平衡 / 重复 key / mojibake 提示
- *   - PDXScript/GUI（in_game/、main_menu/ 下 .txt/.gui/.gfx/.asset）：
- *     非 UTF-8 / {} 平衡 / "" 平衡（# 注释与跨行字符串感知）/ INJECT:REPLACE: 族关键字只在顶层块
+ * validate_mod - the EU5 mod validation tool for the pdx-script mod type.
+ * It was ported from lint_mod.py in eu5-starry-night-project, and it checks syntax and convention
+ * rules only:
+ *   - metadata.json: presence, valid JSON, a top-level object, a semver version, the standard
+ *     fields, and the picture entry.
+ *   - Localization YAML: the UTF-8 BOM, the encoding, the `_l_<lang>` filename, the `l_<lang>:`
+ *     header, the key line format, the double-quoted value, the quote balance, duplicate keys, and
+ *     a mojibake warning.
+ *   - PDXScript and GUI files: the .txt, .gui, .gfx, and .asset files under in_game/ and main_menu/.
+ *     The tool checks the UTF-8 encoding, the `{` and `}` balance, and the `"` balance, with
+ *     awareness of `#` comments and multiline strings. It also checks that the INJECT: and REPLACE:
+ *     family starts only at a top-level block.
  *
- * 契约见 docs/mod-repo-guide.md §3.1 + game-mod-guide/eu5.md §6；只读、零第三方依赖、
- * content 输出 PASS/FAIL + NEXT（ASCII/英文），details 只放 ok/errors/warnings。
+ * The contract is in docs/mod-repo-guide.md section 3.1 and game-mod-guide/eu5.md section 6. The tool
+ * is read-only, and it has no third-party dependency. Its content output uses PASS or FAIL with NEXT,
+ * in ASCII English, and its details hold only ok, errors, and warnings.
  */
 
 const UTF8_BOM = Buffer.from([0xef, 0xbb, 0xbf]);
@@ -48,7 +54,7 @@ function toPosix(p: string): string {
   return p.split(sep).join("/");
 }
 
-/** 递归列出 modDir 下所有文件（跳过 .git），返回 { absPath, relPosix }。 */
+/** Lists every file under modDir, and skips .git. Returns { absPath, relPosix }. */
 function walkFiles(root: string): Array<{ abs: string; rel: string }> {
   const out: Array<{ abs: string; rel: string }> = [];
   const walk = (dir: string): void => {
@@ -88,7 +94,7 @@ function expectedLanguageFromPath(rel: string): string | null {
 
 function decodeUtf8(raw: Buffer): { text: string | null; err?: string } {
   try {
-    // 严格 UTF-8 解码（BOM 已单独处理）
+    // Strict UTF-8 decoding. The BOM is handled separately.
     const text = new TextDecoder("utf-8", { fatal: true }).decode(raw);
     return { text };
   } catch {
@@ -110,12 +116,13 @@ function simpChineseMojibakeHint(text: string): boolean {
 }
 
 /**
- * 校验 localization 值的引号结构：以 `"` 开头，找到第一个非转义的闭合 `"`，
- * 闭合后只能剩空白或 `#` 注释。`\"` 转义引号不计入配对；裸引号（如 `"a"b"c"`）
- * 会因闭合后仍有残留被判结构错误。
+ * Checks the quote structure of a localization value. The value starts with `"`, and the tool looks
+ * for the first closing `"` that is not escaped. Only whitespace or a `#` comment may follow the
+ * closing quote. An escaped quote does not count as the pair, and a bare quote such as `"a"b"c"`
+ * fails the check, because text remains after the closing quote.
  */
 function localizationValueQuoteOk(rest: string): boolean {
-  let i = 1; // 跳过开头 "（调用方已保证 rest 以 " 开头）
+  let i = 1; // Skip the opening quote. The caller guarantees that rest starts with one.
   while (i < rest.length) {
     if (rest[i] !== '"') {
       i += 1;
@@ -124,14 +131,14 @@ function localizationValueQuoteOk(rest: string): boolean {
     let backslashes = 0;
     for (let j = i - 1; j >= 0 && rest[j] === "\\"; j -= 1) backslashes += 1;
     if (backslashes % 2 === 1) {
-      i += 1; // 被转义的引号，继续
+      i += 1; // An escaped quote, so continue.
       continue;
     }
-    // 找到闭合引号：之后只能剩空白或注释
+    // The closing quote is at i. Only whitespace or a comment may follow it.
     const tail = rest.slice(i + 1).trim();
     return tail === "" || tail.startsWith("#");
   }
-  return false; // 未找到闭合引号（未闭合）
+  return false; // No closing quote was found, so the string is unterminated.
 }
 
 // ---- localization YAML ----
@@ -186,7 +193,7 @@ function checkLocalization(modRoot: string): Finding[] {
         severity: "warn",
         rel,
         message:
-          "possible simplified-Chinese mojibake (euro sign / rare ext ideographs); verify in-game",
+          "possible simplified-Chinese mojibake (euro sign or rare extended ideographs). Check it in the game.",
       });
     }
 
@@ -198,7 +205,7 @@ function checkLocalization(modRoot: string): Finding[] {
         findings.push({
           severity: "error",
           rel,
-          message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization folder`,
+          message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization directory`,
         });
       }
     } else if (!/_l_[a-z_]+$/.test(stem)) {
@@ -233,13 +240,13 @@ function checkLocalization(modRoot: string): Finding[] {
             findings.push({
               severity: "error",
               rel,
-              message: `line ${lineNo}: header 'l_${lang}:' does not match folder language '${expectedLang}'`,
+              message: `line ${lineNo}: header 'l_${lang}:' does not match the language of the directory '${expectedLang}'`,
             });
           }
           continue;
         }
       }
-      if (headerMatch) continue; // 后续语言头行允许
+      if (headerMatch) continue; // A later language header line is allowed here.
       const m = LOC_KEY_RE.exec(line);
       if (!m) {
         findings.push({
@@ -332,9 +339,12 @@ function checkMetadata(modRoot: string): Finding[] {
     return findings;
   }
   const obj = data as Record<string, unknown>;
-  // id：只按**游戏规则**检查 —— EU5 wiki 的 metadata 说明里 id 是「Id of the mod for recognition」，
-  // 只要求提供；没有"必须小写蛇形"或"必须等于目录名"的硬要求（官方例子 `testmod`、社区模版 `[modname].dev`
-  // 含点即证）。本仓库曾经的"等于目录名/lower_snake_case"是我们自己的约定，已从校验器移除，只作为 SKILL 建议。
+  // Check the id against the game rule only. The EU5 wiki metadata page says that the id is the
+  // "Id of the mod for recognition", and it only requires the field. There is no hard rule for
+  // lowercase snake_case, and no hard rule that it equals the directory name. The official example
+  // `testmod` and the community template `[modname].dev` both contain a dot, which proves it.
+  // "It equals the directory name, in lower_snake_case" was this repository's own convention. The
+  // linter no longer enforces it, and the SKILL suggests it only.
   if (!isValidModId(obj.id)) {
     findings.push({ severity: "error", rel, message: "metadata.id must be a non-empty string" });
   }
@@ -362,7 +372,7 @@ function checkMetadata(modRoot: string): Finding[] {
     findings.push({
       severity: "warn",
       rel,
-      message: "missing 'picture' entry (expects e.g. \"thumbnail.png\")",
+      message: "missing 'picture' entry (the value is for example \"thumbnail.png\")",
     });
   } else if (typeof picture === "string") {
     const candidates = [
@@ -404,9 +414,9 @@ function checkMetadata(modRoot: string): Finding[] {
   return findings;
 }
 
-// ---- PDXScript / GUI 括号与引号平衡 + INJECT/REPLACE 顶层块 ----
+// ---- PDXScript and GUI brace and quote balance, and the INJECT: and REPLACE: top-level block ----
 
-/** 去掉引号字符串外的 '#' 行注释（保留换行以便行号对应；字符串可跨行）。 */
+/** Deletes a `#` line comment that is outside a quoted string. It keeps the line breaks, so line numbers still match. A string can span lines. */
 function stripLineComments(text: string): string {
   const outLines: string[] = [];
   let inString = false;
@@ -417,7 +427,7 @@ function stripLineComments(text: string): string {
         buf += ch;
         if (ch === '"') inString = false;
       } else if (ch === "#") {
-        break; // 行注释，本行剩余忽略
+        break; // A line comment. Ignore the rest of this line.
       } else {
         buf += ch;
         if (ch === '"') inString = true;
@@ -476,9 +486,11 @@ function checkBraceQuoteBalance(cleaned: string): BalanceResult {
 }
 
 /**
- * INJECT:/REPLACE: 族关键字只能出现在顶层块，且格式为 `KEYWORD:key = {`。
- * comment/string-aware 的 depth 扫描；depth>0 处出现关键字 → **warn**（可能是合法的“容器目录条目级”
- * override，如 genes/accessory_genes；vanilla 也这么写），顶层关键字后不是 `key = {` → error。
+ * A keyword of the INJECT: or REPLACE: family must sit directly before a *database entry*, in the
+ * form `KEYWORD:key = {`. The tool scans depth with awareness of comments and strings. A keyword
+ * nested below the entry level is a WARN (container folders legitimately nest entries one level in -
+ * e.g. `genes/accessory_genes` - and vanilla itself does so), and a keyword not followed by `key = {`
+ * is an ERROR.
  */
 function checkOverrideKeywords(cleaned: string): Finding[] {
   const findings: Finding[] = [];
@@ -514,7 +526,7 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
       i += 1;
       continue;
     }
-    // 完整匹配 `[KEYWORD:]key = {`（顶层对象定义，有/无覆盖关键字都算）。
+    // Full match of `[KEYWORD:]key = {`, which is a top-level object definition with or without an override keyword.
     const m = TOPLEVEL_KEY_RE.exec(cleaned.slice(i, i + 400));
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
@@ -529,11 +541,11 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
           message: `line ${line}: '${m.groups.kw}' override keyword is nested (depth ${depth}); it must sit directly before a *database entry* - that is the file's top level in most common/ folders, but in container folders (e.g. genes/accessory_genes) the entry is one level in, and vanilla does that too. Confirm before treating as an error.`,
         });
       }
-      // 跳过整个 `[KEYWORD:]key = {` 到 '{'，让下一轮对 '{' 计数。
+      // Skip the whole `[KEYWORD:]key = {` up to the `{`, so the next round counts that brace.
       i += m[0].length - 1;
       continue;
     }
-    // 只匹配到裸关键字（如 `REPLACE:` 后不是 `key = {`）→ 格式错。
+    // The match reached a bare keyword only, so `REPLACE:` is not followed by `key = {`. That is a format error.
     const kw = OVERRIDE_KEYWORD_RE.exec(cleaned.slice(i, i + 40));
     if (kw && kw.index === 0) {
       findings.push({
@@ -554,7 +566,7 @@ function checkPdxScript(modRoot: string): Finding[] {
     if (dot < 0 || !PDX_SUFFIXES.has(rel.slice(dot).toLowerCase())) continue;
     if (isLocalizationYml(rel)) continue;
     const rl = "/" + rel.toLowerCase();
-    if (!CONTENT_ROOT_MARKERS.some((m) => rl.includes(m))) continue; // README/thumbnail/tools 等非游戏脚本
+    if (!CONTENT_ROOT_MARKERS.some((m) => rl.includes(m))) continue; // A non-game script such as README, thumbnail, or tools.
     let raw: Buffer;
     try {
       raw = readFileSync(abs);
@@ -590,20 +602,21 @@ export default function (pi: ExtensionAPI) {
     name: "validate_mod",
     label: "Validate Mod",
     description:
-      "Validate a PDX-script EU5 mod (under your_mods/): metadata.json fields, localization YAML (UTF-8 BOM/header/filename/keys), and PDXScript/GUI brace+quote balance and INJECT/REPLACE top-level rules. Syntax/convention only; not a scope/type semantic validator.",
+      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks the rule that INJECT: and REPLACE: stay at the top level. It checks syntax and conventions only, and it is not a scope or type validator.",
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
-      "Use validate_mod after writing a mod to check it passes the spec.",
-      "Fix all validate_mod ERRORs before declaring a mod done; WARNs are advisory.",
+      "Use validate_mod after you write a mod, to check that it passes the rules.",
+      "Fix every validate_mod ERROR before you call a mod done. WARNs are advisory.",
     ],
     parameters: Type.Object({
       modDir: Type.String({
-        description: "Path to the mod directory (e.g. your_mods/<ModName>)",
+        description: "Path to the mod directory, for example your_mods/<ModName>",
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      // 相对路径按 workspace（ctx.cwd）解析：agent 传的是 your_mods/<name>，
-      // 不能依赖进程自身 cwd —— 与 install_mod / sync_game_scripts 的做法一致。
+      // Resolve a relative path against the workspace, which is ctx.cwd. The agent passes
+      // your_mods/<name>, and the process cwd is not reliable. install_mod and sync_game_scripts
+      // do the same.
       const modDir = params.modDir ? resolve(ctx.cwd, params.modDir) : "";
       if (
         !params.modDir ||
@@ -611,7 +624,7 @@ export default function (pi: ExtensionAPI) {
         !statSync(modDir, { throwIfNoEntry: false })?.isDirectory()
       ) {
         throw new Error(
-          `INVALID_MOD_DIR: ${params.modDir ?? "(empty)"} is not a directory`,
+          `INVALID_MOD_DIR: ${params.modDir ?? "(not given)"} is not a directory`,
         );
       }
 

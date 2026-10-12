@@ -1,77 +1,86 @@
 ---
 name: setup-workspace
-description: EU5 (pdx-script) 的环境与路径准备：定位游戏安装目录、Paradox mod 安装目录与 Steam 创意工坊内容目录，并把 vanilla 脚本镜像进 game-scripts/ 作为写 mod 的上下文。当路径未知/记错、需要验证玩家给的路径、或准备在全新机器上开始做 mod 时读取。EU5 无运行时、无编译。
+description: Prepare the EU5 (pdx-script) environment and the paths. Locate the game directory, the mod install directory, and the Steam Workshop directory. Mirror the vanilla `game/` scripts and the `workshop/` scripts into `game-scripts/` as the modding context. Read it when a path is unknown or wrong, when the player gives a path to check, or on a new machine. EU5 has no runtime and no compilation.
 ---
 
-# Environment & paths (EU5)
+# Environment and paths (EU5)
 
-Get the facts straight and record them: where the game is, what the three paths are, and that the
-vanilla context is ready. **This step only produces facts** — it does not produce a mod. Loading the
-skill does not grant write permission; consulting can just explain the method.
+Get the facts straight, then record them: where the game is, what the three paths are, and whether
+the modding context is ready.
+**This step produces facts only.** It does not produce a mod.
+Loading this skill does not grant write permission. In a consulting session you can explain the
+method without recording anything.
 
-EU5 mods are **pure PDXScript text** — no compilation, no runtime SDK, **no runtime to install**.
-The game is **Windows-only**.
+EU5 mods are **pure PDXScript text**. There is no compilation, no runtime SDK, and **no runtime to
+install**. The game is **Windows-only**.
 
-## What's in the state file (this repo's convention)
+## What is in `.gamer-agent.local.json`
 
 `.gamer-agent.local.json` (**under this workspace directory**) is the single source of truth for path
-state, read/written by the tools in `.pi/extensions/`. Fields:
+state. The tools in `.pi/extensions/` read and write it. Fields:
 
 | Key | Meaning | Source | Used by |
 |---|---|---|---|
-| `gameDir` | game install directory (`steamapps/common/Europa Universalis V`) | player-given, or discovered by `try_set_game_dir` | `sync_game_scripts` mirrors vanilla scripts from it; `install_mod` derives the install target |
-| `workshopDir` | Steam Workshop content directory (`steamapps/workshop/content/3450310`) | **derived from `gameDir`** (no separate setter) | **read-only reference**: read existing workshop mods; **not involved in installing** |
-| `modInstallDir` | Paradox launcher mod directory (`<userDocuments>/Paradox Interactive/Europa Universalis V/mod`) | **computed from `mod-repo.json`'s `modInstall.path`** (independent of `gameDir`) | `install_mod` copies the mod here |
+| `gameDir` | The game directory (`steamapps/common/Europa Universalis V`) | The player, or `try_set_game_dir` when it locates the game | `sync_game_scripts` mirrors the vanilla scripts from it. `install_mod` derives the install target from it. |
+| `workshopDir` | The Steam Workshop directory (`steamapps/workshop/content/3450310`) | **Derived from `gameDir`**. There is no separate setter. | **Read-only reference.** Read the existing Workshop mods. It is **not involved in installing**. |
+| `modInstallDir` | The Paradox launcher mod directory (`<userDocuments>/Paradox Interactive/Europa Universalis V/mod`) | **Computed from `mod-repo.json`'s `modInstall.path`**, independent of `gameDir` | `install_mod` copies the mod there. |
 
-**The two derived paths do not need separate setters**: get `gameDir` right (`try_set_game_dir` or
-`set_game_dir`), and `workshopDir` + `modInstallDir` are computed and recorded along with it.
+**The two derived paths need no separate setter.** Record `gameDir` correctly with `try_set_game_dir`
+or `set_game_dir`, and the tool computes and records `workshopDir` and `modInstallDir` with it.
 
-**Required vs optional**: `gameDir` and `modInstallDir` are required — a wrong one of either = `FAIL`.
-`workshopDir` is only a read-only reference and **never produces FAIL** (at most `WARN`).
-This repo sets `workshop.supported = true` in `mod-repo.json`.
+**Required compared with optional.** The tools require `gameDir` and `modInstallDir`. A wrong one
+gives `FAIL`. `workshopDir` is a read-only reference and **never produces `FAIL`**, at most `WARN`.
+This repository sets `workshop.supported = true` in `mod-repo.json`.
 
 ## Completion standard
 
-**All three paths must be accounted for before you are done**: `gameDir` and `modInstallDir` must be
-usable; `workshopDir` is either usable or you say explicitly "no Workshop directory found" (it is
-read-only and does not affect installing). `workshopDir` is derived from `gameDir` and `modInstallDir`
-is computed from the Paradox directory — getting `gameDir` right records them together. **Do not stop
-after setting just `gameDir`.**
+**Account for all three paths before you stop.** `gameDir` and `modInstallDir` must be usable.
+`workshopDir` is either usable, or you say explicitly "no Workshop directory found". It does not
+affect installing, and the tools only read it. `try_set_game_dir` derives `workshopDir` from
+`gameDir` and computes `modInstallDir` from the Paradox directory, so a correct `gameDir` records
+all three.
+**Do not stop after recording `gameDir` alone.**
 
-## Tool split (do not mix them up; one shared implementation in `.pi/lib/game-paths.ts`)
+## Tool split
+
+Do not mix these tools up. They share one implementation in `.pi/lib/game-paths.ts`.
 
 | Tool | What it does | Side effects |
 |---|---|---|
-| `try_set_game_dir` | **Ensure the game directory is ready** (no args, idempotent): if ready, just reports; if missing/stale, locates the game and records the game directory plus the derived mod install and Workshop directories | writes path state (only when it actually recorded) |
-| `set_game_dir` | **Record a concrete game install directory** (player-given, or one you found): validates first, then records | writes path state |
-| `check_game_paths` | **Verify only** (read-only): check given or remembered paths — does not record | none |
-| `check_runtime` | **Report runtime prerequisites only**: EU5 has none, so it always passes; it does **not** locate the game or touch paths | none |
-| `sync_game_scripts` | **Mirror the vanilla scripts into `game-scripts/`** (the context you need before writing mods) | writes `game-scripts/` |
+| `try_set_game_dir` | **Ensure the game directory is ready.** No arguments, and idempotent. If the state is ready, it reports only. If the state is missing or stale, it locates the game and records the game directory and the two derived directories. | Writes path state, but only when it records. |
+| `set_game_dir` | **Record one concrete game directory**, either from the player or one you found. It checks the path first, then records it. | Writes path state. |
+| `check_game_paths` | **Check only.** Read-only. It checks the paths you give or the remembered ones, and it records nothing. | None. |
+| `check_runtime` | **Report the runtime prerequisites only.** EU5 has none, so it always passes. It does **not** locate the game, and it does not touch the paths. | None. |
+| `sync_game_scripts` | **Mirror the vanilla and Workshop scripts into `game-scripts/`.** This is the context you need before you write mods. | Writes `game-scripts/`. |
 
 ## How to use
 
-- **You need the game location and the environment is unknown/changed**: paths → `try_set_game_dir`
-  (no args, ensures ready); runtime → `check_runtime` (EU5: none). Do not re-check every turn once a
-  valid result exists.
-- **Cannot find the game directory**: `try_set_game_dir` looks for it — it reads the Windows registry
-  and each Steam library's `libraryfolders.vdf` → `steamapps/common/Europa Universalis V` (validated
-  by `binaries/eu5.exe`). **If it fails, keep going yourself — do not stop at the failure**:
-  ① turn the player's vague hints ("it's on D:", "in Steam", "the one I downloaded") into candidate
-  directories and verify each read-only with `check_game_paths`; record the winner with `set_game_dir`;
-  ② only if none of that works, ask the player — first say what you already tried (which libraries you
-  searched, which candidates you verified), and give a copyable entry point (Steam → Library →
-  right-click the game → Manage → Browse local files, or have them paste the path).
-  **Do not**: guess paths, create directories yourself.
-- **Player gave a path**: use `set_game_dir` (validate first, then record).
-- **Before writing any mod you must** `sync_game_scripts` to mirror the vanilla scripts into
-  `game-scripts/` (PDXScript has no self-describing API; without this context you cannot write
-  correct PDXScript — this is **required**, not "look it up when needed"). For exact
-  effect/trigger/modifier names and scopes use `docs/script_docs/` + `docs/data_types/` (semantic
-  dumps) — do not confuse those with `game-scripts/`.
-- **Failures**: follow the NEXT line the tool gives; when the same failure repeats, resolve the
-  precondition instead of retrying indefinitely.
+- **You need the game location and the state is unknown or stale.** For the paths, run
+  `try_set_game_dir` with no arguments. For the runtime, run `check_runtime`, which reports that EU5
+  has none. Do not re-check on every turn once you have a valid result.
+- **You cannot find the game directory.** `try_set_game_dir` looks for it. It reads the Windows
+  registry and each Steam library's `libraryfolders.vdf`, then checks
+  `steamapps/common/Europa Universalis V` against `binaries/eu5.exe`.
+  **If it fails, continue yourself. Do not stop at the failure.**
+  1. Turn the player's vague hints ("it is on D:", "in Steam", "the one I downloaded") into candidate
+     directories. Check each one read-only with `check_game_paths`. Record the winner with
+     `set_game_dir`.
+  2. Ask the player only if step 1 fails. Use `how-to-speak` for the wording. Give a copyable entry
+     point: Steam, Library, right-click the game, Manage, Browse local files. You can also ask the
+     player to paste the path.
+  **Do not** guess a path. **Do not** create a directory yourself.
+- **The player gave a path.** Use `set_game_dir`. It checks the path first, then records it.
+- **Before you write any mod, you must run `sync_game_scripts`** to mirror the game and Workshop
+  scripts into `game-scripts/`. PDXScript has no self-describing API, so you cannot write correct
+  PDXScript without this context. This step is **required**, and it is not a "find it when needed"
+  step.
+  For exact effect, trigger, and modifier names and their scopes, use `docs/script_docs/` and
+  `docs/data_types/`, the semantic dumps. Do not confuse those with `game-scripts/`.
+- **Failures.** Follow the `NEXT` line the tool gives. When the same failure repeats, resolve the
+  precondition instead of retrying.
 
 ## Related skills
 
-- Authoring/modifying the mod itself (structure, metadata, localization, INJECT/REPLACE) → `mod-creator`.
-- Getting the artifact into the game → `mod-installer`.
+- Writing or modifying the mod itself: the structure, metadata, localization, and `INJECT` or
+  `REPLACE`. Use `mod-creator`.
+- Getting the mod into the game. Use `mod-installer`.

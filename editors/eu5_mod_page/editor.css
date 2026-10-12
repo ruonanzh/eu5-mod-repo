@@ -1,0 +1,167 @@
+/* EU5 mod page editor. Follows the host theme through body[data-theme]. */
+:root {
+  --bg: #ffffff;
+  --fg: #1c1c1e;
+  --muted: #6b6b70;
+  --border: #d8d8dc;
+  --panel: #f6f6f8;
+  --accent: #2f6fed;
+  --mark-comment: #fff3bf;
+  --mark-delete: #ffd6d6;
+  --mark-replace: #d6e8ff;
+}
+body[data-theme="dark"] {
+  --bg: #1b1b1d;
+  --fg: #e8e8ea;
+  --muted: #9a9aa0;
+  --border: #34343a;
+  --panel: #232327;
+  --accent: #6ea0ff;
+  --mark-comment: #4a4220;
+  --mark-delete: #4a2626;
+  --mark-replace: #23364f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+#bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  flex: 0 0 auto;
+}
+
+.spacer {
+  flex: 1;
+}
+
+#state,
+#count {
+  color: var(--muted);
+}
+
+button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 24px 32px 96px;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.page :is(h1, h2, h3) {
+  line-height: 1.25;
+}
+
+.page :is(img, svg) {
+  max-width: 100%;
+  height: auto;
+}
+
+.page table {
+  border-collapse: collapse;
+}
+
+.page :is(th, td) {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+}
+
+.page mark[data-mark] {
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+.page mark[data-kind="comment"] {
+  background: var(--mark-comment);
+}
+
+.page mark[data-kind="delete"] {
+  background: var(--mark-delete);
+  text-decoration: line-through;
+}
+
+.page mark[data-kind="replace"] {
+  background: var(--mark-replace);
+}
+
+#toolbar {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
+}
+
+#prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
+}
+
+#prompt input {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  min-width: 320px;
+}
+
+[hidden] {
+  display: none !important;
+}

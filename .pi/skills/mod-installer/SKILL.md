@@ -1,29 +1,43 @@
 ---
 name: mod-installer
-description: 把 EU5 的 mod 装进游戏的 Paradox mod 目录（`install_mod`）：安装目录名 = `your_mods/` 目录名（须等于 `metadata.id`）、重装原地更新、被别的 mod 占用时改装 `<目录名>_pimod`、事务化替换，以及装完要让玩家看到/启用它。当玩家要「装进游戏 / 在启动器里看到它 / 更新已装 mod」时读取。
+description: Install an EU5 mod into the Paradox mod directory with the `install_mod` tool. Covers the install directory name, in-place updates on a re-install, the `<directory name>_pimod` fallback for an occupied target, and the transactional replace. Also covers the steps that make the mod visible and enabled. Read it when the player wants the mod in the game, visible in the launcher, or updated.
 ---
 
-# 装进游戏（EU5）
+# Install a mod into the game (EU5)
 
-`install_mod` 把 mod 复制到 **Paradox mod 目录**（`<userDocuments>/Paradox Interactive/Europa Universalis V/mod`）。
-目标来自 `try_set_game_dir` 记录的状态文件，**它自己不探测**；路径没记录时先跑 `try_set_game_dir`（无参）再装。
-目录不存在**不是错误**（全新机器的正常状态，工具会创建）。
+`install_mod` copies a mod into the **Paradox mod directory**
+(`<userDocuments>/Paradox Interactive/Europa Universalis V/mod`).
+The target comes from the `.gamer-agent.local.json` file that `try_set_game_dir` recorded. The tool
+does not locate the game itself. If no path is recorded, run `try_set_game_dir` with no arguments
+first.
+A missing target directory is not an error. It is the normal state on a new machine, and the tool
+creates it.
 
-## 规则
+## Rules
 
-- **装进去的目录名 = `your_mods/` 下的目录名**（本 repo 约定它与 `metadata.id` 一致）—— 这样名字始终是单层路径段，
-  构造上不可能写到游戏目录之外；玩家在**启动器**里看到的目录名与工作区里的一致，便于对号入座。
-- **重装 = 原地更新**：靠**工作区侧记录** `your_mods/<mod名>/.pi-mod.json`（`{ name, installedDir }`）识别「这是我上次装的」。
-- **目标目录属于别的 mod**：不覆盖别人，改装成 `<目录名>_pimod`，只加标记，**不修改**该副本的 `metadata.json`。
-  这时候要**告诉玩家**它实际装成了哪个目录名（游戏内标题 `name` 与 `id` 不变）。
-- **替换是事务性的**：旧的那份先挪到旁边（不删），新的换入成功后才删；换入失败则旧版本仍在。
+- **The installed directory name equals the `your_mods/` directory name.** This repository suggests
+  that the name matches `metadata.id`. The name is therefore always a single path segment, so the
+  tool cannot write outside the game directory. The player sees the same directory name in the
+  launcher as in the workspace.
+- **A re-install updates in place.** The tool identifies its own previous install through the
+  workspace-side record `your_mods/<mod name>/.pi-mod.json`, which holds `name` and `installedDir`.
+- **Another mod owns the target directory.** The tool does not overwrite it. It installs as
+  `<directory name>_pimod` and adds a marker. It does not modify that copy's `metadata.json`. Tell
+  the player the directory name that the tool used. The in-game title `name` and the `id` stay the
+  same.
+- **The replace is transactional.** The tool moves the old copy aside instead of deleting it, and it
+  deletes that copy only after the new copy lands. If the new copy fails, the old version is still
+  there.
 
-## 装完之后
+## After the install
 
-- `install_mod` 成功 ≠ 游戏里已加载/已启用：如实区分「已复制到 mod 目录」「启动器里能看到」「游戏内生效」三种状态。
-- 需要玩家在**启动器的播放集（playlist）**里启用它 —— 按 `docs/INDEX.md` / `docs/game.md` 的说明告诉玩家下一步。
+An `install_mod` success does not mean the game loaded or enabled the mod. Report the three states
+separately: copied into the mod directory, visible in the launcher, and active in the game.
+The player must enable the mod in the launcher **playlist**. Follow the instructions in
+`docs/INDEX.md` and `docs/game.md` for the next step that you give the player.
 
-## 相关技能
+## Related skills
 
-- 路径没准备 → 先看 `setup-workspace`（`try_set_game_dir` 确保就绪 / `check_game_paths` 只验）。
-- 产物本身（metadata.json、localization、PDXScript）→ `mod-creator`。
+- The paths are not ready. Use `setup-workspace`. `try_set_game_dir` ensures the paths, and
+  `check_game_paths` checks them without recording.
+- The mod content itself: `metadata.json`, localization, and PDXScript. Use `mod-creator`.

@@ -1,15 +1,22 @@
 /**
- * check_game_paths —— **只验**：校验游戏 / Workshop / mod 安装目录（只读、幂等、不扫描、不写状态）。
+ * check_game_paths - check only. It checks the game directory, the Workshop directory, and the mod
+ * install directory. Read-only, idempotent, no scan, and no write.
  *
- * 与其它工具的分工（别混用）：
- *   · check_game_paths   只验给定或已记住的路径            ← 本工具（无副作用；helper 只读会话可用）
- *   · （无人值守的发现/派生是内部实现，不注册为工具：见 lib 的 setPathWithFallback）
- *   · try_set_game_dir   **确保游戏目录已就绪**（无参、幂等）：自己找并记录，连带派生两条
- *   · set_game_dir       **记录一个具体的游戏安装目录**（玩家给的或自己找到的）
- *   · install_mod        安装（复用同一份判据；目标不存在则创建）
+ * The split from the other tools (do not mix them up):
+ *   - check_game_paths   checks the given or remembered paths. This tool. It has no side effects,
+ *                        so a read-only helper session can use it.
+ *   - try_set_game_dir   ensures the game directory is ready. No arguments, and idempotent. It
+ *                        locates the game and records it, together with the two derived paths.
+ *   - set_game_dir       records one concrete game directory, from the player or from you.
+ *   - install_mod        installs a mod, and creates the target directory when it is missing. It
+ *                        shares the same check functions.
  *
- * 注意：EU5 的 mod 安装目录在 Paradox 启动器目录（`~/Documents/Paradox Interactive/…`），
- * 与游戏安装位置无关 → 它的判据是**形状校验**，不是"兄弟目录哨兵"。
+ * The unattended search and the derivation are internal. They are not registered as a tool. See
+ * setPathWithFallback in the lib.
+ *
+ * Note: the mod install directory is in the Paradox launcher directory
+ * (`~/Documents/Paradox Interactive/Europa Universalis V/mod`), which is independent of the game
+ * location. Its check is therefore a shape check, and not a sibling-directory sentinel.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
@@ -30,17 +37,17 @@ export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "check_game_paths",
     description:
-      "Verify game-related directories (game install, Steam Workshop content, mod install target). Read-only: it never writes .gamer-agent.local.json, never scans Steam, never creates directories. Pass any subset of gameDir/workshopDir/modInstallDir to verify just those; omit them all to verify the paths currently remembered in .gamer-agent.local.json. Use it when the player tells you a path (to find out whether it is right) or to re-check remembered paths; use try_set_game_dir when the location is unknown and needs finding.",
-    promptSnippet: "Verify game/mod paths without scanning or writing",
+      "Check three directories: the game directory, the Steam Workshop directory, and the mod install directory. This tool is read-only. It never writes .gamer-agent.local.json, never scans Steam, and never creates a directory. Pass any of gameDir, workshopDir, or modInstallDir to check those paths. Omit all three to check the paths in .gamer-agent.local.json. Use it when the player gives you a path, or to check a remembered path. Use try_set_game_dir when the location is unknown.",
+    promptSnippet: "Check game and mod paths without scanning or writing",
     promptGuidelines: [
-      "Use check_game_paths when the player gives you a path, or to confirm a remembered one: it verifies without scanning Steam and without writing state.",
-      "check_game_paths never writes .gamer-agent.local.json - verifying and recording are separate tools.",
-      "A failed check_game_paths changes nothing (read-only): follow its NEXT line to fix it (e.g. run try_set_game_dir to record the paths); it never creates or installs anything itself.",
+      "Use check_game_paths when the player gives you a path, or to check a remembered path. It checks a path without scanning Steam and without writing state.",
+      "check_game_paths never writes .gamer-agent.local.json. Checking and recording are separate tools.",
+      "A failed check_game_paths changes nothing, because the tool is read-only. Follow its NEXT line to fix the problem. It never creates and never installs anything.",
     ],
     parameters: Type.Object({
-      gameDir: Type.Optional(Type.String({ description: "Game install directory to verify; relative paths use the workspace root." })),
-      workshopDir: Type.Optional(Type.String({ description: "Steam Workshop content directory to verify (optional)." })),
-      modInstallDir: Type.Optional(Type.String({ description: "Mod install target directory to verify (optional)." })),
+      gameDir: Type.Optional(Type.String({ description: "Game directory to check. Relative paths use the workspace root." })),
+      workshopDir: Type.Optional(Type.String({ description: "Steam Workshop directory to check (optional)." })),
+      modInstallDir: Type.Optional(Type.String({ description: "Mod install directory to check (optional)." })),
     }),
     async execute(_id, params, _signal, _onUpdate, ctx) {
       const cwd = ctx.cwd;
@@ -54,14 +61,18 @@ export default function (pi: ExtensionAPI) {
       const remembered = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v : null);
       const asPath = (v: string | undefined): string | null => (v?.trim() ? resolveUserPath(cwd, v) : null);
 
-      // 契约：**传谁验谁**；一个都不传 = 验缓存里记住的那几条。
+      // The contract: check what you pass. With no arguments, check the paths recorded in
+      // .gamer-agent.local.json.
       //
-      // U29：哪些路径「必填」、要不要关心创意工坊，由 mod-repo.json 决定：
-      //   · 契约声明了 modInstall（non-null）→ modInstallDir 必填；modInstall: null 的类型不要求
-      //   · workshop.supported === false → **完全不看** workshopDir（不检查、不出现在结果里、不参与判定）
-      //   · workshopDir 无论对错都**不产 ERROR**：它只是只读参考，最多 WARN
+      // Which paths are required, and whether the Workshop matters, comes from mod-repo.json:
+      //   - The contract declares modInstall as non-null: modInstallDir is required. A type with
+      //     modInstall: null does not require it.
+      //   - workshop.supported === false: the tool ignores workshopDir completely. It does not
+      //     check it, does not report it, and does not use it in the verdict.
+      //   - workshopDir never produces ERROR, right or wrong. It is a read-only reference, so at
+      //     most it produces WARN.
       const requiresModInstall = cfg.modInstall !== null && cfg.modInstall !== undefined;
-      const workshop = workshopSupported(cfg); // true | false | null（未声明 = 未知）
+      const workshop = workshopSupported(cfg); // true | false | null (undeclared means unknown)
       const requiredKeys: string[] = ["gameDir", ...(requiresModInstall ? ["modInstallDir"] : [])];
 
       const allTargets: Array<[string, string | null]> = explicit
@@ -80,13 +91,14 @@ export default function (pi: ExtensionAPI) {
       const targets = allTargets.filter(([key]) => !(key === "workshopDir" && workshop === false));
 
       if (targets.every(([, path]) => path === null)) {
-        // 只因为「这个游戏没有创意工坊」而无事可做 → 说清楚，不要报「没有路径可验」（那会误导）
+        // Nothing to do only because this game has no Workshop. Say that clearly, and do not
+        // report a missing path, which misleads.
         if (workshopIgnored && requiredKeys.length === 0) {
           return {
             content: [
               {
                 type: "text",
-                text: "PASS: nothing to verify - this game type declares no Steam Workshop (mod-repo.json: workshop.supported = false), so workshopDir was ignored.\nNEXT: pass gameDir/modInstallDir to verify them.",
+                text: "PASS: nothing to check - this game type declares no Steam Workshop (mod-repo.json: workshop.supported = false), so workshopDir was ignored.\nNEXT: pass gameDir or modInstallDir to check them.",
               },
             ],
             details: { ok: true, checked: {}, failed: [], warnings: [], ignored: ["workshopDir"], wroteState: false },
@@ -97,7 +109,7 @@ export default function (pi: ExtensionAPI) {
             content: [
               {
                 type: "text",
-                text: `FAIL: nothing to check - no paths were given and none are remembered in this workspace's state file (${statePath(cwd)}).\nNEXT: run try_set_game_dir with no arguments to discover the game, or pass gameDir explicitly. See the 'setup-workspace' skill if discovery fails.`,
+                text: `FAIL: nothing to check - no paths were given and none are recorded in ${statePath(cwd)}.\nNEXT: run try_set_game_dir with no arguments to locate the game, or pass gameDir explicitly. See the 'setup-workspace' skill if the search fails.`,
               },
             ],
             details: { ok: false, reason: "NOTHING_TO_CHECK" },
@@ -118,10 +130,10 @@ export default function (pi: ExtensionAPI) {
       const warnings: string[] = [];
       for (const [key, v] of Object.entries(verdicts)) {
         if (v.ok) {
-          lines.push(`PASS: ${key} ${v.path} (verified)`);
+          lines.push(`PASS: ${key} ${v.path} (correct)`);
           continue;
         }
-        // U29：workshopDir 是附加信息，永不产 ERROR
+        // workshopDir is extra information, and it never produces ERROR.
         if (key === "workshopDir") {
           lines.push(`WARN: workshopDir ${v.path ?? "(not given)"} - ${v.reason}`);
           if (v.next) lines.push(`  NEXT: ${v.next}`);
@@ -133,22 +145,24 @@ export default function (pi: ExtensionAPI) {
         failed.push(key);
       }
 
-      // 必填路径缺失：只在「验缓存」这条路上报（显式传参时遵循「传谁验谁」）
+      // A required path is missing. Report it only on the remembered-paths route. With explicit
+      // arguments, the tool checks what you pass.
       if (!explicit) {
         for (const key of requiredKeys) {
           if (verdicts[key] || failed.includes(key)) continue;
           lines.push(`FAIL: ${key} (not recorded) - this path is required for this game type.`);
           lines.push(
             key === "gameDir"
-              ? "  NEXT: run try_set_game_dir with no arguments to discover the game and record it. See the 'setup-workspace' skill for how to find it if discovery fails."
+              ? "  NEXT: run try_set_game_dir with no arguments to locate the game and record it. See the 'setup-workspace' skill for the search steps if it fails."
               : "  NEXT: run try_set_game_dir (no arguments) - the mod install target is derived from the game directory.",
           );
           failed.push(key);
         }
-        // 契约声明有创意工坊、但还没记录 workshopDir → 只 WARN，且仅在必填项全对时才提
+        // The contract declares a Workshop, and workshopDir is not recorded yet. Report WARN, and
+        // only when every required path passed.
         if (workshop === true && failed.length === 0 && !remembered(state.workshopDir)) {
           lines.push(
-            "WARN: workshopDir (not recorded) - this game has a Workshop; recording it lets you read existing Workshop content for reference.",
+            "WARN: workshopDir (not recorded) - this game has a Workshop. Recording it lets you read existing Workshop content for reference.",
           );
           lines.push("  NEXT: run try_set_game_dir (no arguments) - the Workshop directory is derived together with the game directory.");
           warnings.push("workshopDir");
@@ -158,7 +172,7 @@ export default function (pi: ExtensionAPI) {
       const ok = failed.length === 0;
       if (!ok) {
         lines.push(
-          `NOTE: nothing was changed (this tool is read-only). State lives only in this workspace's ${statePath(cwd)}; to record the paths, run try_set_game_dir (no arguments); only ask the player if discovery fails.`,
+          `NOTE: the tool changed nothing, because it is read-only. State lives only in this workspace's ${statePath(cwd)}. To record the paths, run try_set_game_dir with no arguments, and ask the player only if the search fails.`,
         );
       }
 

@@ -18,6 +18,7 @@ const state = document.getElementById("state");
 const count = document.getElementById("count");
 const saveButton = document.getElementById("save");
 const removeButton = document.getElementById("remove");
+const reloadButton = document.getElementById("reload");
 const page = document.getElementById("page");
 const scroll = document.getElementById("scroll");
 const toolbar = document.getElementById("toolbar");
@@ -31,6 +32,8 @@ let writable = false;
 let comments = [];
 let baseline = {};
 let pending = null;
+let pendingReload = null;
+let savedSinceLoad = false;
 let selectedId = null;
 let lastRange = null;
 let seq = 0;
@@ -59,6 +62,14 @@ function settle(requestId, value) {
 function say(text) {
   state.textContent = text;
 }
+
+/** 重新从磁盘读一次；旧的未发出批注作废（按约定：刷新就是弃旧）。 */
+function reloadFromDisk(reason) {
+  pendingReload = reason;
+  post({ type: "editor:readFile", requestId: `r${++seq}` });
+}
+
+reloadButton.addEventListener("click", () => reloadFromDisk("manual"));
 
 /* ---------- 读文件与写文件 ---------- */
 
@@ -432,6 +443,7 @@ saveButton.addEventListener("click", async () => {
     revision = result.revision;
     source = next;
     baseline = readControls();
+    savedSinceLoad = true;
     say("已写入页面。正在通知 agent…");
     // 让面板替玩家把 /page-annotated 发进会话（产品的编辑器桥动作 `editor:sendPrompt`）。
     // pi 会把这条模板展开成提示词，agent 于是知道要去读批注块。
@@ -466,6 +478,9 @@ window.addEventListener("message", (event) => {
     return;
   }
   if (data.type === "editor:fileContent") {
+    const reload = pendingReload;
+    pendingReload = null;
+    const dropped = comments.length > 0 && !savedSinceLoad;
     revision = data.revision ?? null;
     source = typeof data.data === "string" ? data.data : "";
     const block = readBlock(source);
@@ -473,8 +488,19 @@ window.addEventListener("message", (event) => {
     renderPage(source);
     applyControls(block.controls);
     baseline = readControls();
+    savedSinceLoad = false;
     paintComments();
-    say(comments.length ? "上一轮的批注已显示。" : "选中文字后可以标批注。");
+    if (reload) {
+      const head = reload === "changed" ? "页面已被重写" : "已重新载入";
+      say(dropped ? `${head}：未发出的批注已作废。` : `${head}：已是最新版。`);
+    } else {
+      say(comments.length ? "上一轮的批注已显示。" : "选中文字后可以标批注。");
+    }
+    return;
+  }
+  if (data.type === "editor:fileChanged") {
+    // 打开的文件被改过（agent 重写了页面）。直接重读，旧批注作废。
+    reloadFromDisk("changed");
     return;
   }
   if (data.type === "editor:saved" || data.type === "editor:sent" || data.type === "editor:error") {

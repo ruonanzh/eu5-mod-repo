@@ -82,7 +82,8 @@ button {
   cursor: pointer;
 }
 
-/* 次要按钮（取消、移除这条批注）：满色橘 + 深字，在任何底色上都看得见。 */
+/* 次要按钮（刷新、取消、移除这条批注）：满色橘 + 深字，在任何底色上都看得见。 */
+#reload,
 #remove,
 #promptCancel {
   background: var(--accent);
@@ -91,6 +92,7 @@ button {
   font-weight: 700;
 }
 
+#reload:hover,
 #remove:hover,
 #promptCancel:hover {
   filter: brightness(1.08);

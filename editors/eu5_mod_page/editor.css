@@ -185,6 +185,21 @@ button:disabled {
   font-weight: 700;
 }
 
+/* 页面里的“写下来”区域给足地方：多行框满宽，单行文本框给一个最小宽度。
+   页面自己的 <style> 仍可覆盖（它注入得晚、优先级更高）。 */
+.page textarea {
+  width: 100%;
+  min-height: 4.5em;
+  resize: vertical;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.page input[type="text"],
+.page input:not([type]) {
+  min-width: 28ch;
+}
+
 #toolbar {
   position: absolute;
   z-index: 10;

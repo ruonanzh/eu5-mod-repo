@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EU5 mod page</title>
+    <link rel="stylesheet" href="editor.css" />
+  </head>
+  <body data-theme="dark">
+    <header id="bar">
+      <span id="state" role="status">Loading the page…</span>
+      <span class="spacer"></span>
+      <span id="count"></span>
+      <button id="remove" type="button" hidden>Remove mark</button>
+      <button id="save" type="button" disabled>Save marks</button>
+    </header>
+
+    <main id="scroll">
+      <article id="page" class="page"></article>
+    </main>
+
+    <div id="toolbar" hidden>
+      <button type="button" data-kind="comment">Comment</button>
+      <button type="button" data-kind="delete">Delete</button>
+      <button type="button" data-kind="replace">Replace</button>
+    </div>
+
+    <form id="prompt" hidden>
+      <label id="promptLabel" for="promptText">Note</label>
+      <input id="promptText" type="text" autocomplete="off" />
+      <button type="submit">Add mark</button>
+      <button type="button" id="promptCancel">Cancel</button>
+    </form>
+
+    <script src="editor.js"></script>
+  </body>
+</html>

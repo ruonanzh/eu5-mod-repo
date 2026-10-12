@@ -139,33 +139,71 @@ function sameControls(left, right) {
 
 /* ---------- 批注 ---------- */
 
-function findRange(quote) {
+/** 把 #page 里所有文本节点拼起来，用于按引文定位。 */
+function textIndex() {
   const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let text = "";
   let node = walker.nextNode();
   while (node) {
-    const at = node.nodeValue.indexOf(quote);
-    if (at !== -1) {
-      const range = document.createRange();
-      range.setStart(node, at);
-      range.setEnd(node, at + quote.length);
-      return range;
-    }
+    nodes.push({ node, from: text.length });
+    text += node.nodeValue;
     node = walker.nextNode();
   }
-  return null;
+  return { nodes, text };
 }
 
-function wrapRange(range, comment) {
-  const element = document.createElement("mark");
-  element.dataset.comment = comment.id;
-  element.dataset.kind = comment.kind;
-  element.title = comment.text || comment.kind;
-  try {
-    range.surroundContents(element);
-  } catch {
-    element.append(range.extractContents());
-    range.insertNode(element);
+/** 引文的起始全局偏移；第 occurrence 次出现（从 0 数）。 */
+function findQuoteStart(quote, occurrence) {
+  const { text } = textIndex();
+  let at = -1;
+  let seen = 0;
+  for (;;) {
+    at = text.indexOf(quote, at + 1);
+    if (at === -1) return null;
+    if (seen === occurrence) return at;
+    seen += 1;
   }
+}
+
+/** 把一段全局区间拆成每个文本节点里的一段（跨节点选中也能高亮，且不动原标签）。 */
+function segmentsFor(start, length) {
+  const { nodes } = textIndex();
+  const end = start + length;
+  const out = [];
+  for (const { node, from } of nodes) {
+    const nodeEnd = from + node.nodeValue.length;
+    if (nodeEnd <= start || from >= end) continue;
+    out.push({ node, start: Math.max(0, start - from), end: Math.min(node.nodeValue.length, end - from) });
+  }
+  return out;
+}
+
+/** 给一条批注打高亮：逐段包 <mark>，每段都在单个文本节点里，所以不会撕开外层标签。 */
+function wrapQuote(quote, comment, occurrence) {
+  if (!quote) return false;
+  const start = findQuoteStart(quote, occurrence ?? 0);
+  if (start === null) return false;
+  segmentsFor(start, quote.length).forEach(({ node, start: from, end: to }) => {
+    const range = document.createRange();
+    range.setStart(node, from);
+    range.setEnd(node, to);
+    const element = document.createElement("mark");
+    element.dataset.comment = comment.id;
+    element.dataset.kind = comment.kind;
+    element.title = comment.text || comment.kind;
+    range.surroundContents(element);
+  });
+  return true;
+}
+
+/** 整段文字的全局偏移（用于记录“第几次出现”）。 */
+function globalOffset(node, offset) {
+  const { nodes, text } = textIndex();
+  for (const entry of nodes) {
+    if (entry.node === node) return entry.from + offset;
+  }
+  return Math.min(offset, text.length);
 }
 
 function paintComments() {
@@ -175,10 +213,7 @@ function paintComments() {
     parent.removeChild(element);
     parent.normalize();
   });
-  comments.forEach((comment) => {
-    const range = findRange(comment.quote);
-    if (range) wrapRange(range, comment);
-  });
+  comments.forEach((comment) => wrapQuote(comment.quote, comment, comment.occurrence ?? 0));
   updateBar();
 }
 
@@ -189,8 +224,30 @@ function updateBar() {
   removeButton.hidden = selectedId === null;
 }
 
-function addComment(kind, quote, text) {
-  comments.push({ id: `c${Date.now().toString(36)}${comments.length}`, kind, quote, text: text || "" });
+/** 这次选中的是引文在正文里的第几次出现（同样文字在不同行时，高亮不会跑到别的行）。 */
+function occurrenceFor(range) {
+  const quote = range.toString();
+  if (!quote) return 0;
+  if (typeof range.startContainer.nodeValue !== "string") return 0;
+  const start = globalOffset(range.startContainer, range.startOffset);
+  const { text } = textIndex();
+  let seen = 0;
+  let at = text.indexOf(quote);
+  while (at !== -1 && at < start) {
+    seen += 1;
+    at = text.indexOf(quote, at + 1);
+  }
+  return seen;
+}
+
+function addComment(kind, quote, text, occurrence) {
+  comments.push({
+    id: `c${Date.now().toString(36)}${comments.length}`,
+    kind,
+    quote,
+    text: text || "",
+    ...(occurrence ? { occurrence } : {}),
+  });
   paintComments();
   say("已添加。点『保存批注』发给 agent。");
 }
@@ -202,7 +259,7 @@ document.getElementById("promptCancel").addEventListener("click", () => {
 
 function commitPrompt() {
   if (!pending) return;
-  addComment(pending.kind, pending.quote, promptText.value.trim());
+  addComment(pending.kind, pending.quote, promptText.value.trim(), pending.occurrence);
   pending = null;
   promptForm.hidden = true;
   lastRange = null;
@@ -260,7 +317,7 @@ function showToolbar() {
 function askForText(kind) {
   // 点按钮会先清掉选区，所以这里用选词时记下的那个 range。
   if (!lastRange) return;
-  pending = { kind, quote: lastRange.toString() };
+  pending = { kind, quote: lastRange.toString(), occurrence: occurrenceFor(lastRange) };
   if (!pending.quote) return;
   promptLabel.textContent = kind === "replace" ? "替换为" : "批注内容";
   promptText.value = "";
@@ -281,7 +338,7 @@ toolbar.addEventListener("click", (event) => {
     if (!lastRange) return;
     const quote = lastRange.toString();
     if (!quote) return;
-    addComment("delete", quote, "");
+    addComment("delete", quote, "", occurrenceFor(lastRange));
     lastRange = null;
     window.getSelection()?.removeAllRanges();
     hideToolbar();

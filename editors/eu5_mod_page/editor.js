@@ -230,11 +230,18 @@ function paintComments() {
 }
 
 function updateBar() {
-  const dirty = comments.length > 0 || !sameControls(readControls(), baseline);
   count.textContent = comments.length === 0 ? "" : `${comments.length} 条批注`;
-  saveButton.disabled = !dirty || !writable;
+  // 只在文件不能写时才置灰：没内容时也要能点，点了才说得清为什么没东西可发。
+  saveButton.disabled = !writable;
   removeButton.hidden = selectedId === null;
 }
+
+const SAVE_ERROR_TEXT = {
+  READ_ONLY: "这个文件在 mod 之外，不能写入。",
+  WRITE_DENIED: "只能写 your_mods/ 里的文件。",
+  CONFLICT: "页面已被改动（可能是 agent 刚重写过）。关掉再打开这一页，重新标。",
+  TOO_LARGE: "页面文件太大，写不下。",
+};
 
 /** 这次选中的是引文在正文里的第几次出现（同样文字在不同行时，高亮不会跑到别的行）。 */
 function occurrenceFor(range) {
@@ -401,19 +408,29 @@ removeButton.addEventListener("click", () => {
 /* ---------- 保存 ---------- */
 
 saveButton.addEventListener("click", async () => {
+  if (!writable) {
+    say("这个文件在 mod 之外，不能写入。");
+    return;
+  }
+  const controls = readControls();
+  if (comments.length === 0 && sameControls(controls, baseline)) {
+    say("没有可发送的内容：先加批注，或改一下页面上的选项。");
+    return;
+  }
   saveButton.disabled = true;
-  say("正在保存…");
-  const next = withBlock(source, comments, readControls());
+  say("正在发送…");
+  const next = withBlock(source, comments, controls);
   const result = await request("editor:save", { data: next, baseRevision: revision });
   if (result?.type === "editor:saved") {
     revision = result.revision;
     source = next;
+    baseline = readControls();
     say("已发送。回对话里说一句，agent 就会读到。");
   } else {
     const code = result?.code ?? "SAVE_FAILED";
-    say(code === "READ_ONLY" ? "这个文件不能写，批注只留在这里。" : `保存失败：${code}`);
+    say(SAVE_ERROR_TEXT[code] ?? `发送失败：${code}`);
   }
-  updateBar();
+  saveButton.disabled = !writable;
 });
 
 /* ---------- 宿主桥 ---------- */

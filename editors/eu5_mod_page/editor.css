@@ -5,15 +5,15 @@
   --muted: #6b6b70;
   --border: #d8d8dc;
   --panel: #f6f6f8;
-  --accent: #2f6fed;
-  /* 工具栏／顶部栏／弹框的底色：刻意与页面内容区分开 */
-  --chrome: #e8edf6;
-  --chrome-border: #aeb9cc;
+  --accent: #ff8a00;
+  /* 工具栏／顶部栏／弹框：鲜艳的橘色系，与页面内容明显区分 */
+  --chrome: #fff4e5;
+  --chrome-border: #ffb547;
   --field: #ffffff;
-  --field-border: #7f8ea8;
-  --mark-comment: #fff3bf;
-  --mark-delete: #ffd6d6;
-  --mark-replace: #d6e8ff;
+  --field-border: #ffb547;
+  --mark-comment: #ffe08a;
+  --mark-delete: #ffb3b3;
+  --mark-replace: #a5d8ff;
 }
 body[data-theme="dark"] {
   --bg: #1b1b1d;
@@ -21,14 +21,14 @@ body[data-theme="dark"] {
   --muted: #9a9aa0;
   --border: #34343a;
   --panel: #232327;
-  --accent: #6ea0ff;
-  --chrome: #2b3140;
-  --chrome-border: #4c5670;
-  --field: #151a24;
-  --field-border: #6b7b99;
-  --mark-comment: #4a4220;
-  --mark-delete: #4a2626;
-  --mark-replace: #23364f;
+  --accent: #ffa733;
+  --chrome: #3a2a18;
+  --chrome-border: #ff9f45;
+  --field: #241807;
+  --field-border: #ff9f45;
+  --mark-comment: #6b4f12;
+  --mark-delete: #5e2a2a;
+  --mark-replace: #22405f;
 }
 
 * {
@@ -133,6 +133,41 @@ button:disabled {
 
 .page mark[data-kind="replace"] {
   background: var(--mark-replace);
+}
+
+#toolbar button[data-kind="comment"] {
+  background: #ffb547;
+  border-color: #d98b00;
+  color: #201400;
+  font-weight: 600;
+}
+
+#toolbar button[data-kind="delete"] {
+  background: #ff8a8a;
+  border-color: #d64545;
+  color: #2a0000;
+  font-weight: 600;
+}
+
+#toolbar button[data-kind="replace"] {
+  background: #7cc4ff;
+  border-color: #2f8fd6;
+  color: #001a2a;
+  font-weight: 600;
+}
+
+#save:not(:disabled) {
+  background: var(--accent);
+  border-color: transparent;
+  color: #1a1000;
+  font-weight: 600;
+}
+
+#promptAdd {
+  background: var(--accent);
+  border-color: transparent;
+  color: #1a1000;
+  font-weight: 600;
 }
 
 #toolbar {

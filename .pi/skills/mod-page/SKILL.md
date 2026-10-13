@@ -75,12 +75,19 @@ Put the values in `:root`, and use the tokens everywhere. Do not write a color t
 
 ### Type
 
-1. Use a serif stack for headings, and a sans stack for body text and controls.
-2. Use `"Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, Georgia, serif` for a heading.
-3. Use `system-ui, "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif` for body text and
-   controls.
+The game's own interface fonts are `Cormorant Garamond`, `Noto Serif Display`, and `Noto Sans SC`. All
+three carry the SIL Open Font License.
+
+1. Use this heading stack for a heading, and for a number that stands alone:
+   `"Cormorant Garamond", "Noto Serif Display", "Noto Serif", "Noto Sans SC", "Microsoft YaHei UI",
+   system-ui, serif`.
+2. The first three families draw Latin letters. The last two draw Chinese, so a Chinese heading never
+   falls to `SimSun`.
+3. Use this body stack for body text, controls, and a table:
+   `"Noto Sans SC", "Source Sans 3", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif`.
 4. Use `font-variant-numeric: tabular-nums` on a column of numbers.
-5. Do not link a font file. A Chinese font file is large, and the page must stay one file.
+5. Do not link a font file. A Chinese font file is large, and the page must stay one file. A page may
+   embed the Latin part of one of these three fonts, with its license text.
 
 ### Shape
 

@@ -26,24 +26,30 @@ and its bound directory gate those actions.
      framework. Run `sync_game_scripts` to load the modding context into `game-scripts/`. Then grep
      that directory carefully to pin down the real vanilla values and their connections: which
      goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
-     names alone.
+     names alone. Two hard ordering rules:
+     1. For a player-worded feature request, grep vanilla first, within calls 2 to 4:
+        `grep -rln <keyword> game-scripts/`, to confirm "does vanilla already have it?".
+     2. Read in this fixed order: `docs/eu5-modding-conventions.md` (the single source of truth),
+        then locate 1 or 2 reference mods of the same kind, then write.
   2. **Agree with the player before you write.** Give a short description of the mod content: what it
      modifies, its scope, and the shape of the mod. Then wait for the player's confirmation. Do this
      **even when the request looks specific**. Skip it only when the player explicitly says to start,
      for example "start now, no confirmation".
   3. **Then write.** Produce or modify a mod under `your_mods/<ModName>/`. Reuse
      `reference/example_mod/`. You may write only inside the bound mod directory. With no binding,
-     call `create_mod_folder` with a `lower_snake_case` name. Do not create a second binding when
-     one already exists.
+     call `create_mod_folder` with a `lower_snake_case` name, with **no hyphens**
+     (`fix-trade-companies` ❌ → `fix_trade_companies` ✓). Do not create a second binding when one
+     already exists.
   4. **Then check the UI side.** A mod here is mostly PDXScript code, but an in-game check often
      fails without the UI part. Before you finish, ask: does this modification need an icon, a UI
      label (localization), a menu entry, a column, a filter, or a panel? Add what is missing. Reuse
      an existing in-game icon or asset when one fits, because you do not have to create new art. Do
      not wait for the player to ask about the icon.
-- **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name starts with
-  a lowercase letter, then holds only lowercase letters, digits, and underscores, at most 40
-  characters. It must not be a Windows reserved device name: `con`, `prn`, `aux`, `nul`, `com1` to
-  `com9`, and `lpt1` to `lpt9`.
+- **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name is
+  `lower_snake_case`: it starts with a lowercase letter, then holds only lowercase letters, digits,
+  and underscores, at most 40 characters. Do **not** use hyphens: `fix-trade-companies` ❌ →
+  `fix_trade_companies` ✓. It must not be a Windows reserved device name: `con`, `prn`, `aux`,
+  `nul`, `com1` to `com9`, and `lpt1` to `lpt9`.
 
 ## Mod structure
 
@@ -92,7 +98,8 @@ and its bound directory gate those actions.
 The files are `**/localization/**/*.yml`, under `in_game/` and `main_menu/`.
 
 - **The encoding must be UTF-8 with BOM** (`EF BB BF`). Without a BOM the game ignores the file in
-  silence. That failure is fatal, not cosmetic.
+  silence. That failure is fatal, not cosmetic. A fixed command to add the BOM:
+  `printf '\xEF\xBB\xBF' | cat - <file> > tmp && mv tmp <file>`.
 - The filename must end with `_l_<language>`, which matches the language directory.
 - The first content line is `l_<lang>:`, and it must match the directory.
 - An entry is `  key: "value"` or `  key:0 "value"` with an explicit version. Put the value in

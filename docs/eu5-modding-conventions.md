@@ -135,8 +135,9 @@ standard field as a WARN.
 The `.metadata` directory should also hold a `thumbnail.png`: the launcher and Workshop image. It
 must be smaller than 1 MB, and the recommended size is 512x512. Reference it with a
 `"picture": "thumbnail.png"` entry, placed after `tags`. The image can live only in the Paradox mod
-directory, and you do not have to version it in the repository. The linter therefore warns about a
-missing picture file only when other images **are** versioned.
+directory, and you do not have to version it in the repository. The linter still warns when the
+`picture` value names no existing file in the mod root or `.metadata/`; only the warning wording
+depends on whether other image files **are** versioned.
 
 ## 6. Housekeeping
 

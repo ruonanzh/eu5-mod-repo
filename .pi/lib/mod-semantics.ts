@@ -1,35 +1,33 @@
 /**
  * mod-semantics — EU5 mod 语义校验（名字级，基于 dumps/vanilla 词典）。
  *
- * 定位：`validate_mod` 目前只做语法/约定校验，查不出「effect/trigger/modifier 名打错
- * （EU5 常静默失败）」「REPLACE:/INJECT: 目标不存在」「新对象漏 loc key」。
- *
- * 计划（方案见 docs/eu5-semantic-validation-plan.md §2）：
+ * 它是 `validate_mod` 的语义部分（语法与约定在 mod-lint.ts）；查三类用语法检查查不出来的名字问题
+ * （EU5 里名字打错常常静默失败）：
  *   - C1  REPLACE:/INJECT: 目标存在性：顶层 `^(REPLACE|INJECT|TRY_REPLACE|TRY_INJECT|
  *         REPLACE_OR_CREATE|INJECT_OR_CREATE):\s*(\w+)\s*=`，目标名须在**同一类数据库**
  *         （同一 `common/<目录>/`；in_game 与 main_menu 合并）的 vanilla 或本 mod 里存在。
  *         REPLACE:/INJECT: 缺失 → WARN；TRY_* / _OR_CREATE → NOTE（常是故意的，永不 FAIL）。
- *         `game-scripts/game/` 缺失/空时跳过 vanilla 侧核对并给 NOTE。【已实现】
+ *         `game-scripts/game/` 缺失/空时跳过 vanilla 侧核对并给 NOTE。
  *         注：vanilla 严格 = 真原版 `game-scripts/game/**`；`game-scripts/workshop/**`
- *         （他 mod 镜像）不算 vanilla（用户决议，见 A3 卡与下方 vanillaRoot 注释）。
- *         【T7】`INJECT:<name>` 且 name ∈（本 mod ∪ vanilla）的 scripted_effects/scripted_triggers
+ *         （他 mod 镜像）不算 vanilla（见下方 vanillaRoot 注释）。
+ *         `INJECT:<name>` 且 name ∈（本 mod ∪ vanilla）的 scripted_effects/scripted_triggers
  *         顶层定义名 → WARN `semantic:c1-inject-scripted`（wiki：INJECT 对二者无效、会整体覆盖）。
  *         只查 `INJECT:`；`REPLACE:`（合法替换）/ `TRY_INJECT:` / `*_OR_CREATE` 不在内。
  *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
  *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。
- *         **容器名单来自 `docs/script_docs` 的结构示例解析**（A0：示例含 `<effects>`/`<triggers>`
+ *         **容器名单来自 `docs/script_docs` 的结构示例解析**（示例含 `<effects>`/`<triggers>`
  *         ⇒ 该名字的 body 是 effect/trigger 列表 ⇒ 进 context；见 loadContainerModel）；
  *         **已知名**集合 = effects ∪ triggers ∪ modifiers ∪ event_targets ∪ on_actions ∪
  *         custom_localization ∪ vanilla（`game-scripts/game/**`）键名 ∪ 合法结构字段
- *         （A9：候选名在「已知名」里 ⇒ 放过，不作候选；见 checkCandidate）。
+ *         （候选名在「已知名」里 ⇒ 放过，不作候选；见 checkCandidate）。
  *         块名不是 effect/trigger 的**结构字段**（option / immediate / potential / visible /
  *         modifier 左值表族 / 数据驱动目录 …）仍是手写名单：script_docs 提供不了，依据是
  *         文件结构 + 实际语料（见 CONTEXT_ENTER_NAMES / TRIGGER_CONTAINER_NAMES /
- *         DATA_DRIVEN_CONTEXT_DIRS 的 JSDoc 与 board/C2-COVERAGE.md）。【已实现】
+ *         DATA_DRIVEN_CONTEXT_DIRS 的 JSDoc）。该名单**已冻结**：新增覆盖须经确认。
  *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
  *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
  *         in_game 与 main_menu 的 localization/ 都算合法。vanilla 侧同 C1：只算
- *         `game-scripts/game/**`（排除 workshop 镜像）。【已实现】
+ *         `game-scripts/game/**`（排除 workshop 镜像）。
  *
  * 契约：只读、零第三方依赖；接口字段/返回文案一律 ASCII/英文（Windows GBK 会乱码）。
  * 语义项默认 WARN，不 FAIL。
@@ -407,7 +405,7 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  * `Cabinet_action_modding` / `Generic_action_modding` 等页面 + 实际语料形态）。
  * 对照：本名单 **0/53** 在「script_docs 结构示例派生的容器集合」（1221 个）里（A0 对照命令），
  * 即解析不可能覆盖它们。
- * 名单**冻结**（GOAL #8）：新增覆盖须新开卡 + 用户确认；清单与逐项证据见 `board/C2-COVERAGE.md`。
+ * 名单**冻结**：新增覆盖须经确认（清单与逐项证据留存在评测仓库的记录里）。
  * trigger **列表容器**（`visible` / `enabled` / `on_*` / `*_trigger` …）另见 TRIGGER_CONTAINER_NAMES。
  *
  * ===== modifier 左值表族（A4，2026-10）=====
@@ -472,7 +470,7 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  * ⚠️ 父模式 `neutral` 的主要来源：**非 scripted、非数据驱动目录的顶层对象**
  * （`(isScripted || isDataDriven) && isTopLevel` 不成立 ⇒ 顶层块只能 neutral）——
  * 如 `common/unit_abilities/**` 的能力对象、`common/generic_actions/**` 的 interaction 对象。
- * 候选面枚举器（`board/container-surface.mjs`）按「父块名 ∈ 词典」反推候选，会把这些
+ * 候选面枚举器按「父块名 ∈ 词典」反推候选，会把这些
  * **neutral 父**一并列出 ⇒ 不可把「父块名 ∈ 词典」等同为「父位置 = param」。本卡纳入：
  *  - `hidden`（wrapper 块，与 `hidden_effect`/`hidden_trigger` 同族）：vanilla 15 块 ——
  *    14 块是 `common/unit_abilities/*.txt` **顶层 ability 对象**（父模式 neutral）下的
@@ -487,13 +485,13 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  *    `start_civil_war > ROOT = { change_player = PREV }`（1 处）。
  *    ⚠️ 大小写：vanilla 两种写法都在用（`root = {` 745 块 / `ROOT = {` 70 块、
  *    `prev = {` 31 / `PREV = {` 9）。本卡**只显式列出候选面枚举器
- *    （`board/container-surface.mjs`）实测到的实例**（`root` 与 `ROOT`）；更一般的**关键字
+ *    （枚举器）实测到的实例**（`root` 与 `ROOT`）；更一般的**关键字
  *    大小写归一**（`AND`/`OR`/`NOT`/`NOR`/`NAND` 在 param 位置）由**卡 A14 实装** ——
  *    `normalizeKeywordLookup` 把本表（及其余内置表）的匹配改为大小写不敏感 ⇒ `ROOT` 与
  *    `root` 等价（保留原条目只为不动名单计数）。
  *  - `limit` / `ai_prerequisite` 归 TRIGGER_CONTAINER_NAMES（见该名单的 A13 段）。
- * 零误报门槛：7 个名字加入后 `board/verify.mjs --e2e` 全绿（33 真实 mod sweep WARN=0）；
- * 逐名误报核对结论见 `board/C2-COVERAGE.md` 表 B1/B2 的 A13 行。
+ * 零误报门槛：7 个名字加入后 整套验收（cases + 全量真实 mod）全绿（33 真实 mod sweep WARN=0）；
+ * 逐名误报已逐条核对（结论存于评测仓库的清单）。
  *
  * 回归门槛：本族在 33 个真实 mod（reference + workshop + Paradox）上跑过「C2 零误报」
  * （probe11 / tool-content-sweep）；零误报是硬门槛。
@@ -583,7 +581,7 @@ const CONTEXT_ENTER_NAMES = new Set([
  *   —— body 是**选择器配置**（`looking_for_a` / `name` / 嵌套 `visible` / `ai_interaction_source_list`），
  *   不是 effect/trigger 左值列表；作 ENTER 会把配置名当左值候选（仅扩大误报面）。
  *   剔除后其真 trigger 列表部位（`visible` / `ai_interaction_source_list`）仍在名单里 ⇒ 不丢覆盖
- *   （`board/cases/c2-trigger-list-container` 仍 2 条命中，见 A0 验收）。
+ *   （用例 `c2-trigger-list-container` 仍 2 条命中）。
  * 复核后**保留**（有证据）：`sort_text`（vanilla 97 块 / 194 键 **100%** 命中词典 —— dump 无文档但语料
  * 形态确为 trigger 列表）；`is_shown` / `is_valid` / `ai_is_valid`（vanilla 0 块 —— 无证据也无误报面，
  * A2 经 probe11 在 33 真实 mod 验证保留）。
@@ -625,7 +623,7 @@ const CONTEXT_ENTER_NAMES = new Set([
  *  - `ai_prerequisite`：vanilla 46 块，全部是**顶层** interaction / generic_action 对象
  *    （父模式 **neutral**）的结构字段（如 `generic_actions/culture.txt:94`
  *    `remove_accepted_culture > ai_prerequisite = { <triggers> }`）；候选面枚举器实测 4 处。
- *  逐名误报核对结论见 `board/C2-COVERAGE.md` 表 B2 的 A13 行。
+ *  逐名误报已逐条核对（结论存于评测仓库的清单）。
  *
  * 有意**不**纳入（避免再成为「未记录的洞」）：
  * - `switch`：**不是普通 ENTER**，而是「**标签容器**」（其直接子键是 case 名/值，不是 effect/trigger
@@ -740,13 +738,13 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   //   结构示例派生看不见它（实测 `deriveScriptDocContainers` = false）。名字在 triggers 词典 ⇒
   //   旧逻辑判 param → 加权子触发器列表整块不扫（vanilla **5 块**：`situations/red_turban_rebellions.txt`、
   //   `events/DHE/flavor_MOS.txt`×3、`flavor_RUS.txt`）。机理 = **wrapper 名单 +1**（同 A7 的 calc_true_if），
-  //   不是大小写、也不是新增位置类；清单见 board/C2-COVERAGE.md 表 B2 / 表 F（卡 T8，2026-10-10 用户确认纳入）。
+  //   不是大小写、也不是新增位置类；已按确认纳入冻结清单。
   "weighted_calc_true_if",
   // custom_label / custom_description_no_bullet：与 custom_tooltip / custom_description /
   //   show_as_tooltip **同族 loc wrapper**（effects.log：`custom_label = { text = key subject = scope
   //   <hidden effects> }`、`custom_description_no_bullet = { … ... effects ... }`；占位符同样不是
   //   `<effects>` ⇒ 派生看不见）。语料（vanilla + 33 真实 mod）**0 次使用** ⇒ 纳入不改变零误报面，
-  //   只为不留「同族未记录」的洞（清单见 board/C2-COVERAGE.md 表 B2）。
+  //   只为不留「同族未记录」的洞（已纳入冻结清单）。
   "custom_label",
   "custom_description_no_bullet",
   // --- A5：UI 排序里的 trigger 列表（limit）---
@@ -772,7 +770,7 @@ const TRIGGER_CONTAINER_NAMES = new Set([
  * §A23：示例行**不一定行首**对齐 —— `conditional_effect` 的 dump 写法是行中单行
  * `… Usage: conditional_effect = { effect = <effects> limit = <triggers> [else = <effects>] }`
  * ⇒ 判据**分段两步**（见 `containersFromLogText`）。
- * 权威对照（见 `board/C2-COVERAGE.md` 的复现命令 ①）：权威容器集合 ⊆ 我们的容器集合（差异 0）。
+ * 权威对照：权威容器集合 ⊆ 我们的容器集合（差异 0）。
  *
  * **维护成本归零**：dump 刷新（游戏 patch）后**不改代码即自动跟随**；前缀族不必再手写。
  *
@@ -802,7 +800,7 @@ const TRIGGER_CONTAINER_NAMES = new Set([
  *    其余顶层键（case 标签 + `fallback`）的 body 都是 effect/trigger 列表；标签含
  *    **裸名**（`alpha`、`eventopt1`）与 **scope 前缀形**（`god:viracocha`、`location:constantinople`）
  *    两种写法，后者在扫描器里是「裸 `{`」路径（`prev === ":"` 守卫不产生块名）。
- *    vanilla 规模：70 块 / 75 个 distinct 标签（`board/container-surface.mjs`）。
+ *    vanilla 规模：70 块 / 75 个 distinct 标签（枚举器口径）。
  *    历史（卡 A12，用户 2026-10-10 裁定）：早期把 switch 从容器集**排除**以避免标签误报
  *    （实测 workshop 3633816300 的 `antigonish` → did-you-mean `antagonism`），副作用是
  *    **case body 整块不扫**（C2 假阴，vanilla 75 个标签）。现改为「标签容器」。
@@ -840,7 +838,7 @@ const DUMP_INVISIBLE_CONTAINERS = new Set([
 /**
  * **退化名单**：`script_docs` 结构示例不可用（文件缺失/格式变/全无示例）时回退到的手工容器名。
  * 与旧行为等价（A5 收口的精确名单 + 前缀族），保证「dump 不可用也不崩、不丢既有覆盖」。
- * 名字保持不变是为了审计 harness（`board/audits/harness/c2-coverage.mjs`）仍能按名解析。
+ * 名字保持不变是为了审计 harness 的名册抽取器仍能按名解析。
  * 解析成功时**不使用**本名单（容器集合完全由 dump 决定 —— A0 验收 4）。
  */
 const CONTAINER_CONTROL_NAMES = new Set([
@@ -870,7 +868,7 @@ const CONTAINER_CONTROL_PREFIXES = ["every_", "any_", "ordered_", "random_"];
  * 实现方式（为何给实例替换 `has`，而不改调用点）：
  *   ① 调用点保持 `SET.has(x)` 字面形状 —— 审计 harness（`probe14.mjs` / `audit2/param-gap-ab.mjs`）
  *      以这些行为 temp 副本实验锚点；
- *   ② `board/audits/harness/c2-coverage.mjs` 的 `setFromSource` 以 `const NAME = new Set([`
+ *   ② 审计 harness 的 `setFromSource` 以 `const NAME = new Set([`
  *      从源码解析名单 ⇒ 声明形式必须保持。
  */
 function normalizeKeywordLookup(set: Set<string>): void {
@@ -994,7 +992,7 @@ function deriveContainerNames(effectsText: string, triggersText: string): Set<st
 /**
  * 测试/审计入口：给定 `docs/script_docs` 目录，返回结构示例派生的容器集合
  * （= 权威容器集合；文件缺失/无示例时为空集）。
- * A0 验收 1（「权威容器集合 ⊆ 我们的容器集合」）与 `board/C2-COVERAGE.md` 用它。
+ * 「权威容器集合 ⊆ 我们的容器集合」这条对照与冻结清单都用它。
  */
 export function deriveScriptDocContainers(scriptDocsDir: string): Set<string> {
   const effects = readText(join(scriptDocsDir, "effects.log"));
@@ -1038,7 +1036,7 @@ let activeContainers: ContainerModel = fallbackContainerModel();
 /**
  * 合法结构字段（像是左值、实为文件结构字段）：进「已知名」排除集，**不作候选**。
  * 依据 = 文件结构（wiki 的 `Building_modding` 等）+ vanilla 实际语料（A9 卡差距 B / 修法 1），
- * **不是** script_docs（dump 里没有这些字段）。也见 board/C2-COVERAGE.md。
+ * **不是** script_docs（dump 里没有这些字段）。名单已冻结。
  */
 const LEGITIMATE_STRUCTURAL_FIELDS = new Set([
   // building_types 的建筑结构字段（vanilla `building_types/capital_buildings.txt` 等 10+ 处）
@@ -1064,7 +1062,7 @@ function isContainerControl(name: string): boolean {
  * ⇒ 即使在 param / **neutral** 下也放行（否则真形态 `create_character > every_country > <typo>`、
  * 以及 vanilla `events/**` 顶层 `scripted_trigger xx = { NOT = { … } }` 的 body 整块不扫）。
  *
- * **A17 对 neutral 父的处置（显式记录，与 `board/C2-COVERAGE.md` §0 同步）**：
+ * **`neutral` 父块下的处置（显式记录）**：
  * 放行判据与 A7 **同源**（同为 `isUnambiguousContainer` 家族，故**双用控制关键字在 neutral 下同样不放行**），
  * **但不共用同一个函数** —— neutral 用 `isUnambiguousContainerExactCase`（**原样大小写**），
  * 原因见后者 JSDoc（`NOR` 国家 tag 会与 `nor` 容器撞车）。
@@ -1130,7 +1128,7 @@ function isScriptedDir(rel: string): boolean {
  *                       （词典名与结构化键撞车，正是可判的前提），332 个 id。
  *  - `holy_sites`        `importance`（trigger 名，241 次），241 个 id。
  *  - `building_types`    `employment_size`(465) / `is_foreign`(456)（trigger 名），465 个 id。
- * 6 个目录全部有 `probe13.mjs` 的目录夹具（命中 6/6）与 `board/cases` 的 `c2-dir-context-data-*` 用例。
+ * 6 个目录全部有目录夹具（命中 6/6）与 `c2-dir-context-data-*` 用例。
  *
  * 有意**排除**（看起来像数据驱动目录，但**不该**按目录进 context；避免「未记录的洞」）：
  *  - **无 depth=1 词典左值**（唯一命中是已在 ENTER 的容器名）→ 纳入零收益：
@@ -1856,7 +1854,7 @@ export function analyzeSemantics(
   // 镜像过的 mod 只要自己的对象也在镜像里 → 被 `vanilla.has(id)` 判为「vanilla 已有」：
   //   - C3：新对象的 loc 检查被跳过 —— 对镜像过的 workshop mod C3 实际失效（假阴性）；
   //   - C1：`REPLACE:` 一个只存在于他 mod 镜像里的目标被判「存在」→ 少报。
-  // 用户决议（2026-10-09，见 board/tasks/A3-workshop-mirror-treated-as-vanilla.md）：
+  // 决议（workshop 镜像不算 vanilla）：
   // vanilla 严格 = 真原版 `game-scripts/game/**`。
   // 退化口径不变：`game-scripts/game/` 缺失/空 → 跳过 vanilla 侧核对并给 NOTE。
   const vanillaRoot =

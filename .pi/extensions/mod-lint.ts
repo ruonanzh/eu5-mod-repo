@@ -170,29 +170,24 @@ function simpChineseMojibakeHint(text: string): boolean {
 }
 
 /**
- * Checks the quote structure of a localization value. The value starts with `"`, and the tool looks
- * for the first closing `"` that is not escaped. Only whitespace or a `#` comment may follow the
- * closing quote. An escaped quote does not count as the pair, and a bare quote such as `"a"b"c"`
- * fails the check, because text remains after the closing quote.
+ * Checks the quote structure of a localization value. The value starts with `"` and ends at an
+ * unescaped `"` that has only whitespace or a `#` comment after it. The tool accepts the last such
+ * quote, so an inner quote and a doubled `""` are both legal: vanilla writes
+ * `""L'État, c'est moi!""` and `"Enables a "bloom" effect."`. The check fails only when no
+ * unescaped quote closes the value, for example `"unterminated` or `"a" trailing text`.
  */
 function localizationValueQuoteOk(rest: string): boolean {
-  let i = 1; // Skip the opening quote. The caller guarantees that rest starts with one.
-  while (i < rest.length) {
-    if (rest[i] !== '"') {
-      i += 1;
-      continue;
-    }
+  let closed = false;
+  for (let i = 1; i < rest.length; i += 1) {
+    // Skip the opening quote. The caller guarantees that rest starts with one.
+    if (rest[i] !== '"') continue;
     let backslashes = 0;
     for (let j = i - 1; j >= 0 && rest[j] === "\\"; j -= 1) backslashes += 1;
-    if (backslashes % 2 === 1) {
-      i += 1; // An escaped quote, so continue.
-      continue;
-    }
-    // The closing quote is at i. Only whitespace or a comment may follow it.
+    if (backslashes % 2 === 1) continue; // An escaped quote is text, not a delimiter.
     const tail = rest.slice(i + 1).trim();
-    return tail === "" || tail.startsWith("#");
+    if (tail === "" || tail.startsWith("#")) closed = true; // This quote closes the value.
   }
-  return false; // No closing quote was found, so the string is unterminated.
+  return closed; // false when no closing quote was found, so the string is unterminated.
 }
 
 // ---- localization YAML ----

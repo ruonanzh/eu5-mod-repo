@@ -34,7 +34,9 @@ task needs, instead of pulling the whole `docs/` directory into context.
   See [`mod-wiki/INDEX.md`](mod-wiki/INDEX.md). The live wiki (eu5.paradoxwikis.com) is newer.
   Re-sync with `scripts/crawl_eu5_wiki.py` when it drifts.
 
-> `validate_mod` checks syntax and conventions only. These docs are the reference for semantics:
+> `validate_mod` checks syntax, conventions, and **name-level semantics**: whether an effect, trigger,
+> or modifier name exists, whether an `INJECT:`/`REPLACE:` target exists, and whether a new object has
+> its localization keys. These docs are the reference for **scope and type** semantics:
 > which scopes, effects, triggers, and types exist. Always prefer them over a guess.
 
 ## Game-generated reference dumps (authoritative)

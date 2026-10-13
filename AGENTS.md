@@ -73,7 +73,9 @@ Keep these in mind while you write a mod. They prevent most `validate_mod` failu
 
 After you finish or change a mod, run `validate_mod` on `your_mods/<ModName>/`.
 Clear every ERROR before you end the turn.
-The tool checks syntax and conventions only. It is not a semantic validator.
+The tool checks syntax, conventions, and **name-level semantics**: that effect, trigger, and modifier
+names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
+keys. It is not a scope or type validator.
 
 ## mod-guard（mod 会话工具，本 worktree 新增）
 
@@ -84,3 +86,4 @@ The tool checks syntax and conventions only. It is not a semantic validator.
 - `before_agent_start`：为本 workspace 的 session 追加 `## Mod development session` 提示。
 
 > 以 `pi-desktop/extensions/mod-guard.ts` 为准；改动请同步回产品。
+

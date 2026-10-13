@@ -8,7 +8,7 @@ import { join, relative, resolve, sep, basename } from "node:path";
 /**
  * validate_mod - the EU5 mod validation tool for the pdx-script mod type.
  * It was ported from lint_mod.py in eu5-starry-night-project, and it checks syntax and convention
- * rules only:
+ * rules, and then the name-level semantic checks in ../lib/mod-semantics:
  *   - metadata.json: presence, valid JSON, a top-level object, a semver version, the standard
  *     fields, and the picture entry.
  *   - Localization YAML: the UTF-8 BOM, the encoding, the `_l_<lang>` filename, the `l_<lang>:`
@@ -18,6 +18,9 @@ import { join, relative, resolve, sep, basename } from "node:path";
  *     The tool checks the UTF-8 encoding, the `{` and `}` balance, and the `"` balance, with
  *     awareness of `#` comments and multiline strings. It also checks that the INJECT: and REPLACE:
  *     family starts only at a top-level block.
+ *   - Semantics (name level, in ../lib/mod-semantics): the effect, trigger, and modifier names
+ *     exist; the INJECT: and REPLACE: targets exist in the same database directory; and a new
+ *     object has its localization keys.
  *
  * The contract is in docs/mod-repo-guide.md section 3.1 and game-mod-guide/eu5.md section 6. The tool
  * is read-only, and it has no third-party dependency. Its content output uses PASS or FAIL with NEXT,
@@ -602,7 +605,7 @@ export default function (pi: ExtensionAPI) {
     name: "validate_mod",
     label: "Validate Mod",
     description:
-      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks the rule that INJECT: and REPLACE: stay at the top level. It checks syntax and conventions only, and it is not a scope or type validator.",
+      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks the rule that INJECT: and REPLACE: stay at the top level, and it runs the name-level semantic checks: effect, trigger, and modifier names exist, INJECT:/REPLACE: targets exist, and new objects have their localization keys. It is not a scope or type validator.",
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
       "Use validate_mod after you write a mod, to check that it passes the rules.",

@@ -1,8 +1,8 @@
 /**
  * Editor tool for an EU5 mod's `.metadata/metadata.json`.
  *
- * Uses only the host postMessage bridge (desktop-gamer-agent-pi `docs/editor-tool.md` §5):
- * no network, no permissions beyond that. Validation mirrors this repo's `validate_mod`
+ * Uses only the host postMessage bridge (`editor:init`, `editor:readFile`, `editor:save`, and
+ * `editor:theme`): no network, no permissions beyond that. Validation mirrors this repo's `validate_mod`
  * (`.pi/extensions/mod-lint.ts`): errors block saving, warnings do not.
  */
 const TEXT_FIELDS = ["name", "id", "version", "supported_game_version", "short_description", "picture"];

@@ -435,14 +435,14 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  *   satisfaction(15)    estates/00_default.txt:61       monthly_prestige = 0.2
  *   unique(10)          age/00_default.txt:59           diplomatic_capacity_modifier = 0.25
  *   diplo_chance(18) / diplo_chance_accept_subject(37)
- *                       country_interactions / subject_types：base=… + diplomatic_reputation=…
+ *                       country_interactions / subject_types: base=… + diplomatic_reputation=…
  *
  *  Warning: the **other uses** of class B (the full corpus measurement reports 0 false reports today, and they are a **potential false report surface** that a dictionary refresh with a new game version may light up):
- *   - power: in_game/common/attribute_columns/27_language.txt:21、94_dialect.txt:21
+ *   - power: in_game/common/attribute_columns/27_language.txt:21, 94_dialect.txt:21
  *       `power = { widget = language_power  width = 100  fixed_height = 32  is_constant_width = yes  sort = {…} }` (a GUI column definition, with no modifier left-hand value)
  *   - power: in_game/common/trigger_localization/estate_triggers.txt:13 (a trigger loc key table of none, global, and third)
- *   - satisfaction: in_game/common/attribute_columns/20_province.txt:119（`widget = province_satisfaction …`）
- *   - goods_demand: main_menu/common/game_concepts/00_game_concepts.txt:82（alias/family/texture）
+ *   - satisfaction: in_game/common/attribute_columns/20_province.txt:119 (`widget = province_satisfaction …`)
+ *   - goods_demand: main_menu/common/game_concepts/00_game_concepts.txt:82 (alias/family/texture)
  *   - modifier itself: main_menu/gfx/portraits/portrait_modifiers/*.txt holds 405+43 places in total
  *       `modifier = { add = 100000  <trigger> }` (a weight or trigger block, not a modifier table)
  *   Evidence: a full vanilla replica scan. Names such as `fixed_height`, `is_constant_width`, and `portrait_clothing_trigger`
@@ -458,7 +458,7 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  *    `main_menu/common/static_modifiers/location.txt:326` (which is the next item, "an arbitrary id object in a data driven directory"). It is not a class of its own, and it does not belong to A5.
  *  - an **arbitrary id object** inside a data driven directory (an object definition under `common/static_modifiers/**` or `common/auto_modifiers/**`
  *    whose body is also a modifier table, such as `location_base_values`, `development`, and
- *    `rome_reborn` / `is_great_power` / `complacency_impact` / `foodstuffs_exports_banned`）：
+ *    `rome_reborn` / `is_great_power` / `complacency_impact` / `foodstuffs_exports_banned`):
  *    where the block name is an author-chosen id that cannot be enumerated, so it **must not** enter this name list. A6 already covers the directories inside its
  *    own list with a **directory level** rule (`DATA_DRIVEN_CONTEXT_DIRS` plus `isDataDrivenContextDir`, on the same
  *    `scanStickyContext` path as scripted_effects), and a directory outside that list appears under "deliberate exclusions" in its JSDoc.
@@ -481,7 +481,7 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  *  - `prev`, `root`, `ROOT`, and `ruler_or_regent` (**scope target blocks**, where the block name is a scope link
  *    keyword or a link name, and the body is an effect or trigger list). The vanilla instances are
  *    `create_character > prev = { set_new_ruler = prev }` (6 places), and
- *    `create_country_from_location > ruler_or_regent = { save_scope_as = … }`、
+ *    `create_country_from_location > ruler_or_regent = { save_scope_as = … }`,
  *    `start_civil_war > ROOT = { change_player = PREV }` (1 place).
  *    Warning: about the letter case, vanilla uses both spellings (`root = {` 745 blocks and `ROOT = {` 70 blocks, plus
  *    `prev = {` 31 and `PREV = {` 9). This card **explicitly lists only the instances that the candidate surface enumerator
@@ -592,19 +592,19 @@ const CONTEXT_ENTER_NAMES = new Set([
  *  - the `on_*` of a situations script or an interaction script: the body is **a list of effects that run at one timing**. The block appears under a top-level
  *    object (situation, casus_belli, and others), and the parent mode is neutral, so without an explicit entry the whole block stays neutral.
  *    The name rule is the `on_<timing>` form. The vanilla counts are on_start 206, on_monthly 148,
- *    on_completion 218 / on_accept 218 / on_activate 145 / on_end 118 / on_debate_passed 225。
+ *    on_completion 218 / on_accept 218 / on_activate 145 / on_end 118 / on_debate_passed 225.
  *    The members are the 9 names that probe10 observed, and the family holds 22 names in total after the A5 class closure (see the closure section below): on_start on_monthly
- *    on_ended on_ending on_completion on_accept on_activate on_end on_debate_passed。
+ *    on_ended on_ending on_completion on_accept on_activate on_end on_debate_passed.
  *  - potential_trigger: a **trigger list container** of auto_modifiers (its body is entirely trigger left-hand values, as in
- *    `potential_trigger = { has_societal_value = … culture = { OR = {…} } }`，vanilla 297）。
+ *    `potential_trigger = { has_societal_value = … culture = { OR = {…} } }`, vanilla 297).
  *  - ai_will_do: a **script value container**. The rule is "inside a script value container an `if > limit` is still a trigger guard"
- *    （`ai_will_do = { value = 10  if = { limit = { is_situation_active = … } add = 10 } }`）；
+ *    (`ai_will_do = { value = 10  if = { limit = { is_situation_active = … } add = 10 } }`).
  *    ai_will_do is a known trigger name in triggers.log, so the old logic judged param and never checked the trigger inside limit (vanilla 476).
  *  - custom_tooltip, custom_description, and show_as_tooltip: **wrapper blocks**. The rule is that the body is
  *    a loc wrapper of "a left-hand value list plus optional triggers" and not a parameter table. Those three names themselves are effect or trigger
  *    names in the effects and triggers dictionaries, so the old logic judged param and short circuited the whole block, and ENTER priority plus an entry in this list is required.
  *    The vanilla counts are custom_tooltip 1253, custom_description 289, and show_as_tooltip 283.
- *  - sort_text：`attribute_columns > info > sort > sort_text > if > limit > { <typo-trigger> }`。
+ *  - sort_text: `attribute_columns > info > sort > sort_text > if > limit > { <typo-trigger> }`.
  *    The rule: the only trigger list in a UI sort configuration is `limit`, and its body is a real trigger list (vanilla 192).
  *    (The A5 card marks it "add first", and the probe11 V2 measurement over 33 real mods reports zero false reports.)
  *    The A2 card once listed it as an "unverified container", and A5 added it formally after the verification.
@@ -613,7 +613,7 @@ const CONTEXT_ENTER_NAMES = new Set([
  * This shares its root cause with A5 and A7: the name is in the dictionary and the parent mode is not `context` (it is `param` or the `neutral` of a top-level object),
  * so the old logic never scanned the whole block.
  *  - `limit`: a real trigger list. In vanilla **both parent modes of `limit` exist**, namely
- *    `param`（`immediate > assert_if > limit`：`events/hre.txt:732,809,816`、
+ *    `param` (`immediate > assert_if > limit`: `events/hre.txt:732,809,816`,
  *    `events/colonization/settle_the_frontier.txt:523`) and `neutral`
  *    (the `vote_effect > assert_if` chain at `common/resolutions/hre_election.txt:227` is **neutral from the top-level object onward**).
  *    The candidate surface enumerator measured **7** places under the criterion "the parent block name is in the dictionary". Card A13 only adds the name to the list and does not change the position test.
@@ -727,13 +727,13 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "show_as_tooltip",
   // --- A7: a wrapper of the same family. The documentation placeholder is **singular**, `<trigger>` or `<effects>`, and the A0
   //     derivation from the `<effects>` and `<triggers>` structure examples cannot see it, so it joins the list explicitly by name (the same family as the A5 loc wrapper). ---
-  // calc_true_if：triggers.log `calc_true_if = { amount = 2 <trigger> <trigger> <trigger> }`。
+  // calc_true_if: triggers.log `calc_true_if = { amount = 2 <trigger> <trigger> <trigger> }`.
   //   The name is in the triggers dictionary, so the old logic judged param and never scanned the body, and the scope containers inside it
   //   (`any_unit = { <triggers> }`) were short circuited along with it (the real shape is
   //   `ai_will_do > if > limit > calc_true_if` at `country_interactions/lend_unit_to_ally.txt:162-165`).
   "calc_true_if",
   // weighted_calc_true_if: a wrapper of **exactly the same family** as calc_true_if (triggers.log
-  //   `weighted_calc_true_if = { amount = 10 5 = { <trigger> } 15 = { <trigger> } 7 = { <trigger> } }`）。
+  //   `weighted_calc_true_if = { amount = 10 5 = { <trigger> } 15 = { <trigger> } 7 = { <trigger> } }`).
   //   uses the same **singular** placeholder `<trigger>`, and the sub-triggers hide inside numeric label blocks). So the `<effects>` and `<triggers>`
   //   structure example derivation of A0 cannot see it (the measurement gives `deriveScriptDocContainers` = false). The name is in the triggers dictionary, so
   //   the old logic judged param and never scanned the whole weighted sub-trigger list (vanilla has **5 blocks**: `situations/red_turban_rebellions.txt`,
@@ -818,7 +818,7 @@ const LABEL_CONTAINER_NAMES = new Set(["switch"]);
  *  - `random`      effects.log (`effects... # effects to run if the random roll succeeds`), 45 blocks
  *  - `random_list` effects.log "randomly choose effects from a list", 472 blocks (the body is a numeric option such as `10 = {…}`)
  *  - `and`/`or`/`not`/`nor` triggers.log, whose description is "all inside trigger must be true" or "at least one entry inside
- *                  trigger must be true」/「negates content of trigger」/「a negated OR trigger」；
+ *                  trigger must be true"/"negates content of trigger"/"a negated OR trigger".
  *                  The corpus body hits the dictionary 53%, 69%, 72%, and 97% of the time (vanilla).
  *  - `nand`/`any_false`/`all_false` are NAND or all-false operators in triggers.log (`any_false` = "equivalent to NAND"), and
  *                  the corpus holds very few of them (`nand = {` 1 time). The addition exists only to keep the inner scan of such a block,
@@ -1052,7 +1052,7 @@ function isContainerControl(name: string): boolean {
 
 /**
  * A **non-dual-use** container (A7 plus A17): the container name is **not** in `CONTAINER_CONTROL_NAMES`
- * （`if`/`else`/`else_if`/`while`/`trigger_if`/`trigger_else`/`trigger_else_if`）。
+ * (`if`/`else`/`else_if`/`while`/`trigger_if`/`trigger_else`/`trigger_else_if`).
  *
  * Why the split exists: a control keyword such as `if` is **dual use**, because it is both an effect or trigger list container and a **script value expression**
  * node (a value branch inside a param block, and the full vanilla corpus gives `if` 19 times and `else` 3 times, as in
@@ -1139,7 +1139,7 @@ function isScriptedDir(rel: string): boolean {
  *    real effect and trigger list containers (`potential_trigger`, `on_*`, `*_trigger`, and each `*_modifier`)
  *    are already covered by the name level ENTER and container lists, so the entry is not added:
  *      `religions` (14 names such as `has_karma = yes`), `gods` (`is_female`), `laws` (`requires_vote`),
- *      `casus_belli`（`war_goal_type`）、`parliament_agendas`（`importance`）、`subject_types`
+ *      `casus_belli` (`war_goal_type`), `parliament_agendas` (`importance`), `subject_types`
  *      (7 names such as `has_overlords_ruler`), `international_organizations` (10 enum
  *      fields such as `leader_type`), `topography` (3 terrain fields such as `movement_cost` and `proximity`), and `script_values`
  *      (`value`, `if`, and `multiply` script value expressions plus `save_temporary_scope_as`, where the `if > limit` is the
@@ -1252,7 +1252,7 @@ const vanillaKeyNameCache = new Map<string, Set<string>>();
  * Only vanilla counts: 1. vanilla is the only authoritative source of a "known name". 2. A name from another mod would let a circulating typo endorse itself.
  * 3. A name is "legal" when vanilla knows it **or** this mod defines it.
  * The measurement shows this blocks remove_if 82 times, dynasty_home 2 times, lifts_fog_of_war 3 times, birth_date 8612 times, and
- * opinions×2390 / dynasty_names×547 / building_levels×1 / antigonish×3 / cultural_ties×1。
+ * opinions 2390 / dynasty_names 547 / building_levels 1 / antigonish 3 / cultural_ties 1.
  * One side effect (recorded and acceptable): a typo of vanilla itself such as `hidden_Effect` passes through, and that is not our responsibility.
  */
 function collectVanillaKeyNames(vanillaRoot: string): Set<string> {
@@ -1593,7 +1593,7 @@ function scanStickyContext(
       return;
     }
     // A7 (P2) plus A17-1: a **non-dual-use container** under a param or **neutral** parent block (a scope iteration
-    // every_/any_/ordered_/random_、random/random_list、and/or/not/nor/nand/any_false/all_false）
+    // every_/any_/ordered_/random_, random/random_list, and/or/not/nor/nand/any_false/all_false)
     // still has an effect or trigger list as its body, so it passes into context. Otherwise the whole block is short circuited to param or neutral and the body stays unscanned
     // (the real shape `create_character = { every_country = { <typo> } }`, and the `NOT` of a top-level
     // `scripted_trigger xx = { NOT = { … } }` in vanilla `events/**`). A dual use control keyword **never passes through**

@@ -22,7 +22,7 @@ import { join, relative, resolve, sep, basename } from "node:path";
  *     exist; the INJECT: and REPLACE: targets exist in the same database directory; and a new
  *     object has its localization keys.
  *
- * The contract is in docs/mod-repo-guide.md section 3.1 and game-mod-guide/eu5.md section 6. The tool
+ * The tool
  * is read-only, and it has no third-party dependency. Its content output uses PASS or FAIL with NEXT,
  * in ASCII English, and its details hold only ok, errors, and warnings.
  */

@@ -92,16 +92,58 @@ function isLocalizationYml(rel: string): boolean {
   return r.endsWith(".yml") && r.includes("/localization/");
 }
 
-function expectedLanguageFromPath(rel: string): string | null {
+// The languages EU5 ships. A localization file names its language with the `_l_<lang>` filename
+// suffix (wiki Modding/Localization: "the filename must end with `_l_<language>`; any file name can
+// be used as long as this format is respected"). The engine and DLC trees group files as
+// `localization/<group>/<file>_l_<lang>.yml`, so the first directory is often a group and not a
+// language. This set is the single place to add a language.
+const LOC_LANGUAGES = new Set([
+  "braz_por",
+  "english",
+  "french",
+  "german",
+  "japanese",
+  "korean",
+  "polish",
+  "russian",
+  "simp_chinese",
+  "spanish",
+  "turkish",
+]);
+
+/** The known language named by the `_l_<lang>.yml` filename suffix, or null. */
+function filenameLanguage(rel: string): string | null {
+  const name = rel.split("/").pop() ?? rel;
+  const stem = name.endsWith(".yml") ? name.slice(0, -4) : name;
+  const lang = /_l_([a-z_]+)$/.exec(stem)?.[1];
+  return lang !== undefined && LOC_LANGUAGES.has(lang) ? lang : null;
+}
+
+/**
+ * The known language named by the localization directory, or null when the directory is a group.
+ * The `replace/` level is skipped, because `localization/replace/<lang>/` overrides the vanilla keys
+ * of <lang>.
+ */
+function directoryLanguage(rel: string): string | null {
   const parts = rel.split("/");
   const lowered = parts.map((p) => p.toLowerCase());
   const idx = lowered.indexOf("localization");
   if (idx < 0) return null;
-  const tail = parts.slice(idx + 1, -1);
+  const tail = lowered.slice(idx + 1, -1);
   if (tail.length === 0) return null;
-  if (tail[0].toLowerCase() === "replace" && tail.length >= 2)
-    return tail[1].toLowerCase();
-  return tail[0].toLowerCase();
+  const dir = tail[0] === "replace" && tail.length >= 2 ? tail[1] : tail[0];
+  return LOC_LANGUAGES.has(dir) ? dir : null;
+}
+
+/**
+ * The language that a localization file must declare. The directory is only a hint: the engine and
+ * DLC trees group files as `localization/<group>/<file>_l_<lang>.yml`, where the first directory is
+ * a group and not a language, so a directory that does not name a known language is ignored and the
+ * `_l_<lang>` filename suffix decides. Returns null when neither names a known language, which
+ * means the filename does not end with `_l_<language>.yml`.
+ */
+function expectedLanguageFromPath(rel: string): string | null {
+  return directoryLanguage(rel) ?? filenameLanguage(rel);
 }
 
 function decodeUtf8(raw: Buffer): { text: string | null; err?: string } {
@@ -212,19 +254,19 @@ function checkLocalization(modRoot: string): Finding[] {
     const expectedLang = expectedLanguageFromPath(rel);
     const name = rel.split("/").pop() ?? rel;
     const stem = name.endsWith(".yml") ? name.slice(0, -4) : name;
-    if (expectedLang) {
-      if (!stem.endsWith(`_l_${expectedLang}`)) {
-        findings.push({
-          severity: "error",
-          rel,
-          message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization directory`,
-        });
-      }
-    } else if (!/_l_[a-z_]+$/.test(stem)) {
+    if (expectedLang === null) {
+      // Neither the directory nor the `_l_<lang>` suffix names a known language, so the required
+      // filename suffix is missing or misspelled.
       findings.push({
         severity: "error",
         rel,
         message: "filename must end with '_l_<language>.yml'",
+      });
+    } else if (!stem.endsWith(`_l_${expectedLang}`)) {
+      findings.push({
+        severity: "error",
+        rel,
+        message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization directory`,
       });
     }
 
@@ -252,7 +294,7 @@ function checkLocalization(modRoot: string): Finding[] {
             findings.push({
               severity: "error",
               rel,
-              message: `line ${lineNo}: header 'l_${lang}:' does not match the language of the directory '${expectedLang}'`,
+              message: `line ${lineNo}: header 'l_${lang}:' does not match the expected language '${expectedLang}'`,
             });
           }
           continue;

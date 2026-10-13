@@ -534,14 +534,14 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
       if (hasKw && depth > 0) {
-        // 降级为 warn（原为 error）：规则应是“紧邻一个 database entry”，而**条目层**因目录而异
-        // （多数 common/ 目录 = 文件顶层；容器型目录如 genes/ 在 `accessory_genes = { <entry> = {} }`
-        //  一层里）。vanilla 自己就这么写：dlc/D008_fate_of_the_phoenix/in_game/common/genes/
-        //  D008_genes_accessories.txt 共 6 处 `INJECT_OR_CREATE:` 都在 accessory_genes 内。
+        // Downgraded to warn (was error): the rule should be "directly before a database entry", and the *entry level* differs from directory to directory
+        // (in most common/ directories the entry level is the file top level, and in container directories such as genes/ it is the level inside `accessory_genes = { <entry> = {} }`
+        //  one level in). vanilla writes it that way itself: dlc/D008_fate_of_the_phoenix/in_game/common/genes/
+        //  D008_genes_accessories.txt has 6 occurrences of `INJECT_OR_CREATE:` and every one of them sits inside accessory_genes.
         findings.push({
           severity: "warn",
           rel: "",
-          message: `line ${line}: '${m.groups.kw}' override keyword is nested (depth ${depth}); it must sit directly before a *database entry* - that is the file's top level in most common/ folders, but in container folders (e.g. genes/accessory_genes) the entry is one level in, and vanilla does that too. Confirm before treating as an error.`,
+          message: `line ${line}: '${m.groups.kw}' override keyword is nested at depth ${depth}. It must sit directly before a database entry. In most common/ folders the entry is the file's top level. In a container folder such as genes/accessory_genes the entry is one level in. The vanilla files do this too.`,
         });
       }
       // Skip the whole `[KEYWORD:]key = {` up to the `{`, so the next round counts that brace.
@@ -591,7 +591,7 @@ function checkPdxScript(modRoot: string): Finding[] {
     if (!bal.ok && bal.message)
       findings.push({ severity: "error", rel, message: bal.message });
     for (const f of checkOverrideKeywords(cleaned)) {
-      // 保留 checkOverrideKeywords 自己给出的 severity（嵌套关键字是 warn，不是 error）
+      // Keep the severity that checkOverrideKeywords gives itself (a nested keyword is warn, not error)
       findings.push({ severity: f.severity ?? "error", rel, message: f.message });
     }
   }
@@ -605,7 +605,7 @@ export default function (pi: ExtensionAPI) {
     name: "validate_mod",
     label: "Validate Mod",
     description:
-      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks the rule that INJECT: and REPLACE: stay at the top level, and it runs the name-level semantic checks: effect, trigger, and modifier names exist, INJECT:/REPLACE: targets exist, and new objects have their localization keys. It is not a scope or type validator.",
+      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks one convention rule: an INJECT: or REPLACE: keyword must sit directly before a database entry. A keyword at a lower depth is a WARN. The tool then runs the name-level semantic checks. An effect, a trigger, or a modifier name must exist. An INJECT: or REPLACE: target must exist. A new object must have its localization keys. It is not a scope or type validator.",
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
       "Use validate_mod after you write a mod, to check that it passes the rules.",
@@ -640,8 +640,8 @@ export default function (pi: ExtensionAPI) {
       const warnings = findings.filter((f) => f.severity === "warn");
       const semantic = analyzeSemantics(modDir);
 
-      // 语义行作为独立一段追加进 content（agent 只看 content，details 不进其视野）。
-      // w.message 已以 `semantic: ` 开头，这里不再重复加前缀。
+      // Append the semantic lines as their own paragraph to content (the agent reads only content, and details never enter its view).
+      // w.message already starts with `semantic: `, so this place does not add the prefix a second time.
       const semanticLines = semantic.warnings
         .slice(0, MAX_CONTENT_LINES)
         .map((w) => `${w.level === "note" ? "NOTE" : "WARN"}: ${w.message}`);

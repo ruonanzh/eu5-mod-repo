@@ -49,7 +49,7 @@ const LOOSE_GAME_VERSION_RES = [
   /^\d+\.[xX]$/, // "1.x"   - wildcard patch level, spelled with x
 ];
 const PUA_RE = /[\ue000-\uf8ff]/;
-const LOC_KEY_RE = /^\s+(?<key>[^\s:#][^:]*):(?<ver>\d*)\s*(?<rest>.*?)\s*$/;
+const LOC_KEY_RE = /^[ \t]*(?<key>[^\s:#][^:]*):(?<ver>\d*)\s*(?<rest>.*?)\s*$/;
 const LOC_HEADER_RE = /^\ufeff?\s*l_(?<lang>[a-z_]+):(?<tail>.*)$/;
 const OVERRIDE_KEYWORD_RE = /(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?:/;
 const TOPLEVEL_KEY_RE =

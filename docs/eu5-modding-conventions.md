@@ -148,10 +148,12 @@ missing picture file only when other images **are** versioned.
 
 ---
 
-## Going deeper (semantic validation that the linter cannot do)
+## Going deeper (semantics the linter does not check)
 
-The linter checks **syntax and conventions only**. For scope, type, and effect correctness, and for
-exact vanilla values, follow the lookup hierarchy in [`INDEX.md`](INDEX.md).
+The linter checks syntax, conventions, and **name-level semantics** (do the effect, trigger, and
+modifier names exist; does an `INJECT:`/`REPLACE:` target exist; does a new object have its
+localization keys). For **scope and type** correctness, and for exact vanilla values, follow the
+lookup hierarchy in [`INDEX.md`](INDEX.md).
 
 - **Game-generated dumps:** `docs/script_docs/` and `docs/data_types/` list the valid effects,
   triggers, scopes, modifiers, and data types for the current game version. They are the

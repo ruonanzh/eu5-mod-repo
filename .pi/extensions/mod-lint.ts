@@ -1,5 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { isValidModId } from "../lib/mod-identity";
+import { analyzeSemantics } from "../lib/mod-semantics";
 import { Type } from "typebox";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, resolve, sep, basename } from "node:path";
@@ -485,10 +486,11 @@ function checkBraceQuoteBalance(cleaned: string): BalanceResult {
 }
 
 /**
- * A keyword of the INJECT: or REPLACE: family may appear only at a top-level block, in the form
- * `KEYWORD:key = {`. The tool scans the depth with awareness of comments and strings. An ERROR
- * follows a keyword at depth greater than zero, and a top-level keyword that is not followed by
- * `key = {`.
+ * A keyword of the INJECT: or REPLACE: family must sit directly before a *database entry*, in the
+ * form `KEYWORD:key = {`. The tool scans depth with awareness of comments and strings. A keyword
+ * nested below the entry level is a WARN (container folders legitimately nest entries one level in -
+ * e.g. `genes/accessory_genes` - and vanilla itself does so), and a keyword not followed by `key = {`
+ * is an ERROR.
  */
 function checkOverrideKeywords(cleaned: string): Finding[] {
   const findings: Finding[] = [];
@@ -529,10 +531,14 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
       if (hasKw && depth > 0) {
+        // 降级为 warn（原为 error）：规则应是“紧邻一个 database entry”，而**条目层**因目录而异
+        // （多数 common/ 目录 = 文件顶层；容器型目录如 genes/ 在 `accessory_genes = { <entry> = {} }`
+        //  一层里）。vanilla 自己就这么写：dlc/D008_fate_of_the_phoenix/in_game/common/genes/
+        //  D008_genes_accessories.txt 共 6 处 `INJECT_OR_CREATE:` 都在 accessory_genes 内。
         findings.push({
-          severity: "error",
+          severity: "warn",
           rel: "",
-          message: `line ${line}: '${m.groups.kw}' override keyword must be at a top-level block, not nested`,
+          message: `line ${line}: '${m.groups.kw}' override keyword is nested (depth ${depth}); it must sit directly before a *database entry* - that is the file's top level in most common/ folders, but in container folders (e.g. genes/accessory_genes) the entry is one level in, and vanilla does that too. Confirm before treating as an error.`,
         });
       }
       // Skip the whole `[KEYWORD:]key = {` up to the `{`, so the next round counts that brace.
@@ -582,7 +588,8 @@ function checkPdxScript(modRoot: string): Finding[] {
     if (!bal.ok && bal.message)
       findings.push({ severity: "error", rel, message: bal.message });
     for (const f of checkOverrideKeywords(cleaned)) {
-      findings.push({ severity: "error", rel, message: f.message });
+      // 保留 checkOverrideKeywords 自己给出的 severity（嵌套关键字是 warn，不是 error）
+      findings.push({ severity: f.severity ?? "error", rel, message: f.message });
     }
   }
   return findings;
@@ -628,6 +635,18 @@ export default function (pi: ExtensionAPI) {
       ];
       const errors = findings.filter((f) => f.severity === "error");
       const warnings = findings.filter((f) => f.severity === "warn");
+      const semantic = analyzeSemantics(modDir);
+
+      // 语义行作为独立一段追加进 content（agent 只看 content，details 不进其视野）。
+      // w.message 已以 `semantic: ` 开头，这里不再重复加前缀。
+      const semanticLines = semantic.warnings
+        .slice(0, MAX_CONTENT_LINES)
+        .map((w) => `${w.level === "note" ? "NOTE" : "WARN"}: ${w.message}`);
+      if (semantic.warnings.length > MAX_CONTENT_LINES) {
+        semanticLines.push(
+          `... ${semantic.warnings.length - MAX_CONTENT_LINES} more semantic warning(s) omitted`,
+        );
+      }
 
       const name = modDir.split(/[\\/]/).pop() || modDir;
       const lines: string[] = [];
@@ -638,6 +657,7 @@ export default function (pi: ExtensionAPI) {
         for (const w of warnings.slice(0, MAX_CONTENT_LINES)) {
           lines.push(`WARN: ${w.rel}: ${w.message}`);
         }
+        lines.push(...semanticLines);
       } else {
         lines.push(
           `FAIL: ${name} has ${errors.length} error(s), ${warnings.length} warning(s)`,
@@ -650,6 +670,7 @@ export default function (pi: ExtensionAPI) {
             `... ${errors.length - MAX_CONTENT_LINES} more error(s) omitted`,
           );
         }
+        lines.push(...semanticLines);
         lines.push(`NEXT: fix the errors above and re-run validate_mod.`);
       }
 
@@ -659,6 +680,10 @@ export default function (pi: ExtensionAPI) {
           ok: errors.length === 0,
           errors: errors.map((e) => `${e.rel}: ${e.message}`),
           warnings: warnings.map((w) => `${w.rel}: ${w.message}`),
+          semantic: {
+            checked: semantic.checked,
+            warnings: semantic.warnings,
+          },
         },
       };
     },

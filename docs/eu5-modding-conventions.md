@@ -27,17 +27,19 @@ enforces nothing.
 EU5 loads the mod files on top of the vanilla files. Three override mechanisms exist. See
 `Mod_files_load_order`, sections "Overview" and "Inject and replace".
 
-- **Direct file overwrite:** a mod file with the same path and filename as a vanilla file, a DLC
-  file, or another mod's file takes precedence. The mod that is lower in the playlist wins. The
-  game treats the losing files as if they did not exist. This is a whole-file operation, so you lose
-  anything you omit. It is brittle across patches.
-- **Implicit replace:** in directories that do not use the keyword system, if two files define the
-  same top-level object, the definition that loads later wins, and the game redefines the object.
-  This works only outside keyword directories.
-- **The `INJECT:` and `REPLACE:` keywords:** most `<top_folder>/common/` directories, and some
-  others, require a keyword to change an existing object without a full file overwrite. Implicit
-  replace does not work in these directories. A keyword applies to a top-level block only. You
-  cannot inject into a sub-block.
+- **Direct file overwrite:** a mod file with the *same path and filename* as a base-game/DLC/other-mod
+  file takes precedence; the lower-in-playlist mod wins, and the losing files are treated "as if they
+  did not exist." Whole-file, so anything you omit is lost - brittle across patches.
+- **Implicit replace:** in folders that do **not** use the keyword system, if two files define the
+  same top-level object, the **later-loaded definition wins** (the object is redefined). This works
+  only outside keyword folders.
+- **`INJECT:` / `REPLACE:` keywords:** most `<top_folder>/common/` folders (and some others) require
+  a keyword to modify an existing object without a full file overwrite. Implicit replace does **not**
+  work in these folders. Keywords must sit **directly before a database entry** — that is the file's
+  **top level** in most `common/` folders, but in *container* folders the entry is **one level in**, e.g.
+  `genes/accessory_genes = { <entry> = { … } }`, where vanilla itself writes
+  `INJECT_OR_CREATE:<entry> = { … }` (see `dlc/D008_fate_of_the_phoenix/in_game/common/genes/D008_genes_accessories.txt`).
+  Injecting into a sub-block **below the entry level** is still invalid:
 
   | Keyword | Effect |
   | --- | --- |
@@ -55,12 +57,13 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
   }
   ```
 
-**Rule of thumb:** prefer additive new objects. Use `INJECT:` or `REPLACE:`, or the `TRY_` and
-`_OR_CREATE` variants, for surgical changes in keyword directories. Reserve a full-file overwrite
-for a change to most of a file. `validate_mod` flags a keyword nested in a sub-block as a hard
-ERROR. A top-level object that redefines a vanilla name **without** a keyword is a soft rule: the
-agent checks it with `grep` or `read` against the local game directory. The wiki does not yet
-document the exact list of keyword directories, and marks it "TBA".
+**Rule of thumb:** prefer additive new objects; use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
+variants) for surgical changes in keyword folders; reserve full-file overwrite for when you must
+change most of a file. `validate_mod` flags a keyword nested below the entry level as a **WARN** (not a
+hard error — container folders legitimately nest entries one level in, and vanilla does so); whether a
+top-level object redefines a vanilla name **without** a keyword is a soft rule the agent checks with
+`grep`/`read` against the local game directory (the exact list of keyword folders is not yet fully
+documented on the wiki - marked "TBA").
 
 ## 2. Load order (ASCII order, and a subdirectory after its parent)
 
@@ -145,10 +148,12 @@ missing picture file only when other images **are** versioned.
 
 ---
 
-## Going deeper (semantic validation that the linter cannot do)
+## Going deeper (semantics the linter does not check)
 
-The linter checks **syntax and conventions only**. For scope, type, and effect correctness, and for
-exact vanilla values, follow the lookup hierarchy in [`INDEX.md`](INDEX.md).
+The linter checks syntax, conventions, and **name-level semantics** (do the effect, trigger, and
+modifier names exist; does an `INJECT:`/`REPLACE:` target exist; does a new object have its
+localization keys). For **scope and type** correctness, and for exact vanilla values, follow the
+lookup hierarchy in [`INDEX.md`](INDEX.md).
 
 - **Game-generated dumps:** `docs/script_docs/` and `docs/data_types/` list the valid effects,
   triggers, scopes, modifiers, and data types for the current game version. They are the

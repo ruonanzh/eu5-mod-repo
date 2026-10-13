@@ -1,5 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { isValidModId } from "../lib/mod-identity";
+import { analyzeSemantics } from "../lib/mod-semantics";
 import { Type } from "typebox";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, resolve, sep, basename } from "node:path";
@@ -7,7 +8,7 @@ import { join, relative, resolve, sep, basename } from "node:path";
 /**
  * validate_mod - the EU5 mod validation tool for the pdx-script mod type.
  * It was ported from lint_mod.py in eu5-starry-night-project, and it checks syntax and convention
- * rules only:
+ * rules, and then the name-level semantic checks in ../lib/mod-semantics:
  *   - metadata.json: presence, valid JSON, a top-level object, a semver version, the standard
  *     fields, and the picture entry.
  *   - Localization YAML: the UTF-8 BOM, the encoding, the `_l_<lang>` filename, the `l_<lang>:`
@@ -17,6 +18,9 @@ import { join, relative, resolve, sep, basename } from "node:path";
  *     The tool checks the UTF-8 encoding, the `{` and `}` balance, and the `"` balance, with
  *     awareness of `#` comments and multiline strings. It also checks that the INJECT: and REPLACE:
  *     family starts only at a top-level block.
+ *   - Semantics (name level, in ../lib/mod-semantics): the effect, trigger, and modifier names
+ *     exist; the INJECT: and REPLACE: targets exist in the same database directory; and a new
+ *     object has its localization keys.
  *
  * The contract is in docs/mod-repo-guide.md section 3.1 and game-mod-guide/eu5.md section 6. The tool
  * is read-only, and it has no third-party dependency. Its content output uses PASS or FAIL with NEXT,
@@ -485,10 +489,11 @@ function checkBraceQuoteBalance(cleaned: string): BalanceResult {
 }
 
 /**
- * A keyword of the INJECT: or REPLACE: family may appear only at a top-level block, in the form
- * `KEYWORD:key = {`. The tool scans the depth with awareness of comments and strings. An ERROR
- * follows a keyword at depth greater than zero, and a top-level keyword that is not followed by
- * `key = {`.
+ * A keyword of the INJECT: or REPLACE: family must sit directly before a *database entry*, in the
+ * form `KEYWORD:key = {`. The tool scans depth with awareness of comments and strings. A keyword
+ * nested below the entry level is a WARN (container folders legitimately nest entries one level in -
+ * e.g. `genes/accessory_genes` - and vanilla itself does so), and a keyword not followed by `key = {`
+ * is an ERROR.
  */
 function checkOverrideKeywords(cleaned: string): Finding[] {
   const findings: Finding[] = [];
@@ -529,10 +534,14 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
       if (hasKw && depth > 0) {
+        // Downgraded to warn (was error): the rule should be "directly before a database entry", and the *entry level* differs from directory to directory
+        // (in most common/ directories the entry level is the file top level, and in container directories such as genes/ it is the level inside `accessory_genes = { <entry> = {} }`
+        //  one level in). vanilla writes it that way itself: dlc/D008_fate_of_the_phoenix/in_game/common/genes/
+        //  D008_genes_accessories.txt has 6 occurrences of `INJECT_OR_CREATE:` and every one of them sits inside accessory_genes.
         findings.push({
-          severity: "error",
+          severity: "warn",
           rel: "",
-          message: `line ${line}: '${m.groups.kw}' override keyword must be at a top-level block, not nested`,
+          message: `line ${line}: '${m.groups.kw}' override keyword is nested at depth ${depth}. It must sit directly before a database entry. In most common/ folders the entry is the file's top level. In a container folder such as genes/accessory_genes the entry is one level in. The vanilla files do this too.`,
         });
       }
       // Skip the whole `[KEYWORD:]key = {` up to the `{`, so the next round counts that brace.
@@ -582,7 +591,8 @@ function checkPdxScript(modRoot: string): Finding[] {
     if (!bal.ok && bal.message)
       findings.push({ severity: "error", rel, message: bal.message });
     for (const f of checkOverrideKeywords(cleaned)) {
-      findings.push({ severity: "error", rel, message: f.message });
+      // Keep the severity that checkOverrideKeywords gives itself (a nested keyword is warn, not error)
+      findings.push({ severity: f.severity ?? "error", rel, message: f.message });
     }
   }
   return findings;
@@ -595,7 +605,7 @@ export default function (pi: ExtensionAPI) {
     name: "validate_mod",
     label: "Validate Mod",
     description:
-      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks the rule that INJECT: and REPLACE: stay at the top level. It checks syntax and conventions only, and it is not a scope or type validator.",
+      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks one convention rule: an INJECT: or REPLACE: keyword must sit directly before a database entry. A keyword at a lower depth is a WARN. The tool then runs the name-level semantic checks. An effect, a trigger, or a modifier name must exist. An INJECT: or REPLACE: target must exist. A new object must have its localization keys. It is not a scope or type validator.",
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
       "Use validate_mod after you write a mod, to check that it passes the rules.",
@@ -628,6 +638,18 @@ export default function (pi: ExtensionAPI) {
       ];
       const errors = findings.filter((f) => f.severity === "error");
       const warnings = findings.filter((f) => f.severity === "warn");
+      const semantic = analyzeSemantics(modDir);
+
+      // Append the semantic lines as their own paragraph to content (the agent reads only content, and details never enter its view).
+      // w.message already starts with `semantic: `, so this place does not add the prefix a second time.
+      const semanticLines = semantic.warnings
+        .slice(0, MAX_CONTENT_LINES)
+        .map((w) => `${w.level === "note" ? "NOTE" : "WARN"}: ${w.message}`);
+      if (semantic.warnings.length > MAX_CONTENT_LINES) {
+        semanticLines.push(
+          `... ${semantic.warnings.length - MAX_CONTENT_LINES} more semantic warning(s) omitted`,
+        );
+      }
 
       const name = modDir.split(/[\\/]/).pop() || modDir;
       const lines: string[] = [];
@@ -638,6 +660,7 @@ export default function (pi: ExtensionAPI) {
         for (const w of warnings.slice(0, MAX_CONTENT_LINES)) {
           lines.push(`WARN: ${w.rel}: ${w.message}`);
         }
+        lines.push(...semanticLines);
       } else {
         lines.push(
           `FAIL: ${name} has ${errors.length} error(s), ${warnings.length} warning(s)`,
@@ -650,6 +673,7 @@ export default function (pi: ExtensionAPI) {
             `... ${errors.length - MAX_CONTENT_LINES} more error(s) omitted`,
           );
         }
+        lines.push(...semanticLines);
         lines.push(`NEXT: fix the errors above and re-run validate_mod.`);
       }
 
@@ -659,6 +683,10 @@ export default function (pi: ExtensionAPI) {
           ok: errors.length === 0,
           errors: errors.map((e) => `${e.rel}: ${e.message}`),
           warnings: warnings.map((w) => `${w.rel}: ${w.message}`),
+          semantic: {
+            checked: semantic.checked,
+            warnings: semantic.warnings,
+          },
         },
       };
     },

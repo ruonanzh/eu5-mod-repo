@@ -73,4 +73,6 @@ Keep these in mind while you write a mod. They prevent most `validate_mod` failu
 
 After you finish or change a mod, run `validate_mod` on `your_mods/<ModName>/`.
 Clear every ERROR before you end the turn.
-The tool checks syntax and conventions only. It is not a semantic validator.
+The tool checks syntax, conventions, and **name-level semantics**: that effect, trigger, and modifier
+names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
+keys. It is not a scope or type validator.

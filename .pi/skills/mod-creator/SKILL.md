@@ -155,13 +155,13 @@ file.
 
 Call `validate_mod` with `modDir = your_mods/<ModName>/`.
 
-- `PASS: <name> is valid` means the static syntax and convention check passed. It does not mean the
-  mod ran in the game.
+- `PASS: <name> is valid` means the static syntax, convention, **and name-level semantic** checks
+  passed. It does not mean the mod ran in the game.
 - `FAIL: <reason>` gives one reason per line, in English, and points at the offending file or field.
   Use the `NEXT:` line to locate it. Fix every ERROR, and do not modify another mod.
-- The tool is a **syntax and convention linter**, not a semantic validator. It cannot catch a
-  misspelled effect, trigger, or modifier, and it cannot catch a wrong scope. Use `how-to-speak` to
-  report the result to the player.
+- The tool checks syntax, conventions, and **name-level semantics**: a misspelled effect, trigger, or
+  modifier name, a missing `INJECT:`/`REPLACE:` target, and a new object without localization keys.
+  It does **not** check scope or type. Use `how-to-speak` to report the result to the player.
 
 ## Common errors
 

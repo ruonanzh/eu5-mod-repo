@@ -96,9 +96,11 @@ and `Mod_files_load_order`, section "Localization".
 - **Header:** the first content line is `l_<lang>:`, and it must match the language **directory**
   (`.../localization/simp_chinese/...` gives `l_simp_chinese:`).
 - **Entry format:** an indented `  key: "value"`, or `  key:0 "value"` with an explicit version
-  number. The value is double-quoted, so keep the quotes balanced. Placeholders such as
-  `[Scope.GetName]`, escapes such as `\n`, and nested calls such as `[Localize('other_key')]` all
-  live inside the quoted value.
+  number. The value starts at the first `"` and ends at the last unescaped `"` on the same line,
+  so an inner `"` and a doubled `""` are both legal (vanilla writes `""L'État, c'est moi!""`). A
+  value that does not start with `"`, or that is never closed by a `"` at the end of its line, is
+  an error. Placeholders such as `[Scope.GetName]`, escapes such as `\n`, and nested calls such as
+  `[Localize('other_key')]` all live inside the quoted value.
 - **Overriding vanilla loc keys:** the reliable mechanism is a `replace` **subdirectory**,
   `<lang>/replace/overwriting_l_<lang>.yml`. Keys there overwrite identical keys elsewhere. Outside
   `replace/`, the precedence between duplicate keys is version-sensitive. The `Localization` page

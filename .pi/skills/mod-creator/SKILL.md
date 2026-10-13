@@ -102,8 +102,9 @@ The files are `**/localization/**/*.yml`, under `in_game/` and `main_menu/`.
   `printf '\xEF\xBB\xBF' | cat - <file> > tmp && mv tmp <file>`.
 - The filename must end with `_l_<language>`, which matches the language directory.
 - The first content line is `l_<lang>:`, and it must match the directory.
-- An entry is `  key: "value"` or `  key:0 "value"` with an explicit version. Put the value in
-  double quotes, keep the quotes balanced, and keep the `[` and `]` placeholders balanced.
+- An entry is `  key: "value"` or `  key:0 "value"` with an explicit version. The value starts
+  and ends with a double quote on the same line, so an inner `"` and a doubled `""` are legal. A
+  value with no closing `"` on its line is an error. Keep the `[` and `]` placeholders balanced.
 - One file must not hold duplicate keys.
 - To override a vanilla loc key, use a `replace/` subdirectory:
   `<lang>/replace/overwriting_l_<lang>.yml`. Keys there overwrite identical keys elsewhere.
@@ -180,9 +181,9 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
 - `FAIL: localization file is not UTF-8 with BOM`: save the file as UTF-8 **with BOM** (`EF BB BF`).
 - `FAIL: filename must end with _l_<language>`: rename the file to `<name>_l_<language>.yml`.
 - `FAIL: missing/incorrect l_<lang>: header`: the first content line must be `l_<lang>:`.
-- `FAIL: key line not in 'key: "value"' form`: write `  key: "value"` with double quotes that are
-  balanced.
-- `FAIL: unbalanced { }` or `unbalanced "`: fix the brace or quote balance.
+- `FAIL: key line not in 'key: "value"' form`: write `  key: "value"` with a closing double quote
+  on the same line.
+- `FAIL: unbalanced { }` or `unbalanced "`: fix the brace balance or add the missing closing quote.
 - `FAIL: INJECT:/REPLACE: must be in a top-level block`: move the keyword to the top level.
 
 ## Semantic lookup path

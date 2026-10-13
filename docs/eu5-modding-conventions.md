@@ -146,6 +146,31 @@ missing picture file only when other images **are** versioned.
 - Do not leave scratch files or backup files under `your_mods/<name>/`. Examples: `temp_*`,
   `_tmp_*`, and editor backups.
 
+## 7. Choosing an entry mechanism (five entry points, four families)
+
+EU5 hooks new content into the game through a small number of **entry points**. They are not
+interchangeable: a feature that reports a one-off choice is an event, a feature that keeps running
+is a situation, and a feature that puts a button on an existing screen is a scripted GUI. Most mods
+need one of them at most, and many need none.
+
+Pick the entry **before** you write script, and then read only that entry's material:
+
+| Entry point | Use it when | Defined in / read this example |
+| --- | --- | --- |
+| `character_interactions` | The action becomes available **after the player selects a character** (the interaction fires on that character). | `in_game/common/character_interactions/`, for example `dismiss_artist.txt` |
+| `scripted_gui` | The feature needs a **custom panel** (its own buttons or widgets on the interface). | the definition in `in_game/common/scripted_guis/` and the layout under `in_game/gui/`, for example `in_game/common/scripted_guis/economy_satisfaction_target.txt` |
+| `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers; the action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` |
+| `events` | The feature surfaces as an **event popup** (a one-off window with a choice or a notification). | `in_game/events/`, for example `ages.txt` |
+| `situations` | The feature is a **persistent state** (it stays active, is visible to a subset of countries, and runs until its end condition is met). | `in_game/common/situations/`, for example `black_death.txt` |
+
+The four families are a **target interaction** (`character_interactions`), a **panel**
+(`scripted_gui`), an **action** (`generic_actions`), and **event-driven content** (`events` for the
+one-off popup, `situations` for the persistent state).
+
+**Decide this before you write any script: does this version need its own panel, or any new entry
+point at all?** If it does, read this document and one existing example end to end in one pass, then
+write. If it does not, skip this whole page.
+
 ---
 
 ## Going deeper (semantics the linter does not check)

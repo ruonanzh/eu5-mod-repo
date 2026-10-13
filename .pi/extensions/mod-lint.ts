@@ -405,13 +405,17 @@ function checkMetadata(modRoot: string): Finding[] {
             statSync(f, { throwIfNoEntry: false })?.isFile()
           );
         });
-      if (versioned.length > 0) {
-        findings.push({
-          severity: "warn",
-          rel,
-          message: `picture '${picture}' not found, but other image files are versioned here (possible filename mismatch)`,
-        });
-      }
+      // The file is missing, so always warn. The wording depends on whether the mod has other
+      // images: with one or more, a filename mismatch is the likely cause; with none, the mod
+      // simply has no image, and the mismatch hint would be false.
+      findings.push({
+        severity: "warn",
+        rel,
+        message:
+          versioned.length > 0
+            ? `picture '${picture}' not found, but other image files are versioned here (possible filename mismatch)`
+            : `picture '${picture}' not found, and the mod has no image file (the value must name an existing file in the mod root or .metadata/)`,
+      });
     }
   }
   return findings;

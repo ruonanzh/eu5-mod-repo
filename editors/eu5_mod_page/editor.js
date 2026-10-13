@@ -8,7 +8,8 @@
  * 玩家说「批注好了」时，agent 从那里读。
  *
  * 桥就是 EditorHost.tsx 那一套：`editor:init` 与 `editor:theme` 进来，`editor:readFile` 与
- * `editor:save` 出去。
+ * `editor:save` 出去。两条消息都带 `theme`（`dark` 或 `light`）与 `fontFamily`（宿主当前生效的
+ * 界面字体栈），面板照它设 `body[data-theme]` 与 `--app-font`。
  */
 const FEEDBACK_ID = "pi-page-feedback";
 const SCRIPT_RE = new RegExp(`<script[^>]*id="${FEEDBACK_ID}"[^>]*>[\\s\\S]*?</script>\\s*`, "i");
@@ -464,17 +465,25 @@ saveButton.addEventListener("click", async () => {
 
 /* ---------- 宿主桥 ---------- */
 
+/** 宿主给的两样：明暗主题，和它当前生效的界面字体栈（皮肤可能换字体）。 */
+function setTheme(data) {
+  if (data.theme) document.body.dataset.theme = data.theme;
+  if (typeof data.fontFamily === "string" && data.fontFamily) {
+    document.documentElement.style.setProperty("--app-font", data.fontFamily);
+  }
+}
+
 window.addEventListener("message", (event) => {
   const data = event.data ?? {};
   if (data.type === "editor:init") {
     writable = data.writable === true;
-    if (data.theme) document.body.dataset.theme = data.theme;
+    setTheme(data);
     if (!writable) saveButton.title = "这个文件在 mod 之外，不能写入。";
     post({ type: "editor:readFile", requestId: `r${++seq}` });
     return;
   }
   if (data.type === "editor:theme") {
-    if (data.theme) document.body.dataset.theme = data.theme;
+    setTheme(data);
     return;
   }
   if (data.type === "editor:fileContent") {

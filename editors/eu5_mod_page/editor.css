@@ -1,5 +1,8 @@
 /* EU5 mod page editor. Follows the host theme through body[data-theme]. */
 :root {
+  /* 宿主会在 editor:init / editor:theme 里用行内样式覆盖它（当前生效的界面字体栈，
+     皮肤不同可能不同）。这里的值是没有宿主消息时的兜底。 */
+  --app-font: "Departure Mono", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", monospace;
   --bg: #ffffff;
   --fg: #1c1c1e;
   --muted: #6b6b70;
@@ -48,7 +51,7 @@ body {
   flex-direction: column;
   background: var(--bg);
   color: var(--fg);
-  font: 13px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 13px/1.6 var(--app-font);
 }
 
 #bar {

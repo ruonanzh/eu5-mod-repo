@@ -39,6 +39,9 @@ const STANDARD_METADATA_FIELDS = [
 ];
 const IMAGE_EXTS = new Set([".png", ".dds", ".jpg", ".jpeg", ".tga"]);
 const SEMVER_RE = /^\d+\.\d+(\.\d+)?$/;
+// A minor-level wildcard ("1.*") names no concrete game version. A patch-level wildcard
+// ("1.3.*") still names the minor release, so only the minor-level form is too loose.
+const LOOSE_GAME_VERSION_RE = /^\d+\.\*$/;
 const PUA_RE = /[\ue000-\uf8ff]/;
 const LOC_KEY_RE = /^\s+(?<key>[^\s:#][^:]*):(?<ver>\d*)\s*(?<rest>.*?)\s*$/;
 const LOC_HEADER_RE = /^\ufeff?\s*l_(?<lang>[a-z_]+):(?<tail>.*)$/;
@@ -358,6 +361,19 @@ function checkMetadata(modRoot: string): Finding[] {
         rel,
         message: `missing expected field '${field}' (EU5 wiki metadata.json standard structure)`,
       });
+  }
+  // The field presence check above does not read the value. A value such as "1.*" matches every
+  // 1.x release and tells the player nothing about the supported game version, so warn. A concrete
+  // value ("1.0.4") and a patch-level wildcard ("1.3.*") stay silent.
+  if (
+    typeof obj.supported_game_version === "string" &&
+    LOOSE_GAME_VERSION_RE.test(obj.supported_game_version.trim())
+  ) {
+    findings.push({
+      severity: "warn",
+      rel,
+      message: `supported_game_version '${obj.supported_game_version}' is too loose; prefer a concrete version such as 1.0.4`,
+    });
   }
   if (
     typeof obj.version === "string" &&

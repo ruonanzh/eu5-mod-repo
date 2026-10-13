@@ -2,8 +2,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
 /**
- * install_runtime - the runtime contract (mod-repo-guide section 4, and
- * game-mod-guide/eu5.md section 7).
+ * install_runtime - the runtime contract.
  *
  * An EU5 mod is pure PDXScript. There is no compilation, no SDK, and no runtime to install, so
  * install_runtime always succeeds. The player must install the game itself. try_set_game_dir

@@ -16,7 +16,7 @@ import { checkModInstallDir, readModRepoConfig, readState } from "../lib/game-pa
 import { readModIdentity } from "../lib/mod-identity";
 
 /**
- * install_mod - the EU5 (pdx-script) install contract (mod-repo-guide section 4.1).
+ * install_mod - the EU5 (pdx-script) install contract.
  *
  * It copies your_mods/<id>/ into the mod install directory, which is the modInstallDir value in
  * .gamer-agent.local.json. try_set_game_dir writes that value, and this tool does not search for the

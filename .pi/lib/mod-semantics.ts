@@ -1,36 +1,36 @@
 /**
- * mod-semantics — EU5 mod 语义校验（名字级，基于 dumps/vanilla 词典）。
+ * mod-semantics - name-level semantic validation for an EU5 mod (against the dumps and the vanilla dictionary).
  *
- * 它是 `validate_mod` 的语义部分（语法与约定在 mod-lint.ts）；查三类用语法检查查不出来的名字问题
- * （EU5 里名字打错常常静默失败）：
- *   - C1  REPLACE:/INJECT: 目标存在性：顶层 `^(REPLACE|INJECT|TRY_REPLACE|TRY_INJECT|
- *         REPLACE_OR_CREATE|INJECT_OR_CREATE):\s*(\w+)\s*=`，目标名须在**同一类数据库**
- *         （同一 `common/<目录>/`；in_game 与 main_menu 合并）的 vanilla 或本 mod 里存在。
- *         REPLACE:/INJECT: 缺失 → WARN；TRY_* / _OR_CREATE → NOTE（常是故意的，永不 FAIL）。
- *         `game-scripts/game/` 缺失/空时跳过 vanilla 侧核对并给 NOTE。
- *         注：vanilla 严格 = 真原版 `game-scripts/game/**`；`game-scripts/workshop/**`
- *         （他 mod 镜像）不算 vanilla（见下方 vanillaRoot 注释）。
- *         `INJECT:<name>` 且 name ∈（本 mod ∪ vanilla）的 scripted_effects/scripted_triggers
- *         顶层定义名 → WARN `semantic:c1-inject-scripted`（wiki：INJECT 对二者无效、会整体覆盖）。
- *         只查 `INJECT:`；`REPLACE:`（合法替换）/ `TRY_INJECT:` / `*_OR_CREATE` 不在内。
- *   - C2  粘性上下文拼写校验：只查 effect/trigger/modifier 左值；长度 ≥8、不扫裸值、
- *         参数块退出、排除 mod 自己定义的名；编辑距离 ≤2 给出 did-you-mean。
- *         **容器名单来自 `docs/script_docs` 的结构示例解析**（示例含 `<effects>`/`<triggers>`
- *         ⇒ 该名字的 body 是 effect/trigger 列表 ⇒ 进 context；见 loadContainerModel）；
- *         **已知名**集合 = effects ∪ triggers ∪ modifiers ∪ event_targets ∪ on_actions ∪
- *         custom_localization ∪ vanilla（`game-scripts/game/**`）键名 ∪ 合法结构字段
- *         （候选名在「已知名」里 ⇒ 放过，不作候选；见 checkCandidate）。
- *         块名不是 effect/trigger 的**结构字段**（option / immediate / potential / visible /
- *         modifier 左值表族 / 数据驱动目录 …）仍是手写名单：script_docs 提供不了，依据是
- *         文件结构 + 实际语料（见 CONTEXT_ENTER_NAMES / TRIGGER_CONTAINER_NAMES /
- *         DATA_DRIVEN_CONTEXT_DIRS 的 JSDoc）。该名单**已冻结**：新增覆盖须经确认。
- *   - C3  新对象缺 loc key：mod 新加的建筑/商品须有 `<id>` + `<id>_desc` 的 loc key；
- *         只查 mod 已提供的语言（各语言分别报；一个语言都没提供时按基语言 english 判定）；
- *         in_game 与 main_menu 的 localization/ 都算合法。vanilla 侧同 C1：只算
- *         `game-scripts/game/**`（排除 workshop 镜像）。
+ * It is the semantic part of `validate_mod` (the syntax and the conventions live in mod-lint.ts). It looks for three classes of name problem that a syntax check cannot find
+ * (in EU5 a misspelled name often fails silently):
+ *   - C1  Existence of a REPLACE:/INJECT: target: a top-level `^(REPLACE|INJECT|TRY_REPLACE|TRY_INJECT|
+ *         REPLACE_OR_CREATE|INJECT_OR_CREATE):\s*(\w+)\s*=`, where the target name must exist in the **same class of database**
+ *         (the same `common/<directory>/`, with in_game and main_menu merged), either in vanilla or in this mod.
+ *         A missing REPLACE:/INJECT: target gives WARN, and TRY_* or _OR_CREATE gives NOTE (often intentional, and never FAIL).
+ *         If `game-scripts/game/` is absent or empty, the check skips the vanilla side and gives NOTE.
+ *         Note: vanilla in the strict sense means the real original `game-scripts/game/**`, and `game-scripts/workshop/**`
+ *         (the mirror of other mods) does not count as vanilla (see the vanillaRoot comment below).
+ *         An `INJECT:<name>` whose name is in (this mod union vanilla) and is a top-level definition name
+ *         in scripted_effects or scripted_triggers gives WARN `semantic:c1-inject-scripted` (the wiki states that INJECT has no effect on those two and overwrites the whole original definition).
+ *         Only `INJECT:` is checked. `REPLACE:` (a legal replace), `TRY_INJECT:`, and `*_OR_CREATE` are outside this rule.
+ *   - C2  Spelling check inside a sticky context: only effect, trigger, and modifier left-hand values are checked, the value must be 8 characters or longer, and no bare value is scanned.
+ *         A parameter block exits the context, and a name the mod defines itself is excluded. An edit distance of 2 or less gives a did-you-mean.
+ *         **The container name list comes from parsing the structure examples in `docs/script_docs`** (an example that holds `<effects>` or `<triggers>`
+ *         means the body of that name is an effect or trigger list, so the name enters context, and see loadContainerModel).
+ *         The **known name** set is effects union triggers union modifiers union event_targets union on_actions union
+ *         custom_localization union the key names in vanilla (`game-scripts/game/**`) union the legal structure fields
+ *         (a candidate name that is in the known name set passes through and never becomes a candidate, and see checkCandidate).
+ *         A **structure field** whose block name is not an effect or a trigger (option, immediate, potential, visible,
+ *         the modifier left-hand value table family, a data driven directory, and others) is still a hand written list. script_docs cannot supply it, so the evidence is
+ *         the file structure plus the actual corpus (see CONTEXT_ENTER_NAMES, TRIGGER_CONTAINER_NAMES, and
+ *         the JSDoc of DATA_DRIVEN_CONTEXT_DIRS). That list is **frozen**, and a new entry needs confirmation.
+ *   - C3  A new object that lacks a loc key: a building or a good that the mod adds must have a loc key for `<id>` and one for `<id>_desc`.
+ *         Only the languages the mod already provides are checked (each language reports separately, and when the mod provides no language at all the check uses the base language english).
+ *         A localization/ directory under in_game and one under main_menu are both legal. The vanilla side matches C1, so it counts only
+ *         `game-scripts/game/**` (the Workshop mirror is excluded).
  *
- * 契约：只读、零第三方依赖；接口字段/返回文案一律 ASCII/英文（Windows GBK 会乱码）。
- * 语义项默认 WARN，不 FAIL。
+ * Contract: read only, with zero third party dependencies. Interface fields and return text are always ASCII or English (Windows GBK turns any other byte into garbage).
+ * A semantic item gives WARN by default, and never FAIL.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -38,7 +38,7 @@ import { dirname, join, resolve } from "node:path";
 export interface SemanticWarning {
   code: string;
   message: string;
-  /** warn = 建议修；note = 提示（TRY_* / _OR_CREATE 常是故意不命中，永不 FAIL）。缺省 warn。 */
+  /** warn means fix it, and note means only a hint (TRY_* or _OR_CREATE often misses on purpose, and never FAILs). The default is warn. */
   level?: "warn" | "note";
 }
 
@@ -47,58 +47,58 @@ export interface SemanticResult {
   warnings: SemanticWarning[];
 }
 
-// ---- C1：REPLACE:/INJECT: 目标存在性 ----
+// ---- C1: existence of a REPLACE:/INJECT: target ----
 
-/** 覆盖关键字族（与 mod-lint.ts 的 OVERRIDE_KEYWORD_RE 同源，含 TRY_*_OR_CREATE 组合）。 */
+/** The override keyword family (the same source as OVERRIDE_KEYWORD_RE in mod-lint.ts, and it includes the TRY_*_OR_CREATE combination). */
 const OVERRIDE_KEYWORD = "(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?";
-/** 顶层覆盖声明：`KEYWORD:name =`（name 按方案用 `\w+`）。 */
+/** A top-level override declaration, that is `KEYWORD:name =` (the name uses `\w+` by design). */
 const OVERRIDE_DECL_RE = new RegExp(`^(${OVERRIDE_KEYWORD}):\\s*(\\w+)\\s*=`);
-/** 顶层普通对象定义：`name =`。 */
+/** A top-level ordinary object definition, that is `name =`. */
 const TOPLEVEL_DEF_RE = /^(\w+)\s*=/;
 /**
- * A21：**顶层内联** scripted 定义声明头 —— `scripted_trigger <名> = {` / `scripted_effect <名> = {`
- * （`<名>` 可含 `.`）。`TOPLEVEL_DEF_RE` 匹配不到这种形态（关键字在最前，不是名字）⇒ 内联定义名
- * 不进 `modDefinedNames` / `modScriptedNames`。见 `topLevelInlineScriptedNames`。
+ * The declaration header of a **top-level inline** scripted definition, that is `scripted_trigger <name> = {` or `scripted_effect <name> = {`
+ * (the `<name>` may contain `.`). `TOPLEVEL_DEF_RE` cannot match that form (the keyword comes first and is not the name), so an inline definition name
+ * never enters `modDefinedNames` or `modScriptedNames`. See `topLevelInlineScriptedNames`.
  *
- * A22：`=` 与 `{` 之间**允许换行**（含 `\r`，兼容 CRLF）—— 收口 A21 明文留下的边界：
- * `scanStickyContext` 找 `=` / `{` 时用 `isWs`（**含 `\n`**）⇒ **多行声明头**
- * （`scripted_effect set_variables =` + 换行 `{`）的 body 被放行；但这条正则原先要求 `名 = {`
- * **同行** ⇒ 同一形态的**定义名**不进自定义名集合 ⇒ 调用该名时仍被报（修前 1 条误报）。
- * ⇒ 把**这一处**间隔放宽到与 `isWs` **同集合**（空格/制表/换行/回车），其余口径不动：
- * 行首锚 `^[ \t]*` 与「关键字在**行首**」的判据保持（A21 的收紧不回归）。
- * **不放宽**「关键字→名」「名→`=`」两处间隔（那两种换行形态 vanilla 与 33 真实 mod 均 **0 处**；
- * 放宽只会扩大自定义名集合、属**缩小**检测面，但无实测依据 ⇒ 按卡 `A22` 的最小面处理）。
- * 注意：本条与 `isInlineScriptedKeywordAtLineStart()` 是**同一判据的两个实现**，本卡的起因正是两者漂移；
- * 只改这一处时，务必核对两者对「间隔空白」的口径一致（见 `topLevelInlineScriptedNames` 的 JSDoc）。
+ * A newline is **allowed** between `=` and `{` (including `\r`, for CRLF compatibility). This closes a boundary the earlier rule left explicit:
+ * `scanStickyContext` uses `isWs` (**which includes `\n`**) while it looks for `=` and `{`, so the body of a **multi-line declaration header**
+ * (`scripted_effect set_variables =` followed by a newline and `{`) passes through. That regular expression however required `name = {` on
+ * **the same line**, so a **definition name** in that same form never entered the set of custom names, and a call to that name was still reported (one false report before the fix).
+ * So **this one place** is relaxed to the **same set** as `isWs` (space, tab, newline, carriage return), and every other criterion stays as it was:
+ * the line start anchor `^[ \t]*` and the rule that the keyword sits at the **line start** stay in place (the earlier tightening does not regress).
+ * The two gaps of "keyword to name" and "name to `=`" are **not** relaxed (vanilla and 33 real mods have **0 places** of either newline form,
+ * and a relaxation would only widen the set of custom names and thus **narrow** the detection surface, but no measurement supports it. That case is handled at its minimum surface).
+ * Note: this item and `isInlineScriptedKeywordAtLineStart()` are **two implementations of the same rule**, and the drift between them is exactly what started this change.
+ * When only this place changes, check that both implementations agree on the "separating whitespace" (see the JSDoc of `topLevelInlineScriptedNames`).
  */
 const INLINE_SCRIPTED_DECL_RE =
   /^[ \t]*(?:scripted_trigger|scripted_effect)[ \t]+([A-Za-z_]\w*(?:\.[A-Za-z0-9_]+)*)[ \t]*=[ \t\r\n]*\{/i;
 
 /**
- * T7：wiki `Modding/Mod_structure.md` 明说 **INJECT 对 scripted effects / scripted triggers 无效** ——
- * 用在它们身上会把**原定义整体覆盖**（静默陷阱：作者以为在追加，实际是替换）。
- * 本 mod 侧的 scripted 顶层定义名见 `modScriptedNames`；vanilla 侧从 vanilla 根下这两个目录取
- * （vanilla 严格 = `game-scripts/game/**`，与 C1 同口径）。
+ * The wiki page `Modding/Mod_structure.md` states that **INJECT has no effect on scripted effects and scripted triggers**.
+ * Using it on them **overwrites the whole original definition** (a silent trap, because the author believes the mod appends while it actually replaces).
+ * The scripted top-level definition names on the mod side are in `modScriptedNames`, and the vanilla side comes from those two directories under the vanilla root
+ * (vanilla in the strict sense means `game-scripts/game/**`, which matches C1).
  */
 const SCRIPTED_CATEGORIES = ["scripted_effects", "scripted_triggers"] as const;
 
-/** 该 `<目录>` 是否是 scripted effect/trigger 的数据库目录（T9：T7 判定按声明自身 category 收窄时要用）。 */
+/** Whether that `<directory>` is a database directory for a scripted effect or trigger (needed when the scripted-INJECT rule narrows by the category of the declaration itself). */
 function isScriptedCategory(category: string): boolean {
   return (SCRIPTED_CATEGORIES as readonly string[]).includes(category);
 }
 
 /**
- * A8：**行首**的覆盖关键字前缀（`REPLACE:` / `INJECT:` / `TRY_*` / `*_OR_CREATE`）在 C2 扫描前剥掉，
- * 让 `KEYWORD:foo = { … }` 里的 `foo` 重新成为**块名** —— 覆盖体因此等价于「**该目录的一个普通对象**」，
- * 由**既有规则**处置（scripted / 数据驱动目录 → context；其它目录 → neutral）。**不新增任何判据**。
+ * An override keyword prefix at the **line start** (`REPLACE:`, `INJECT:`, `TRY_*`, `*_OR_CREATE`) is stripped before the C2 scan,
+ * so `foo` in `KEYWORD:foo = { … }` becomes a **block name** again. The override body is therefore equal to **an ordinary object of that directory**,
+ * and the **existing rules** decide it (a scripted or a data driven directory gives context, and any other directory gives neutral). **No new rule is added**.
  *
- * 为何必须剥：`scanStickyContext` 的块名判定带 `prev !== ":"` 守卫（防 `scope:actor =` 被当块名），
- * 于是 `REPLACE:foo` 的 `foo` 被跳过、紧随的裸 `{` 只 `push(currentMode())` = neutral
- * ⇒ **覆盖体整块不扫**（`REPLACE:foo = { add_prestigez = 1 }` 在 scripted_effects 里也是 0 条）。
- * 为何安全：只用 `OVERRIDE_KEYWORD`（与 C1 同源）⇒ `scope:actor = {` 这类「`:` 前是 scope 名而非
- * 覆盖关键字」的照旧**不**剥。只在行首（允许前导空白；vanilla 的条目级嵌套覆盖，如
- * `dlc/D008.../in_game/common/genes/D008_genes_accessories.txt:3` 的 `\tINJECT_OR_CREATE:headwear = {`
- * 也是行首缩进）剥，且要求后面确实是 `name =` 形态（`(?=\w+\s*=)`），避免误剥字符串里的同形文本。
+ * Why the strip is necessary: the block name test in `scanStickyContext` carries a `prev !== ":"` guard (it stops `scope:actor =` from counting as a block name),
+ * so the `foo` of `REPLACE:foo` is skipped, and the bare `{` that follows only runs `push(currentMode())`, which is neutral.
+ * So the **whole override body stays unscanned** (`REPLACE:foo = { add_prestigez = 1 }` in scripted_effects also gives 0 items).
+ * Why it is safe: the code uses only `OVERRIDE_KEYWORD` (the same source as C1), so a form such as `scope:actor = {`, where the text before `:` is a scope name and not
+ * an override keyword, is still **not** stripped. The strip happens only at the line start (leading whitespace is allowed, because a vanilla entry level nested override such as
+ * `\tINJECT_OR_CREATE:headwear = {` in `dlc/D008.../in_game/common/genes/D008_genes_accessories.txt:3`
+ * is also indented at the line start), and the text after the prefix must really have the `name =` form (`(?=\w+\s*=)`) so that the same shape inside a string is never stripped.
  */
 const OVERRIDE_PREFIX_LINE_RE = new RegExp(
   `^(\\s*)${OVERRIDE_KEYWORD}:(?=\\w+\\s*=)`,
@@ -108,12 +108,12 @@ function stripOverrideKeywordPrefixes(text: string): string {
   return text.replace(OVERRIDE_PREFIX_LINE_RE, "$1");
 }
 
-/** TRY_* / *_OR_CREATE 是"尽力而为/允许新建"语义，目标缺失是常事 → NOTE，永不 WARN。 */
+/** TRY_* and *_OR_CREATE carry a "best effort" or "creation allowed" meaning, so a missing target is normal and gives NOTE, never WARN. */
 function isAdvisoryKeyword(keyword: string): boolean {
   return keyword.startsWith("TRY_") || keyword.endsWith("_OR_CREATE");
 }
 
-/** 去掉引号字符串外的 '#' 行注释（与 mod-lint.ts 同思路：字符串可跨行）。 */
+/** Strip a '#' line comment that sits outside a quoted string (the same approach as mod-lint.ts, where a string can span lines). */
 function stripLineComments(text: string): string {
   const outLines: string[] = [];
   let inString = false;
@@ -124,7 +124,7 @@ function stripLineComments(text: string): string {
         buf += ch;
         if (ch === '"') inString = false;
       } else if (ch === "#") {
-        break; // 行注释，本行剩余忽略
+        break; // a line comment, so the rest of this line is ignored
       } else {
         buf += ch;
         if (ch === '"') inString = true;
@@ -136,28 +136,28 @@ function stripLineComments(text: string): string {
 }
 
 interface TopLevelScan {
-  /** 顶层普通对象定义名（`name =`，不含覆盖声明；覆盖声明本身不代表目标已存在）。 */
+  /** A top-level ordinary object definition name (`name =`, without an override declaration, because an override declaration itself does not mean the target exists). */
   definitions: Set<string>;
-  /** 顶层覆盖声明 `KEYWORD:name =`。 */
+  /** A top-level override declaration, that is `KEYWORD:name =`. */
   overrides: Array<{ keyword: string; name: string }>;
 }
 
 /**
- * 注释/字符串感知地扫描顶层对象：只认 **depth==0** 的 `name =` 或 `KEYWORD:name =`
- * （行首**允许**前导空白，见下方判据）。
- * `{`/`}` 计数维护 depth，字符串内的括号与关键字不计（与 mod-lint 的 checkOverrideKeywords 同思路）。
+ * Scan the top-level objects with comment and string awareness. Only a `name =` or a `KEYWORD:name =` at **depth==0** counts
+ * (the line start **allows** leading whitespace, and see the rule below).
+ * A `{` and `}` count maintains depth, and a brace or a keyword inside a string never counts (the same approach as checkOverrideKeywords in mod-lint).
  *
- * 判据 = **depth==0**，与行首空白**无关**（A10）：EU5 脚本里顶层对象通常顶格写，但
- * **行首 tab/空格不是语义**。证据（真原版 `game-scripts/game/**`）：**16 个文件里有 35 个
- * 行首缩进的顶层（depth==0）定义**（`vanilla-indent-count.mjs`：advances 19 / modifier_icons 8 /
- * cultures 4 / genes 1 / holy_sites 1 / religious_aspects 1 / script_values 1），如
- * `in_game/common/advances/country_byz.txt:3` 的 `\tbyz_heart_of_orthodoxy_advance = {`。
- * 旧实现用「`i-1 === "\n"` 行首紧贴 + `^` 锚定」，只要该行行首有空白，两个 `^` 都失配 ⇒
- * **depth==0 的顶层定义 / 覆盖声明整类漏解析**（C1 假阴、C1 假阳、C3 假阴）。
- * 与 mod-lint 的 `checkOverrideKeywords` **同口径**：那里本来就是 `^[ \t]*<KEYWORD>:`。
- * 注意：本函数只处理 **depth==0** 的行首空白；depth>0 的条目级 override 关键字
- * （如 `D008_genes_accessories.txt` 里 `accessory_genes = {` **内部**的 6 条 `\tINJECT_OR_CREATE:`，
- * 实测 depth==1）属**语法层**（checkOverrideKeywords / A11 / T7），不在 C1/C3。
+ * The rule is **depth==0**, and it is **independent** of leading whitespace. A top-level object in an EU5 script usually starts at column zero, but
+ * **a leading tab or space carries no meaning**. The evidence (the real original under `game-scripts/game/**`) is **35 top-level definitions
+ * at depth==0 that start with indentation, across 16 files** (a per-directory count: advances 19, modifier_icons 8,
+ * cultures 4, genes 1, holy_sites 1, religious_aspects 1, script_values 1), for example
+ * `\tbyz_heart_of_orthodoxy_advance = {` in `in_game/common/advances/country_byz.txt:3`.
+ * The old implementation used "`i-1 === "\n"` immediately at the line start plus a `^` anchor", and as soon as the line starts with whitespace both `^` anchors fail to match. So
+ * **a whole class of depth==0 top-level definitions and override declarations went unparsed** (a C1 false negative, a C1 false positive, and a C3 false negative).
+ * The criterion matches `checkOverrideKeywords` in mod-lint, where the pattern was already `^[ \t]*<KEYWORD>:.
+ * Note: this function handles only leading whitespace at **depth==0**. An entry level override keyword at depth>0
+ * (such as the 6 `\tINJECT_OR_CREATE:` lines **inside** `accessory_genes = {` in `D008_genes_accessories.txt`, where the measurement gives depth==1)
+ * belongs to the **syntax layer** (checkOverrideKeywords), and not to C1 or C3.
  */
 function scanTopLevel(cleaned: string): TopLevelScan {
   const definitions = new Set<string>();
@@ -188,8 +188,8 @@ function scanTopLevel(cleaned: string): TopLevelScan {
       i += 1;
       continue;
     }
-    // depth==0 且**行首**（允许行首空白 —— 空白不是语义，理由见函数 JSDoc）：
-    // 先跳过行首空白，再试覆盖声明（更长、更具体），最后试普通定义。
+    // depth==0 and at the **line start** (leading whitespace is allowed, since whitespace carries no meaning, and see the function JSDoc for the reason):
+    // Skip the leading whitespace first, then try the override declaration (longer and more specific), and try the ordinary definition last.
     if (depth === 0 && (i === 0 || cleaned[i - 1] === "\n")) {
       let j = i;
       while (j < n && (cleaned[j] === " " || cleaned[j] === "\t")) j += 1;
@@ -197,7 +197,7 @@ function scanTopLevel(cleaned: string): TopLevelScan {
       const om = OVERRIDE_DECL_RE.exec(window);
       if (om && om.index === 0) {
         overrides.push({ keyword: om[1], name: om[2] });
-        // 不把覆盖声明本身算作「目标已存在」——它正是被核对的对象。
+        // Do not count the override declaration itself as an existing target, because it is exactly the object under check.
         i = j + om[0].length;
         continue;
       }
@@ -216,9 +216,9 @@ function scanTopLevel(cleaned: string): TopLevelScan {
 function readText(abs: string): string | null {
   try {
     const text = readFileSync(abs, "utf8");
-    // 剥离单个前导 UTF-8 BOM（\ufeff）：vanilla 部分文件（如 subject_types/march.txt）
-    // 首字节就是 BOM 且紧跟定义名，若不剥掉会把 `march = {` 挤离行首，导致 C1 漏判为「not found」。
-    // BOM 无任何语义，对所有调用方（definitionsFrom / mod 扫描 / loadScriptDictionary）都安全。
+    // Strip a single leading UTF-8 BOM (\ufeff). Some vanilla files (such as subject_types/march.txt)
+    // start with the BOM byte and the definition name follows it directly, and without the strip the BOM pushes `march = {` away from the line start, so C1 wrongly reports "not found".
+    // The BOM carries no meaning at all, and the strip is safe for every caller (definitionsFrom, the mod scan, and loadScriptDictionary).
     return text.startsWith("\ufeff") ? text.slice(1) : text;
   } catch {
     return null;
@@ -233,7 +233,7 @@ function isDirectory(p: string): boolean {
   }
 }
 
-/** 递归列出目录下所有 .txt 文件（跳过 .git），返回 { abs, rel }（rel 用 `/` 分隔）。 */
+/** List every .txt file under a directory recursively (the .git directory is skipped), and return { abs, rel } (rel uses `/` as the separator). */
 function walkTxtFiles(root: string): Array<{ abs: string; rel: string }> {
   const out: Array<{ abs: string; rel: string }> = [];
   const walk = (dir: string, relDir: string): void => {
@@ -257,8 +257,8 @@ function walkTxtFiles(root: string): Array<{ abs: string; rel: string }> {
 }
 
 /**
- * 从 mod 文件相对路径求 `<目录>`：`{in_game|main_menu}/common/<目录>/…` → `<目录>`。
- * 只认直接挂在 in_game/ 或 main_menu/ 下的 common/；其余（README/tools/…）返回 null。
+ * Derive the `<directory>` from the relative path of a mod file, that is `{in_game|main_menu}/common/<directory>/…` gives `<directory>`.
+ * Only a common/ directory directly under in_game/ or main_menu/ counts, and anything else (README, tools, and others) returns null.
  */
 function categoryFromRel(rel: string): string | null {
   const parts = rel.split("/");
@@ -269,7 +269,7 @@ function categoryFromRel(rel: string): string | null {
   return parts[idx + 1];
 }
 
-/** 从 mod 目录向上找仓库根（含 mod-repo.json 的目录），用于定位 game-scripts/。 */
+/** Walk up from the mod directory to find the repository root (the directory that holds mod-repo.json), which locates `game-scripts/`. */
 function findRepoRoot(start: string): string | null {
   let dir = resolve(start);
   for (;;) {
@@ -281,11 +281,11 @@ function findRepoRoot(start: string): string | null {
 }
 
 /**
- * 在 vanilla 根（调用方传 `game-scripts/game/`，见 analyzeSemantics 的 vanillaRoot）下，
- * 按 `<目录>` 收集 `…/common/<目录>/…` 下的 .txt 文件。
- * 不写死层级（game/jomini/dlc 都可能嵌套），用「包含 /common/<目录>/」定位。
- * 注意：调用方**不能**把整棵 `game-scripts/`（含 `workshop/**` 他 mod 镜像）当作 root ——
- * 那正是 A3 的假阴性来源。
+ * Under the vanilla root (the caller passes `game-scripts/game/`, and see vanillaRoot in analyzeSemantics),
+ * collect the .txt files under `…/common/<directory>/…` for each `<directory>`.
+ * The level is never hard coded (game, jomini, and dlc can all be nested), and the code locates a file by the substring `/common/<directory>/`.
+ * Note: the caller **must not** pass the whole `game-scripts/` tree (which includes the `workshop/**` mirror of other mods) as the root, because
+ * exactly that was the source of the earlier false negatives.
  */
 function findVanillaCommonFiles(
   root: string,
@@ -323,7 +323,7 @@ function findVanillaCommonFiles(
   return map;
 }
 
-/** 扫描一组文件里某 `<目录>` 的全部顶层对象名。 */
+/** Scan one `<directory>` for all of its top-level object names across a group of files. */
 function definitionsFrom(files: string[]): Set<string> {
   const defs = new Set<string>();
   for (const f of files) {
@@ -335,20 +335,20 @@ function definitionsFrom(files: string[]): Set<string> {
 }
 
 /**
- * A21：收集**文件顶层**的**内联** scripted 定义名
- * （`scripted_trigger <名> = { … }` / `scripted_effect <名> = { … }`）。
+ * Collect the **inline** scripted definition names at the **file top level**
+ * (`scripted_trigger <name> = { … }` or `scripted_effect <name> = { … }`).
  *
- * 为什么另立收集器：`scanTopLevel` 的 `TOPLEVEL_DEF_RE = /^(\w+)\s*=/` 只认「名字 + `=`」形态，
- * 匹配不到「关键字 + 名 + `=`」⇒ 本 mod 的内联定义名不进 `modDefinedNames` / `modScriptedNames`
- * ⇒ 调用它时被当未知名报出（**既有缺口**，A17/A18 只是把它带进新扫面）。
+ * Why a separate collector exists: `TOPLEVEL_DEF_RE = /^(\w+)\s*=/` in `scanTopLevel` accepts only the "name + `=`" form,
+ * and it cannot match "keyword + name + `=`". So an inline definition name of this mod never enters `modDefinedNames` or `modScriptedNames`,
+ * and a call to that name is reported as an unknown name (**a pre-existing gap** the earlier rules only carry into the new scan surface).
  *
- * 判据与 `scanStickyContext` 的内联定义通路**同源**（A21 与它一并收紧）：
- *  - 关键字在**行首**（前面到行首只有空白）—— 排除 `x = scripted_trigger` 这种**关键字作值**的写法；
- *  - 名字形如 `<段>(.<段>)*`（与 A18 的窄通路一致：`.` 后必须紧接标识符字符）；
- *  - 其后是 `=` 与 `{`（A22：两者之间**允许换行**，与扫描器的 `isWs` 同集合）；
- *  - **只在 brace depth 0**（顶层）—— 嵌套出现同形文本不算定义（自定义名集合只**抑制**候选，
- *    放松口径只会引入假阴，故从严）。
- * 注释由调用方先剥（与 `scanTopLevel` 用同一份 `stripLineComments(text)`）。
+ * The rules share their source with the inline definition path in `scanStickyContext` (both are tightened together):
+ *  - the keyword sits at the **line start** (only whitespace precedes it), which excludes a form such as `x = scripted_trigger` where the **keyword is a value**,
+ *  - the name has the form `<segment>(.<segment>)*` (the same as the narrow path of a dotted inline name, where an identifier character must follow each `.`),
+ *  - `=` and `{` follow (**a newline is allowed** between them, which is the same set as `isWs` in the scanner),
+ *  - the definition must sit **at brace depth 0 only** (top level), because the same shape in a nested position is not a definition (the custom name set only **suppresses** a candidate,
+ *    and a relaxed rule would only introduce a false negative, so the rule stays strict).
+ * The caller strips the comments first (it uses the same `stripLineComments(text)` as `scanTopLevel`).
  */
 function topLevelInlineScriptedNames(text: string): Set<string> {
   const names = new Set<string>();
@@ -384,7 +384,7 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
       const m = INLINE_SCRIPTED_DECL_RE.exec(text.slice(j, j + 200));
       if (m && m.index === 0) {
         names.add(m[1]);
-        // 停在声明头最后一个字符（`{`）—— 让主循环照常计 brace 深度。
+        // Stop on the last character of the declaration header (`{`), so the main loop counts the brace depth as usual.
         i = j + m[0].length - 1;
         continue;
       }
@@ -394,29 +394,29 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
   return names;
 }
 
-// ---- C2：粘性上下文拼写校验 ----
+// ---- C2: spelling check inside a sticky context ----
 
 /**
- * 进入 effect/trigger/modifier 上下文的**结构字段**名单（方案 §2 C2，实现期对着 reference mod 调准）。
+ * The list of **structure fields** that enter an effect, trigger, or modifier context (tuned against the reference mods during implementation).
  *
- * 为什么仍是手写：这些是**文件结构字段**（事件/建筑/法律/科技/交互的固定部位），**不是**
- * effect/trigger 名 —— `docs/script_docs` 里根本没有它们，所以**不可从 dump 派生**。
- * 依据 = 文件结构（wiki 的 `Event_modding` / `Building_modding` / `Subject_type_modding` /
- * `Cabinet_action_modding` / `Generic_action_modding` 等页面 + 实际语料形态）。
- * 对照：本名单 **0/53** 在「script_docs 结构示例派生的容器集合」（1221 个）里（A0 对照命令），
- * 即解析不可能覆盖它们。
- * 名单**冻结**：新增覆盖须经确认（清单与逐项证据留存在评测仓库的记录里）。
- * trigger **列表容器**（`visible` / `enabled` / `on_*` / `*_trigger` …）另见 TRIGGER_CONTAINER_NAMES。
+ * Why the list is still hand written: these are **file structure fields** (fixed parts of an event, a building, a law, a technology, or an interaction), and they are **not**
+ * effect or trigger names. `docs/script_docs` does not hold them at all, so a **dump cannot derive them**.
+ * The evidence is the file structure (the wiki pages `Event_modding`, `Building_modding`, `Subject_type_modding`,
+ * `Cabinet_action_modding`, and `Generic_action_modding`, plus the shape of the actual corpus).
+ * For comparison, **0 of 53** entries of this list are in the container set derived from the script_docs structure examples (1221 entries), which the authoritative comparison command measures,
+ * so that parse can never cover them.
+ * The list is **frozen**, and a new entry needs confirmation (the list and the evidence for each entry are recorded separately).
+ * A trigger **list container** (`visible`, `enabled`, `on_*`, `*_trigger`, and others) appears in TRIGGER_CONTAINER_NAMES.
  *
- * ===== modifier 左值表族（A4，2026-10）=====
- * 判据（什么样的块算「modifier 左值表」）：块 body 是形如 `<modifier 名> = <数值>` 的
- * **左值列表**——modifier 名取自 docs/script_docs/modifiers.log 词典；既不是效果/触发的
- * **参数表**（参数名常与词典撞车），也不是 scope 目标块 / 脚本值。进入该块即 context，块内
- * 「不在词典、且与某词典名拼写距离 ≤2」的左值 → WARN（与 effect/trigger 左值同一条通路）。
+ * ===== the modifier left-hand value table family (2026-10) =====
+ * The rule for which block counts as a "modifier left-hand value table": the block body is a
+ * **left-hand value list** of the form `<modifier name> = <number>`, where the modifier names come from the docs/script_docs/modifiers.log dictionary. Such a body is neither a
+ * **parameter table** of an effect or a trigger (a parameter name often collides with the dictionary) nor a scope target block nor a script value. Entering that block gives context, and inside it
+ * a left-hand value that is absent from the dictionary and sits within an edit distance of 2 of a dictionary name gives WARN (the same path as an effect or trigger left-hand value).
  *
- * 成员按两类枚举（括号 = vanilla 全量 `c2-coverage.mjs --vanilla` 里「该父块下出现 modifier
- * 名」次数；成员是**按类**枚举，不是只挑卡里列的 21 个）：
- *  类 A · 名字自证（含 modifier 词根，或 `_base_values` 形）：
+ * The members are enumerated in two classes (a parenthesized number is the count of "modifier name occurrences under that parent block" in a full vanilla run,
+ * and the members are enumerated **by class**, not only the 21 that were listed):
+ *  Class A, where the name proves itself (it holds the modifier root or the `_base_values` form):
  *   country_modifier(5005) modifier(2278) definition_modifier(815) location_modifier(429)
  *   modifier_when_in_debate(205) capital_country_modifier(170) country_base_values(161)
  *   left_modifier(120) right_modifier(116) rank_modifier(100) leader_modifier(87)
@@ -425,8 +425,8 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  *   capital_modifier(29) overlord_modifier(23) maintenance_modifier(21)
  *   modifier_while_progressing(19) market_center_modifier(16) non_leader_modifier(10)
  *   modifier_on_completion(10) province_modifier(8)
- *  类 B · 名字不自证；vanilla 里这个名字**既有「body 是 modifier 左值表」的用法，也有他种语义的块**，
- *  按「全量语料实测零误报」纳入（逐名给正例）：
+ *  Class B, where the name does not prove itself. In vanilla that name **has both a use whose body is a modifier left-hand value table and blocks of another meaning**,
+ *  and the list includes it because the full corpus measurement reports zero false reports (a positive example follows for each name):
  *   literacy_impact(6)  pop_types/00_default.txt:24    local_cultural_tradition = 0.2
  *   goods_demand(30)    age/00_default.txt:14          global_liquor_pop_demand = -0.75
  *   high_power(25)      estates/00_default.txt:66       nobles_estate_max_tax = -1.0
@@ -435,66 +435,66 @@ function topLevelInlineScriptedNames(text: string): Set<string> {
  *   satisfaction(15)    estates/00_default.txt:61       monthly_prestige = 0.2
  *   unique(10)          age/00_default.txt:59           diplomatic_capacity_modifier = 0.25
  *   diplo_chance(18) / diplo_chance_accept_subject(37)
- *                       country_interactions / subject_types：base=… + diplomatic_reputation=…
+ *                       country_interactions / subject_types: base=… + diplomatic_reputation=…
  *
- *  ⚠️ 类 B 的**他种用法**（已全量语料实测 0 误报，属**潜在误报面**：词典随版本刷新可能点亮）：
- *   - power: in_game/common/attribute_columns/27_language.txt:21、94_dialect.txt:21
- *       `power = { widget = language_power  width = 100  fixed_height = 32  is_constant_width = yes  sort = {…} }`（GUI 列定义，无 modifier 左值）
- *   - power: in_game/common/trigger_localization/estate_triggers.txt:13（trigger loc 键表 none/global/third）
- *   - satisfaction: in_game/common/attribute_columns/20_province.txt:119（`widget = province_satisfaction …`）
- *   - goods_demand: main_menu/common/game_concepts/00_game_concepts.txt:82（alias/family/texture）
- *   - modifier 本身: main_menu/gfx/portraits/portrait_modifiers/*.txt 共 405+43 处
- *       `modifier = { add = 100000  <trigger> }`（权重/触发块，非 modifier 表）
- *   依据：vanilla 全量复刻扫描；`fixed_height` / `is_constant_width` / `portrait_clothing_trigger` 等
- *   均无 ≤2 纠错候选 → 0 新增告警。
+ *  Warning: the **other uses** of class B (the full corpus measurement reports 0 false reports today, and they are a **potential false report surface** that a dictionary refresh with a new game version may light up):
+ *   - power: in_game/common/attribute_columns/27_language.txt:21, 94_dialect.txt:21
+ *       `power = { widget = language_power  width = 100  fixed_height = 32  is_constant_width = yes  sort = {…} }` (a GUI column definition, with no modifier left-hand value)
+ *   - power: in_game/common/trigger_localization/estate_triggers.txt:13 (a trigger loc key table of none, global, and third)
+ *   - satisfaction: in_game/common/attribute_columns/20_province.txt:119 (`widget = province_satisfaction …`)
+ *   - goods_demand: main_menu/common/game_concepts/00_game_concepts.txt:82 (alias/family/texture)
+ *   - modifier itself: main_menu/gfx/portraits/portrait_modifiers/*.txt holds 405+43 places in total
+ *       `modifier = { add = 100000  <trigger> }` (a weight or trigger block, not a modifier table)
+ *   Evidence: a full vanilla replica scan. Names such as `fixed_height`, `is_constant_width`, and `portrait_clothing_trigger`
+ *   have no correction candidate within 2, so they add 0 warnings.
  *
- * 有意**不**纳入（避免再成为「未记录的洞」）：
- *  - `(top)`：不是块，是 c2-coverage 的伪块名（顶层对象定义名本身与词典撞车，如 auto_modifiers
- *    的 `prestige = {…}`、cabinet_actions 的 `form_new_culture = {…}`）。C2 不把顶层定义名当
- *    左值候选，属正常行为。
- *  - `create_character`：效果**参数表**（body 是 `adm = {…}` / `dip` / `save_scope_as` / `if`），
- *    命中它是「已知效果 → param 退出」这条既有行为的正常结果（probe10 G2 同族）。
- *  - `capital`：byParentMod 里的命中**全部**来自 `main_menu/common/static_modifiers/location.txt:326`
- *    的 `capital = {…}`（= 下一条「数据驱动目录里的任意 id 对象」），不是独立的一类，也不属 A5。
- *  - 数据驱动目录里的**任意 id 对象**（`common/static_modifiers/**`、`common/auto_modifiers/**`
- *    的对象定义，body 也是 modifier 表，如 `location_base_values` / `development` /
- *    `rome_reborn` / `is_great_power` / `complacency_impact` / `foodstuffs_exports_banned`）：
- *    块名是作者起的 id、不能枚举，**不能**进本名字名单。A6 已用**目录级**规则
- *    （`DATA_DRIVEN_CONTEXT_DIRS` + `isDataDrivenContextDir`，与 scripted_effects 同一条
- *    `scanStickyContext` 通路）覆盖其**清单内**的目录；清单外的目录见该 JSDoc 的「有意排除」。
+ * The list deliberately **excludes** the following names, so that they never become an "unrecorded hole" again:
+ *  - `(top)`: not a block at all, but a pseudo block name (a top-level object definition name itself collides with the dictionary, such as the
+ *    `prestige = {…}` of auto_modifiers and the `form_new_culture = {…}` of cabinet_actions). C2 never treats a top-level definition name as a
+ *    left-hand value candidate, and that behaviour is normal.
+ *  - `create_character`: an effect **parameter table** (the body holds `adm = {…}`, `dip`, `save_scope_as`, and `if`),
+ *    and a hit on it is the normal result of the existing behaviour "a known effect exits into param".
+ *  - `capital`: **every** hit in byParentMod comes from the `capital = {…}` at
+ *    `main_menu/common/static_modifiers/location.txt:326` (which is the next item, "an arbitrary id object in a data driven directory"). It is not a class of its own, and it does not belong to the trigger container list.
+ *  - an **arbitrary id object** inside a data driven directory (an object definition under `common/static_modifiers/**` or `common/auto_modifiers/**`
+ *    whose body is also a modifier table, such as `location_base_values`, `development`, and
+ *    `rome_reborn` / `is_great_power` / `complacency_impact` / `foodstuffs_exports_banned`):
+ *    where the block name is an author-chosen id that cannot be enumerated, so it **must not** enter this name list. The directory level rule already covers the directories inside its
+ *    own list with a **directory level** rule (`DATA_DRIVEN_CONTEXT_DIRS` plus `isDataDrivenContextDir`, on the same
+ *    `scanStickyContext` path as scripted_effects), and a directory outside that list appears under "deliberate exclusions" in its JSDoc.
  *
- * ===== A13（2026-10-10 用户确认纳入）：非 context 父模式（param / neutral）下的容器/结构字段 =====
- * 根因：`pushBlock` 的分支顺序 —— 块名不在 ENTER 名单、父模式**不是 `context`**
- * （是 `param` **或** `neutral`）⇒ 该块不进 context ⇒ body 不扫。于是**同一个名字在 context 位置
- * 能扫、在非 context 父模式下漏**（位置相关假阴，光看块名列表发现不了）。
- * ⚠️ 父模式 `neutral` 的主要来源：**非 scripted、非数据驱动目录的顶层对象**
- * （`(isScripted || isDataDriven) && isTopLevel` 不成立 ⇒ 顶层块只能 neutral）——
- * 如 `common/unit_abilities/**` 的能力对象、`common/generic_actions/**` 的 interaction 对象。
- * 候选面枚举器按「父块名 ∈ 词典」反推候选，会把这些
- * **neutral 父**一并列出 ⇒ 不可把「父块名 ∈ 词典」等同为「父位置 = param」。本卡纳入：
- *  - `hidden`（wrapper 块，与 `hidden_effect`/`hidden_trigger` 同族）：vanilla 15 块 ——
- *    14 块是 `common/unit_abilities/*.txt` **顶层 ability 对象**（父模式 neutral）下的
- *    `hidden = { <trigger> }`（如 `execute_prisoners.txt:6` 的 `hidden = { has_prisoners = no }`），
- *    另 1 块是 `main_menu/common/game_concepts/00_game_concepts.txt:3321` 的**对象名** `hidden`。
- *    ⚠️ 「词典 effect 的 param 位置」那一形态是**合成夹具**（探针 06 / 用例 `c2-param-hidden`），
- *    vanilla **无**此实例。
- *  - `prev` / `root` / `ROOT` / `ruler_or_regent`（**scope 目标块**：块名是 scope 链接
- *    关键字或链接名，body 是 effect/trigger 列表）：vanilla 实例
- *    `create_character > prev = { set_new_ruler = prev }`（6 处）、
- *    `create_country_from_location > ruler_or_regent = { save_scope_as = … }`、
- *    `start_civil_war > ROOT = { change_player = PREV }`（1 处）。
- *    ⚠️ 大小写：vanilla 两种写法都在用（`root = {` 745 块 / `ROOT = {` 70 块、
- *    `prev = {` 31 / `PREV = {` 9）。本卡**只显式列出候选面枚举器
- *    （枚举器）实测到的实例**（`root` 与 `ROOT`）；更一般的**关键字
- *    大小写归一**（`AND`/`OR`/`NOT`/`NOR`/`NAND` 在 param 位置）由**卡 A14 实装** ——
- *    `normalizeKeywordLookup` 把本表（及其余内置表）的匹配改为大小写不敏感 ⇒ `ROOT` 与
- *    `root` 等价（保留原条目只为不动名单计数）。
- *  - `limit` / `ai_prerequisite` 归 TRIGGER_CONTAINER_NAMES（见该名单的 A13 段）。
- * 零误报门槛：7 个名字加入后 整套验收（cases + 全量真实 mod）全绿（33 真实 mod sweep WARN=0）；
- * 逐名误报已逐条核对（结论存于评测仓库的清单）。
+ * ===== (added on 2026-10-10 with the confirmation of the player) a container or a structure field under a non-context parent mode (param or neutral) =====
+ * Root cause: the branch order in `pushBlock`. The block name is absent from the ENTER list, and the parent mode is **not `context`**
+ * (it is `param` **or** `neutral`), so the block never enters context and the body is never scanned. So **the same name is scanable at a context position
+ * but is missed under a non-context parent mode** (a position dependent false negative that a look at the block name list alone cannot find).
+ * Warning: the main source of the `neutral` parent mode is **a top-level object in a directory that is neither scripted nor data driven**
+ * (`(isScripted || isDataDriven) && isTopLevel` does not hold, so a top-level block can only be neutral). Examples are
+ * an ability object under `common/unit_abilities/**` and an interaction object under `common/generic_actions/**`.
+ * The candidate site count infers a candidate from "the parent block name is in the dictionary", and that rule lists these
+ * **neutral parents** as well. So "the parent block name is in the dictionary" is not equal to "the parent position is param". This change adds:
+ *  - `hidden` (a wrapper block, in the same family as `hidden_effect` and `hidden_trigger`). vanilla has 15 blocks, of which
+ *    14 sit under a **top-level ability object** (parent mode neutral) of `common/unit_abilities/*.txt` as
+ *    `hidden = { <trigger> }` (such as `hidden = { has_prisoners = no }` at `execute_prisoners.txt:6`),
+ *    and 1 is the **object name** `hidden` at `main_menu/common/game_concepts/00_game_concepts.txt:3321`.
+ *    Warning: the form "a param position of a dictionary effect" is a **synthetic fixture**, and
+ *    vanilla has **no** instance of it.
+ *  - `prev`, `root`, `ROOT`, and `ruler_or_regent` (**scope target blocks**, where the block name is a scope link
+ *    keyword or a link name, and the body is an effect or trigger list). The vanilla instances are
+ *    `create_character > prev = { set_new_ruler = prev }` (6 places), and
+ *    `create_country_from_location > ruler_or_regent = { save_scope_as = … }`,
+ *    `start_civil_war > ROOT = { change_player = PREV }` (1 place).
+ *    Warning: about the letter case, vanilla uses both spellings (`root = {` 745 blocks and `ROOT = {` 70 blocks, plus
+ *    `prev = {` 31 and `PREV = {` 9). This change **explicitly lists only the instances that the candidate site count
+ *    measured**, namely `root` and `ROOT`. The more general **keyword
+ *    case normalization** (for `AND`, `OR`, `NOT`, `NOR`, and `NAND` at a param position) **is implemented by the keyword normalization**, where
+ *    `normalizeKeywordLookup` changes the match of this list (and the other built-in lists) to be case insensitive, so `ROOT` and
+ *    `root` are equivalent (the original entries stay only to keep the list count unchanged).
+ *  - `limit` and `ai_prerequisite` belong to TRIGGER_CONTAINER_NAMES (see the section of that list below).
+ * The zero false report bar: after the addition of the 7 names the whole real mod set passes (the sweep over 33 real mods gives WARN=0),
+ * and the false reports for each name were checked one by one (the conclusion is recorded separately).
  *
- * 回归门槛：本族在 33 个真实 mod（reference + workshop + Paradox）上跑过「C2 零误报」
- * （probe11 / tool-content-sweep）；零误报是硬门槛。
+ * The regression bar: this family was run over 33 real mods (reference, workshop, and Paradox) for "C2 zero false report"
+ * and zero false reports is a hard bar.
  */
 const CONTEXT_ENTER_NAMES = new Set([
   "option",
@@ -510,11 +510,11 @@ const CONTEXT_ENTER_NAMES = new Set([
   "trigger",
   "hidden_effect",
   "hidden_trigger",
-  // --- A13：`hidden` 是 wrapper 块（与 hidden_effect 同族）；vanilla 真实站点是
-  //     common/unit_abilities/*.txt **顶层 ability 对象**（父模式 neutral）下的
-  //     `hidden = { <trigger> }` ⇒ 不纳入则整个 body 不扫（见本名单 JSDoc 的 A13 段）---
+  // --- `hidden` is a wrapper block (the same family as hidden_effect), and the real vanilla site is
+  //     under a **top-level ability object** (parent mode neutral) of common/unit_abilities/*.txt as
+  //     `hidden = { <trigger> }`, so without the entry the whole body stays unscanned (see the section of this list JSDoc below) ---
   "hidden",
-  // --- modifier 左值表族（判据与逐名理由见上方 JSDoc）---
+  // --- the modifier left-hand value table family (the rule and the reason for each name are in the JSDoc above) ---
   "modifier",
   "country_modifier",
   "definition_modifier",
@@ -550,7 +550,7 @@ const CONTEXT_ENTER_NAMES = new Set([
   "non_leader_modifier",
   "modifier_on_completion",
   "province_modifier",
-  // --- A13：scope 目标块（块名 = scope 链接关键字/链接名；body 是 effect/trigger 列表）---
+  // --- scope target blocks (the block name is a scope link keyword or a link name, and the body is an effect or trigger list) ---
   "prev",
   "root",
   "ROOT",
@@ -558,113 +558,113 @@ const CONTEXT_ENTER_NAMES = new Set([
 ]);
 
 /**
- * trigger 列表容器：这些块名在真实脚本里 body 是 **trigger/effect 列表**（而非参数表），
- * 进入该块即 context。判据（什么样的块名算「名字级容器」）：
- *   块名可枚举、在 vanilla 全量语料里 body 表现为 effect/trigger 列表（或列表 wrapper），
- *   且块名本身不在 effects.log/triggers.log 里承担「已知效果/触发的参数表」语义。
- * 名单来源：A2/A5 卡用 c2-coverage.mjs 在真实 mod 上做的模式复刻统计；每一族都由
- * probe11（temp 复制件）在 **33 个真实 mod** 上验证「加入后 C2 零误报」（零误报是硬门槛）。
+ * A trigger list container: in a real script the body of such a block name is a **trigger or effect list** and not a parameter table,
+ * so entering that block gives context. The rule for which block name counts as a "name level container" is:
+ *   the block name can be enumerated and its body appears as an effect or trigger list (or a list wrapper) in the full vanilla corpus,
+ *   and the block name itself carries no "parameter table of a known effect or trigger" meaning in effects.log or triggers.log.
+ * The list comes from the pattern replica statistics measured over real mods, and
+ * (on a temporary copy) verified every family over **33 real mods** for "C2 reports zero false reports after the addition" (zero false reports is a hard bar).
  *
- * ===== A2 族（交互/选择的可见性与合法性列表，括号为统计出现次数）=====
- * - visible                     generic_actions / select_trigger 的可见性 trigger 列表（56）
- * - enabled                     cabinet_actions / generic_actions 的启用条件 trigger 列表（12）
- * - is_shown / show_if          交互类的显示条件 trigger 列表（7 / 7）
- * - can_start / can_end         situation / 交互的开始/结束条件 trigger 列表（5 / 5）
- * - is_valid / ai_is_valid      交互类的合法性 trigger 列表（5 / 9）
- * - ai_interaction_source_list  select_trigger 内的 AI 目标来源列表（内部 every_goods > limit 仍是 context）
+ * ===== the visibility and validity lists (of an interaction or a selection, where a parenthesized number is the observed occurrence count) =====
+ * - visible                     the visibility trigger list of generic_actions and select_trigger (56)
+ * - enabled                     the enable condition trigger list of cabinet_actions and generic_actions (12)
+ * - is_shown / show_if          the display condition trigger list of an interaction class (7 / 7)
+ * - can_start / can_end         the start and end condition trigger list of a situation or an interaction (5 / 5)
+ * - is_valid / ai_is_valid      the validity trigger list of an interaction class (5 / 9)
+ * - ai_interaction_source_list  the AI target source list inside select_trigger (an inner every_goods > limit is still context)
  *
- * ===== A9 复核（2026-10，容器名单从 script_docs 解析后）=====
- * 对照：本名单 **0/58** 在「结构示例派生的容器集合」（1221 个）里 —— 它们**都不是** effect/trigger
- * 名，是**结构字段/列表部位**，dump 不提供 ⇒ 只能手写（与 CONTEXT_ENTER_NAMES 同理）。
- * 逐项复核后**剔除 1 条**：
- * - `select_trigger`（已删）：`c2-coverage --vanilla` 证据 = 988 个块 / body 键 6751 / 命中词典 **0**（ratio 0%）
- *   —— body 是**选择器配置**（`looking_for_a` / `name` / 嵌套 `visible` / `ai_interaction_source_list`），
- *   不是 effect/trigger 左值列表；作 ENTER 会把配置名当左值候选（仅扩大误报面）。
- *   剔除后其真 trigger 列表部位（`visible` / `ai_interaction_source_list`）仍在名单里 ⇒ 不丢覆盖
- *   （用例 `c2-trigger-list-container` 仍 2 条命中）。
- * 复核后**保留**（有证据）：`sort_text`（vanilla 97 块 / 194 键 **100%** 命中词典 —— dump 无文档但语料
- * 形态确为 trigger 列表）；`is_shown` / `is_valid` / `ai_is_valid`（vanilla 0 块 —— 无证据也无误报面，
- * A2 经 probe11 在 33 真实 mod 验证保留）。
+ * ===== the review (2026-10, after the container list came from the script_docs parse) =====
+ * For comparison, **0 of 58** entries of this list are in the container set derived from the structure examples (1221 entries), because they are **not** effect or trigger
+ * names but **structure fields or list positions**, and a dump does not supply them, so the list can only be hand written (the same as CONTEXT_ENTER_NAMES).
+ * The review **removed 1 entry** after a check of each item:
+ * - `select_trigger` (deleted): the evidence from a full vanilla run is 988 blocks, 6751 body keys, and **0** dictionary hits (a ratio of 0%)
+ *   because the body is a **selector configuration** (`looking_for_a`, `name`, a nested `visible`, and `ai_interaction_source_list`),
+ *   and it is not an effect or trigger left-hand value list. As an ENTER entry it would treat a configuration name as a left-hand value candidate, which only widens the false report surface.
+ *   After the removal its real trigger list positions (`visible` and `ai_interaction_source_list`) stay in the list, so no coverage is lost
+ *   (those positions still give 2 hits).
+ * The review **keeps** the entries with evidence: `sort_text` (vanilla has 97 blocks and 194 keys, and **100%** of them hit the dictionary, so the dump has no document but the corpus
+ * shape really is a trigger list), and `is_shown`, `is_valid`, and `ai_is_valid` (vanilla has 0 blocks, so there is neither evidence nor a false report surface, and
+ * they stay after the verification over 33 real mods).
  *
- * ===== A5 族（2026-10，名字级剩余缺口收口）=====
- * 判据与 A2 同源：**块名可枚举、body 是 effect/trigger 列表**；差别在于这些块名此前被
- * 「块名在词典 → param」或「顶层对象父模式 neutral」两条既有分支短路，整块不查。
- *  - situations / 交互脚本的 `on_*`：body 是**某时机执行的 effect 列表**；它们出现在顶层
- *    对象（situation/casus_belli/…）下，父模式是 neutral，不显式纳入则整块 neutral。
- *    名字判据 = `on_<时机>` 形态，vanilla 计数：on_start 206 / on_monthly 148 /
- *    on_completion 218 / on_accept 218 / on_activate 145 / on_end 118 / on_debate_passed 225。
- *    成员（probe10 观测到的 9 名，A5 按类收口后同族共 22 名，见下方收口段）：on_start on_monthly
- *    on_ended on_ending on_completion on_accept on_activate on_end on_debate_passed。
- *  - potential_trigger：auto_modifiers 的 **trigger 列表容器**（body 全为 trigger 左值，
- *    `potential_trigger = { has_societal_value = … culture = { OR = {…} } }`，vanilla 297）。
- *  - ai_will_do：**script value 容器**。判据 = 「脚本值容器里 `if > limit` 仍是 trigger 守卫」
- *    （`ai_will_do = { value = 10  if = { limit = { is_situation_active = … } add = 10 } }`）；
- *    ai_will_do 在 triggers.log 里是已知触发名，旧逻辑判 param，limit 里的 trigger 不查（vanilla 476）。
- *  - custom_tooltip / custom_description / show_as_tooltip：**wrapper 块**。判据 = body 是
- *    「左值列表 + 可选 triggers」的 loc 包装，而非参数表；这三个名字本身在 effects/triggers
- *    词典里是效果/触发名，旧逻辑判 param 而整块短路，故必须走 ENTER 优先 + 纳入本名单。
- *    vanilla 计数：custom_tooltip 1253 / custom_description 289 / show_as_tooltip 283。
- *  - sort_text：`attribute_columns > info > sort > sort_text > if > limit > { <typo-trigger> }`。
- *    判据 = UI 排序配置里唯一的 trigger 列表是 `limit`，其 body 是真 trigger 列表；vanilla 192。
- *    （A5 卡「优先纳入」；probe11 V2 实测 33 真实 mod 零误报。）
- *    A2 卡曾把它列为「未验证容器」，A5 完成验证后正式纳入。
+ * ===== the name level gap closure (2026-10, closing the remaining name level gaps) =====
+ * The rule shares its source with the visibility and validity lists: **the block name can be enumerated and the body is an effect or trigger list**. The difference is that these block names were previously short circuited by
+ * one of two existing branches, "the block name is in the dictionary gives param" or "the parent mode of a top-level object is neutral", so the whole block went unchecked.
+ *  - the `on_*` of a situations script or an interaction script: the body is **a list of effects that run at one timing**. The block appears under a top-level
+ *    object (situation, casus_belli, and others), and the parent mode is neutral, so without an explicit entry the whole block stays neutral.
+ *    The name rule is the `on_<timing>` form. The vanilla counts are on_start 206, on_monthly 148,
+ *    on_completion 218 / on_accept 218 / on_activate 145 / on_end 118 / on_debate_passed 225.
+ *    The members are the 9 names that have been observed, and the family holds 22 names in total after the class closure (see the closure section below): on_start on_monthly
+ *    on_ended on_ending on_completion on_accept on_activate on_end on_debate_passed.
+ *  - potential_trigger: a **trigger list container** of auto_modifiers (its body is entirely trigger left-hand values, as in
+ *    `potential_trigger = { has_societal_value = … culture = { OR = {…} } }`, vanilla 297).
+ *  - ai_will_do: a **script value container**. The rule is "inside a script value container an `if > limit` is still a trigger guard"
+ *    (`ai_will_do = { value = 10  if = { limit = { is_situation_active = … } add = 10 } }`).
+ *    ai_will_do is a known trigger name in triggers.log, so the old logic judged param and never checked the trigger inside limit (vanilla 476).
+ *  - custom_tooltip, custom_description, and show_as_tooltip: **wrapper blocks**. The rule is that the body is
+ *    a loc wrapper of "a left-hand value list plus optional triggers" and not a parameter table. Those three names themselves are effect or trigger
+ *    names in the effects and triggers dictionaries, so the old logic judged param and short circuited the whole block, and ENTER priority plus an entry in this list is required.
+ *    The vanilla counts are custom_tooltip 1253, custom_description 289, and show_as_tooltip 283.
+ *  - sort_text: `attribute_columns > info > sort > sort_text > if > limit > { <typo-trigger> }`.
+ *    The rule: the only trigger list in a UI sort configuration is `limit`, and its body is a real trigger list (vanilla 192).
+ *    (It is marked "add first", and the second measurement over 33 real mods reports zero false reports.)
+ *    It was once listed as an "unverified container", and it was added formally after the verification.
  *
- * ===== A13（2026-10-10 用户确认纳入）：非 context 父模式（param / neutral）下的 trigger 列表 =====
- * 与 A5/A7 同一根因：名字在词典里、父模式不是 `context`（`param` 或顶层对象的 `neutral`）
- * ⇒ 旧逻辑整块不扫。
- *  - `limit`：真 trigger 列表。vanilla 里 `limit` 的父模式**两种都存在** ——
- *    `param`（`immediate > assert_if > limit`：`events/hre.txt:732,809,816`、
- *    `events/colonization/settle_the_frontier.txt:523`）与 `neutral`
- *    （`common/resolutions/hre_election.txt:227` 的 `vote_effect > assert_if` 链**从顶层对象起 neutral**）。
- *    候选面枚举器实测 **7** 处（口径 = 父块名 ∈ 词典）；卡 A13 只把名字补进名单，位置判定不改。
- *    注意：`limit` 在 **context 位置**（`every_country = { limit = {…} }`）本来就扫 ⇒ 这是
- *    「位置相关」的假阴，光看块名列表发现不了。
- *    它同时被 `attribute_columns > info > sort > sort_text > if > limit` 这条既有通路用到（A5）。
- *  - `ai_prerequisite`：vanilla 46 块，全部是**顶层** interaction / generic_action 对象
- *    （父模式 **neutral**）的结构字段（如 `generic_actions/culture.txt:94`
- *    `remove_accepted_culture > ai_prerequisite = { <triggers> }`）；候选面枚举器实测 4 处。
- *  逐名误报已逐条核对（结论存于评测仓库的清单）。
+ * ===== (added on 2026-10-10 with the confirmation of the player) a trigger list under a non-context parent mode (param or neutral) =====
+ * This shares its root cause with the other name level gaps: the name is in the dictionary and the parent mode is not `context` (it is `param` or the `neutral` of a top-level object),
+ * so the old logic never scanned the whole block.
+ *  - `limit`: a real trigger list. In vanilla **both parent modes of `limit` exist**, namely
+ *    `param` (`immediate > assert_if > limit`: `events/hre.txt:732,809,816`,
+ *    `events/colonization/settle_the_frontier.txt:523`) and `neutral`
+ *    (the `vote_effect > assert_if` chain at `common/resolutions/hre_election.txt:227` is **neutral from the top-level object onward**).
+ *    The candidate site count measured **7** places under the criterion "the parent block name is in the dictionary". The change only adds the name to the list and does not change the position test.
+ *    Note: `limit` at a **context position** (`every_country = { limit = {…} }`) was already scanned, so this is a
+ *    "position dependent" false negative that a look at the block name list alone cannot find.
+ *    The existing path `attribute_columns > info > sort > sort_text > if > limit` also uses it.
+ *  - `ai_prerequisite`: vanilla has 46 blocks, and every one is a structure field of a **top-level** interaction or generic_action object
+ *    (parent mode **neutral**), such as the one at `generic_actions/culture.txt:94`
+ *    `remove_accepted_culture > ai_prerequisite = { <triggers> }`. The candidate site count measured 4 places.
+ *  The false reports for each name were checked one by one (the conclusion is recorded separately).
  *
- * 有意**不**纳入（避免再成为「未记录的洞」）：
- * - `switch`：**不是普通 ENTER**，而是「**标签容器**」（其直接子键是 case 名/值，不是 effect/trigger
- *   名）—— 见 `LABEL_CONTAINER_NAMES` 的 JSDoc：标签不当候选、case body 进 context。
- * - `limit` / `owner` / `area` / `value` / `map_color`：形态混杂（trigger 列表 / 参数表 /
- *   scope 目标 / 取值块），无法用名字判据区分，不加；其内部漏查属已知的**名字级不可判**面。
- *   ⚠️ **A13 改判 `limit`**：它在**非 context 父模式**（`immediate > assert_if > limit` 的 param、
- *   `vote_effect > assert_if > limit` 的 neutral）下是**真 trigger 列表**（候选面实测 7 处）；
- *   故 `limit` 已入本名单，
- *   `owner`/`area`/`value`/`map_color` 仍不纳入（见卡 A13）。
- * - `(top)` 伪块名与数据驱动目录里作者自起 id 的对象（如 `common/static_modifiers/**`
- *   的 `location_base_values`）：块名不可枚举，属**目录级**规则（A6，已实装为
- *   `DATA_DRIVEN_CONTEXT_DIRS`），不在本名单。
- *   注（A4）：`modifier` / `country_modifier` / `raw_modifier` / `rank_modifier` /
- *   `literacy_impact` 已作为 **modifier 左值表族** 并入 CONTEXT_ENTER_NAMES（见其 JSDoc）。
- * - **同族的未验证成员** —— **已由 A5 按类收口**（2026-10）：① IO / 议会 / 任务 / 官僚等
- *   数据驱动目录里的 `on_*` 成员块（on_debate_failed / on_joined / on_abort / on_deactivate /
+ * The list deliberately **excludes** the following names, so that they never become an "unrecorded hole" again:
+ * - `switch`: **not an ordinary ENTER entry** but a **label container**, whose direct child keys are case names or values and not effect or trigger
+ *   names. See the JSDoc of `LABEL_CONTAINER_NAMES`: a label never becomes a candidate, and a case body enters context.
+ * - `limit`, `owner`, `area`, `value`, and `map_color`: the shape is mixed (a trigger list, a parameter table, a
+ *   scope target, and a value block), so a name rule cannot tell them apart and they are not added. A missed check inside them is a known **name level undecidable** surface.
+ *   Warning: **this rule reverses the judgment on `limit`**, because under a **non-context parent mode** (the param of `immediate > assert_if > limit` and the
+ *   neutral of `vote_effect > assert_if > limit`) it is **a real trigger list** (the candidate site count gives 7 places).
+ *   So `limit` is now in this list, and
+ *   `owner`, `area`, `value`, and `map_color` are still excluded (see the section above).
+ * - the `(top)` pseudo block name and an author-chosen id object inside a data driven directory (such as `location_base_values` in
+ *   `common/static_modifiers/**`). The block name cannot be enumerated, so it belongs to a **directory level** rule (already implemented as
+ *   `DATA_DRIVEN_CONTEXT_DIRS`) and not to this list.
+ *   Note: `modifier`, `country_modifier`, `raw_modifier`, `rank_modifier`, and
+ *   `literacy_impact` already joined CONTEXT_ENTER_NAMES as part of the **modifier left-hand value table family** (see its JSDoc).
+ * - the **unverified members of the same family**, **closed by class** (2026-10): first, the `on_*` member blocks
+ *   inside data driven directories such as an international organization, a parliament, a mission, and a bureaucracy (on_debate_failed, on_joined, on_abort, on_deactivate,
  *   on_left / on_fully_activated / on_persistent_completion / on_enable / on_spread_to_country /
- *   on_disband / on_creation / on_persistent_start / on_calc_effect）与 ② `*_trigger` / `actor_trigger`
- *   后缀成员块（can_join_trigger / create_visible_trigger / invite_visible_trigger /
+ *   on_disband, on_creation, on_persistent_start, and on_calc_effect), and second, the member blocks with the suffix `*_trigger` or `actor_trigger`
+ *   (can_join_trigger, create_visible_trigger, invite_visible_trigger,
  *   can_bestow_trigger / can_lead_trigger / can_leave_trigger / auto_leave_trigger /
  *   auto_disband_trigger / auto_bestowal_trigger / can_add_location_trigger / actor_trigger /
  *   can_remove_trigger / can_add_trigger / location_trigger / potential_target_trigger /
- *   pause_trigger）已按类并入本名单，并经「逐名计数 + 33 真实 mod 零误报」验证（probe10 G3
- *   命中、`c2-coverage --vanilla` 中这 29 名全部从 top 榜消失）。
+ *   pause_trigger). They joined this list by class and passed the "count per name plus zero false reports over 33 real mods" verification (the observed
+ *   hits, and all 29 of those names left the top list of the full vanilla run).
  *
- * ===== A5 收口后仍出现在 `c2-coverage.mjs --vanilla` neutral 榜的项 =====
- * 这些**不是本名单遗漏**，已在下面显式归类：
- * - 参数名与词典撞车的**噪声**（卡里已注明）：`(top)` 6846 / `(bare)` 2603 / create_character
- *   4794+77 / dynamic_historical_event 3648 / limit / if / value / add / OR …（auditor 已逐个核过：
- *   这些块的 body 是参数表，不是 effect/trigger 列表）。
- * - **数据驱动目录的任意 id 对象内部**的成员块（`common/international_organizations/**`、
- *   `common/parliament_issues/**`、`common/formable_countries/**`、`events/**` 等）——
- *   如 create_visible 84 / form_effect 56 / ai_desire_to_join 54 / calc 53 / every_subject 53 /
- *   major_trigger 27 / can_lead_tooltip_trigger / auto_rescind_trigger …：父对象是作者起
- *   的 **id** → neutral，于是内部所有块（含已知 effect/trigger 名）都 neutral。
- *   → A6 已按**目录即上下文**覆盖其中「对象 body 是词典左值列表」的目录（清单 + 逐目录
- *   depth=1 计数见 `DATA_DRIVEN_CONTEXT_DIRS` 的 JSDoc）；不在该清单的目录为**有意排除**
- *   （同上 JSDoc）；`events/**` 这类不在 `{in_game|main_menu}/common/<目录>/` 下的形状，其
- *   对象的 effect/trigger 列表容器（`immediate`/`option`/`trigger`…）已由 ENTER 名单覆盖。
- *   A5 按卡边界不动。
+ * ===== the items that still appear on the neutral list of the full vanilla run after the closure =====
+ * These are **not omissions from this list** and are classified explicitly below:
+ * - the **noise** of a parameter name that collides with the dictionary (already noted): `(top)` 6846, `(bare)` 2603, create_character
+ *   4794+77, dynamic_historical_event 3648, limit, if, value, add, OR, and others (each one was checked, and
+ *   the body of those blocks is a parameter table and not an effect or trigger list).
+ * - a member block **inside an arbitrary id object of a data driven directory** (`common/international_organizations/**`,
+ *   `common/parliament_issues/**`, `common/formable_countries/**`, `events/**`, and others), for example
+ *   create_visible 84, form_effect 56, ai_desire_to_join 54, calc 53, every_subject 53, and
+ *   major_trigger 27, can_lead_tooltip_trigger, auto_rescind_trigger, and others. The parent object is an author-chosen
+ *   **id** that gives neutral, so every block inside it (including a known effect or trigger name) becomes neutral.
+ *   The directory level rule already covers the directories whose "object body is a dictionary left-hand value list" under the rule **a directory is a context** (the list and the depth=1
+ *   count for each directory are in the JSDoc of `DATA_DRIVEN_CONTEXT_DIRS`). A directory outside that list is a **deliberate exclusion**
+ *   (in the same JSDoc). For a shape such as `events/**`, which does not sit under `{in_game|main_menu}/common/<directory>/`,
+ *   the effect and trigger list containers of its objects (`immediate`, `option`, `trigger`, and others) are already covered by the ENTER list.
+ *   That change stays inside its boundary and changes nothing.
  */
 const TRIGGER_CONTAINER_NAMES = new Set([
   "ai_interaction_source_list",
@@ -676,7 +676,7 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "can_end",
   "is_valid",
   "ai_is_valid",
-  // --- A5：situations / 交互脚本 on_*（effect 列表）---
+  // --- the on_* of a situations script or an interaction script (effect lists) ---
   "on_start",
   "on_monthly",
   "on_ended",
@@ -686,8 +686,8 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "on_activate",
   "on_end",
   "on_debate_passed",
-  // --- A5：同族收口（IO / 议会 / 任务 / 官僚等数据驱动目录里的 on_* 成员块，
-  //     body 同样是 effect/trigger 列表；逐名由 probe10/probe11 + 33 真实 mod 零误报验证）---
+  // --- the family closure (the on_* member blocks of data driven directories such as an international organization, a parliament, a mission, and a bureaucracy,
+  //     where the body is also an effect or trigger list, and each name passed the zero false report run over 33 real mods) ---
   "on_debate_failed",
   "on_joined",
   "on_abort",
@@ -701,8 +701,8 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "on_creation",
   "on_persistent_start",
   "on_calc_effect",
-  // --- A5：`*_trigger` / `actor_trigger` 后缀成员块（IO 的 can_*_trigger、scripted
-  //     diplomatic objectives 的 actor_trigger 等，body 是 trigger 列表）---
+  // --- the member blocks with the suffix `*_trigger` or `actor_trigger` (the can_*_trigger of an international organization, the actor_trigger of a scripted
+  //     diplomatic objective, and others, where the body is a trigger list) ---
   "can_join_trigger",
   "create_visible_trigger",
   "invite_visible_trigger",
@@ -719,109 +719,109 @@ const TRIGGER_CONTAINER_NAMES = new Set([
   "location_trigger",
   "potential_target_trigger",
   "pause_trigger",
-  // --- A5：trigger 列表容器 / script value 容器 / loc wrapper ---
+  // --- a trigger list container, a script value container, and a loc wrapper ---
   "potential_trigger",
   "ai_will_do",
   "custom_tooltip",
   "custom_description",
   "show_as_tooltip",
-  // --- A7：同族 wrapper —— 文档占位符是**单数** `<trigger>`/`<effects>`，A0 的
-  //     `<effects>`/`<triggers>` 结构示例派生看不见，故显式按名纳入（与 A5 loc wrapper 同族）。---
-  // calc_true_if：triggers.log `calc_true_if = { amount = 2 <trigger> <trigger> <trigger> }`。
-  //   名字在 triggers 词典 ⇒ 旧逻辑判 param → body 不扫，其内的作用域容器
-  //   （`any_unit = { <triggers> }`）被连带短路（真形态
-  //   `country_interactions/lend_unit_to_ally.txt:162-165` 的 `ai_will_do > if > limit > calc_true_if`）。
+  // --- a wrapper of the same family. The documentation placeholder is **singular**, `<trigger>` or `<effects>`, and the
+  //     derivation from the `<effects>` and `<triggers>` structure examples cannot see it, so it joins the list explicitly by name (the same family as the loc wrapper). ---
+  // calc_true_if: triggers.log `calc_true_if = { amount = 2 <trigger> <trigger> <trigger> }`.
+  //   The name is in the triggers dictionary, so the old logic judged param and never scanned the body, and the scope containers inside it
+  //   (`any_unit = { <triggers> }`) were short circuited along with it (the real shape is
+  //   `ai_will_do > if > limit > calc_true_if` at `country_interactions/lend_unit_to_ally.txt:162-165`).
   "calc_true_if",
-  // weighted_calc_true_if：与 calc_true_if **完全同族**的 wrapper（triggers.log
-  //   `weighted_calc_true_if = { amount = 10 5 = { <trigger> } 15 = { <trigger> } 7 = { <trigger> } }`）。
-  //   占位符同样是**单数** `<trigger>`（且子触发器藏在数值标签块里）⇒ A0 的 `<effects>`/`<triggers>`
-  //   结构示例派生看不见它（实测 `deriveScriptDocContainers` = false）。名字在 triggers 词典 ⇒
-  //   旧逻辑判 param → 加权子触发器列表整块不扫（vanilla **5 块**：`situations/red_turban_rebellions.txt`、
-  //   `events/DHE/flavor_MOS.txt`×3、`flavor_RUS.txt`）。机理 = **wrapper 名单 +1**（同 A7 的 calc_true_if），
-  //   不是大小写、也不是新增位置类；已按确认纳入冻结清单。
+  // weighted_calc_true_if: a wrapper of **exactly the same family** as calc_true_if (triggers.log
+  //   `weighted_calc_true_if = { amount = 10 5 = { <trigger> } 15 = { <trigger> } 7 = { <trigger> } }`).
+  //   uses the same **singular** placeholder `<trigger>`, and the sub-triggers hide inside numeric label blocks). So the `<effects>` and `<triggers>`
+  //   structure example derivation cannot see it (the measurement gives `deriveScriptDocContainers` = false). The name is in the triggers dictionary, so
+  //   the old logic judged param and never scanned the whole weighted sub-trigger list (vanilla has **5 blocks**: `situations/red_turban_rebellions.txt`,
+  //   `events/DHE/flavor_MOS.txt` 3 times, and `flavor_RUS.txt`). The mechanism is **the wrapper list plus 1** (the same as calc_true_if),
+  //   and it is neither a letter case issue nor a new position class. It joined the frozen list after a confirmation.
   "weighted_calc_true_if",
-  // custom_label / custom_description_no_bullet：与 custom_tooltip / custom_description /
-  //   show_as_tooltip **同族 loc wrapper**（effects.log：`custom_label = { text = key subject = scope
-  //   <hidden effects> }`、`custom_description_no_bullet = { … ... effects ... }`；占位符同样不是
-  //   `<effects>` ⇒ 派生看不见）。语料（vanilla + 33 真实 mod）**0 次使用** ⇒ 纳入不改变零误报面，
-  //   只为不留「同族未记录」的洞（已纳入冻结清单）。
+  // custom_label and custom_description_no_bullet: **the same family of loc wrapper** as custom_tooltip, custom_description, and
+  //   show_as_tooltip (effects.log holds `custom_label = { text = key subject = scope
+  //   <hidden effects> }` and `custom_description_no_bullet = { … ... effects ... }`, where the placeholder is also not
+  //   `<effects>`, so the derivation cannot see it). The corpus (vanilla plus 33 real mods) uses them **0 times**, so the entry does not change the zero false report surface, and
+  //   it exists only to leave no "unrecorded family member" hole (it joined the frozen list).
   "custom_label",
   "custom_description_no_bullet",
-  // --- A5：UI 排序里的 trigger 列表（limit）---
+  // --- the trigger list inside a UI sort (limit) ---
   "sort_text",
-  // --- A13：`limit` / `ai_prerequisite` —— 落在**非 context 父模式**（param，或顶层对象的
-  //     neutral）下的 trigger 列表（真形态 `immediate > assert_if > limit = { <triggers> }`、
-  //     `remove_accepted_culture > ai_prerequisite = { <triggers> }`）⇒ ENTER 优先于
-  //     param/neutral，否则 body 不扫（见本名单 JSDoc 的 A13 段）---
+  // --- `limit` and `ai_prerequisite`, which land under a **non-context parent mode** (the param of a dictionary name or the
+  //     neutral of a top-level object) as a trigger list (the real shapes are `immediate > assert_if > limit = { <triggers> }` and
+  //     `remove_accepted_culture > ai_prerequisite = { <triggers> }`), so ENTER takes priority over
+  //     param and neutral, and otherwise the body stays unscanned (see the section of this list JSDoc above) ---
   "limit",
   "ai_prerequisite",
 ]);
 
 /**
- * ===== 容器/控制块（effect/trigger 列表容器）：从 script_docs 结构示例解析（A0，2026-10）=====
+ * ===== containers and control blocks (effect and trigger list containers): derived from the script_docs structure examples (2026-10) =====
  *
- * **权威来源**：`docs/script_docs/effects.log` / `triggers.log` —— 每个 `## <name>` 的**示例行**
- * （`<name> = { … }`，可跨行；名字大小写不敏感，dump 里有 `every_town_rights_in_Location` 这类）
- * 只要示例块含 `<effects>` 或 `<triggers>`，该 name 的 body 就是 effect/trigger **列表** ⇒ 容器
- * ⇒ 进入后**继续** context 扫描（否则 `if = { add_prestigez = … }` 里的 typo 会漏）。
- * 判定优先级**高于**「块名在词典 → param」。
- * 实测：`effects.log` + `triggers.log` → **1221 个**（其中 **1212 = every_/any_/ordered_/random_ 各 303**，
- * 非前缀 9 = if / else / else_if / while / trigger_if / trigger_else / trigger_else_if / switch / conditional_effect）。
- * §A23：示例行**不一定行首**对齐 —— `conditional_effect` 的 dump 写法是行中单行
+ * **The authoritative source** is `docs/script_docs/effects.log` and `triggers.log`, where the **example line** of each `## <name>`
+ * (`<name> = { … }`, which may span lines, and the name is case insensitive, as the dump shows with a name such as `every_town_rights_in_Location`)
+ * matters only when the example block holds `<effects>` or `<triggers>`, because the body of that name is then an effect or trigger **list** and therefore a container,
+ * so the scan **continues** in context after the entry (otherwise a typo in `if = { add_prestigez = … }` stays unseen).
+ * This judgment takes priority **above** "the block name is in the dictionary gives param".
+ * The measurement of `effects.log` plus `triggers.log` gives **1221 entries** (**1212 = 303 each for every_, any_, ordered_, and random_**, and
+ * the 9 without a prefix = if, else, else_if, while, trigger_if, trigger_else, trigger_else_if, switch, and conditional_effect).
+ * Note: an example line is **not always** aligned at the line start, because the dump writes `conditional_effect` as a single line in the middle of a line
  * `… Usage: conditional_effect = { effect = <effects> limit = <triggers> [else = <effects>] }`
- * ⇒ 判据**分段两步**（见 `containersFromLogText`）。
- * 权威对照：权威容器集合 ⊆ 我们的容器集合（差异 0）。
+ * so the rule has **two stages** (see `containersFromLogText`).
+ * The authoritative comparison: the authoritative container set is a subset of our container set, with 0 difference.
  *
- * **维护成本归零**：dump 刷新（游戏 patch）后**不改代码即自动跟随**；前缀族不必再手写。
+ * **The maintenance cost drops to zero**: after a dump refresh (a game patch) the code **follows automatically with no change**, and the prefix family no longer needs a hand written list.
  *
- * ⚠️ **`switch` 是「标签容器」，不是普通容器**：trigger 侧 `switch = { trigger = <t> <值> = { <triggers> } … }`
- * 的 case 名是任意**值**（location_key `antigonish`、scope 前缀标签 `god:viracocha` …），不是
- * trigger 名 ⇒ **其直接子键（标签）不作候选**；但 case body 仍是 effect/trigger **列表** ⇒
- * **case body 进 context**。故它**仍在容器集合里**（A0 权威对照不再有例外），由
- * `LABEL_CONTAINER_NAMES` + pushBlock 的「标签模式」单独处置。
- * 历史（卡 A12，用户 2026-10-10 裁定）：早期把 switch 从容器集**排除**以避免标签误报
- * （实测 workshop 3633816300 的 `antigonish` → did-you-mean `antagonism`），副作用是
- * case body 整块不扫（C2 假阴）；现改为「标签容器」：标签仍不当候选、case body 要扫。
+ * Warning: **`switch` is a label container and not an ordinary container**. On the trigger side, `switch = { trigger = <t> <value> = { <triggers> } … }`
+ * holds case names that are arbitrary **values** (the location_key `antigonish`, the scope prefixed label `god:viracocha`, and others) and not
+ * trigger names, so **its direct child keys (the labels) never become candidates**. A case body however is still an effect or trigger **list**, so
+ * **a case body enters context**. So it **stays in the container set** (the authoritative comparison now has no exception), and the
+ * "label mode" of `LABEL_CONTAINER_NAMES` plus pushBlock handles it separately.
+ * History (decided by the player on 2026-10-10): an early version **excluded** switch from the container set to avoid a label false report
+ * (the measurement of workshop 3633816300 gives `antigonish` and a did-you-mean of `antagonism`), and the side effect was that
+ * a case body was never scanned (a C2 false negative). The current design is a label container: a label still never becomes a candidate, and a case body is scanned.
  *
- * **dump 看不见的容器（少量）** —— `DUMP_INVISIBLE_CONTAINERS`：dump 页面写了「body 是
- * effect/trigger 列表」但示例行没有 `<effects>`/`<triggers>` 占位符（`random` = `effects...`；
- * `random_list` = 数值选项列表；`and`/`or`/`not`/`nor`/`nand`/`any_false`/`all_false` = 布尔算子，
- * 文档无示例行）⇒ 解析天然漏掉，显式列出（逐条证据见该常量注释）。
+ * **The containers the dump cannot see (a small set)** live in `DUMP_INVISIBLE_CONTAINERS`. The dump page states that the body is
+ * an effect or trigger list, but the example line holds no `<effects>` or `<triggers>` placeholder (`random` = `effects...`,
+ * `random_list` = a list of numeric options, and `and`, `or`, `not`, `nor`, `nand`, `any_false`, and `all_false` = boolean operators with
+ * no example line in the document), so the parse misses them by nature and the list names them explicitly (see the constant comment for the evidence of each entry).
  */
 
 /**
- * **标签容器**（label container）：该块**是** effect/trigger 列表容器，但其**直接子键是「标签」**
- * （case 名 / 分支名 —— 是**值**不是 effect/trigger 名）⇒ 标签本身**不作候选**、其 body 进 context。
+ * A **label container**: the block **is** an effect or trigger list container, but its **direct child keys are labels**
+ * (case names or branch names, which are **values** and not effect or trigger names), so a label itself **never becomes a candidate** and its body enters context.
  *
- * 成员与依据：
- *  - `switch`（script_docs 结构示例：effects.log 与 triggers.log 都是
- *    `switch = { trigger = <单 trigger> case_1 = { <effects|triggers> } … fallback = { … } }`）。
- *    判据：`trigger =` 的值是**标量** trigger 名（vanilla 70 块中 68 块如此、0 块是块形式），
- *    其余顶层键（case 标签 + `fallback`）的 body 都是 effect/trigger 列表；标签含
- *    **裸名**（`alpha`、`eventopt1`）与 **scope 前缀形**（`god:viracocha`、`location:constantinople`）
- *    两种写法，后者在扫描器里是「裸 `{`」路径（`prev === ":"` 守卫不产生块名）。
- *    vanilla 规模：70 块 / 75 个 distinct 标签（枚举器口径）。
- *    历史（卡 A12，用户 2026-10-10 裁定）：早期把 switch 从容器集**排除**以避免标签误报
- *    （实测 workshop 3633816300 的 `antigonish` → did-you-mean `antagonism`），副作用是
- *    **case body 整块不扫**（C2 假阴，vanilla 75 个标签）。现改为「标签容器」。
+ * The members and their evidence:
+ *  - `switch` (the structure examples in script_docs, where effects.log and triggers.log both give
+ *    `switch = { trigger = <single trigger> case_1 = { <effects|triggers> } … fallback = { … } }`).
+ *    The rule: the value of `trigger =` is a **scalar** trigger name (68 of the 70 vanilla blocks are like that, and 0 blocks use a block form),
+ *    and the body of every other top-level key (a case label plus `fallback`) is an effect or trigger list. A label comes in
+ *    **a bare name** (`alpha` and `eventopt1`) and **a scope prefixed form** (`god:viracocha` and `location:constantinople`),
+ *    and the second form takes the "bare `{`" path in the scanner (the `prev === ":"` guard produces no block name).
+ *    The vanilla scale is 70 blocks and 75 distinct labels (the label counting criterion).
+ *    History (decided by the player on 2026-10-10): an early version **excluded** switch from the container set to avoid a label false report
+ *    (the measurement of workshop 3633816300 gives `antigonish` and a did-you-mean of `antagonism`), and the side effect was that
+ *    **a case body was never scanned** (a C2 false negative over the 75 vanilla labels). The current design is a label container.
  *
- * ⚠️ 与 ENTER/普通容器名单**分开判定**：标签容器名**不进** `CONTEXT_ENTER_NAMES` /
- * `TRIGGER_CONTAINER_NAMES`（那会让 pushBlock 给 context ⇒ 标签被当候选 ⇒ 误报）；
- * 由 pushBlock 的**第一分支**处置。A14 起本表（及 `switch`）的匹配大小写不敏感 ——
- * 大写 `SWITCH` 同样进标签模式（标签不当候选、case body 进 context），见 `normalizeKeywordLookup`。
+ * Warning: the judgment is **separate** from the ENTER and ordinary container lists. A label container name **does not enter** `CONTEXT_ENTER_NAMES` or
+ * `TRIGGER_CONTAINER_NAMES` (that would make pushBlock give context, so a label would become a candidate and give a false report), and
+ * the **first branch** of pushBlock handles it. From the keyword normalization on, the match of this list (and of `switch`) is case insensitive, so
+ * an upper case `SWITCH` also enters label mode (a label never becomes a candidate, and a case body enters context). See `normalizeKeywordLookup`.
  */
 const LABEL_CONTAINER_NAMES = new Set(["switch"]);
 
 /**
- * dump 文档语义是「effect/trigger 列表」但示例行**无**占位符（解析漏掉）的容器，显式补入。
- * 逐条依据（都来自 script_docs 页面本身 + vanilla 全量语料计数）：
- *  - `random`      effects.log（`effects... # effects to run if the random roll succeeds`）；45 块
- *  - `random_list` effects.log「randomly choose effects from a list」；472 块（body 是 `10 = {…}` 数值选项）
- *  - `and`/`or`/`not`/`nor` triggers.log 描述即「all inside trigger must be true」/「at least one entry inside
- *                  trigger must be true」/「negates content of trigger」/「a negated OR trigger」；
- *                  语料 body 命中词典 53% / 69% / 72% / 97%（vanilla）
- *  - `nand`/`any_false`/`all_false` triggers.log 里是 NAND/全假算子（`any_false` = 「equivalent to NAND」）；
- *                  语料出现极少（`nand = {` ×1），补入只为不丢这类 block 的内部扫描
+ * A container whose dump document means an effect or trigger list but whose example line has **no** placeholder (so the parse misses it) is added explicitly.
+ * The evidence for each entry comes from the script_docs page itself plus the full vanilla corpus count:
+ *  - `random`      effects.log (`effects... # effects to run if the random roll succeeds`), 45 blocks
+ *  - `random_list` effects.log "randomly choose effects from a list", 472 blocks (the body is a numeric option such as `10 = {…}`)
+ *  - `and`/`or`/`not`/`nor` triggers.log, whose description is "all inside trigger must be true" or "at least one entry inside
+ *                  trigger must be true"/"negates content of trigger"/"a negated OR trigger".
+ *                  The corpus body hits the dictionary 53%, 69%, 72%, and 97% of the time (vanilla).
+ *  - `nand`/`any_false`/`all_false` are NAND or all-false operators in triggers.log (`any_false` = "equivalent to NAND"), and
+ *                  the corpus holds very few of them (`nand = {` 1 time). The addition exists only to keep the inner scan of such a block,
  */
 const DUMP_INVISIBLE_CONTAINERS = new Set([
   "random",
@@ -836,10 +836,10 @@ const DUMP_INVISIBLE_CONTAINERS = new Set([
 ]);
 
 /**
- * **退化名单**：`script_docs` 结构示例不可用（文件缺失/格式变/全无示例）时回退到的手工容器名。
- * 与旧行为等价（A5 收口的精确名单 + 前缀族），保证「dump 不可用也不崩、不丢既有覆盖」。
- * 名字保持不变是为了审计 harness 的名册抽取器仍能按名解析。
- * 解析成功时**不使用**本名单（容器集合完全由 dump 决定 —— A0 验收 4）。
+ * **The fallback list**: the hand written container names used when the `script_docs` structure examples are unavailable (a missing file, a changed format, or no example at all).
+ * It is equal to the old behaviour (the exact closure list plus the prefix family) and guarantees that "an unavailable dump neither breaks the tool nor loses existing coverage".
+ * The names stay unchanged so that a name list extractor still resolves them by name.
+ * A successful parse **does not use** this list (the dump decides the container set completely).
  */
 const CONTAINER_CONTROL_NAMES = new Set([
   "if",
@@ -853,23 +853,23 @@ const CONTAINER_CONTROL_NAMES = new Set([
 const CONTAINER_CONTROL_PREFIXES = ["every_", "any_", "ordered_", "random_"];
 
 /**
- * A14：**内置关键字/容器表**的匹配改为**大小写归一**（PDXScript 关键字大小写不敏感）。
+ * The match of the **built-in keyword and container lists** changes to **case normalization** (a PDXScript keyword is case insensitive).
  *
- * 机理 = 只把**这几张内置表**的 `has` 改成大小写不敏感，**不是**新增名字：
- * vanilla 大量用大写写法（实测 `NOT` 6478 块 / `AND` 1157 / `OR` 4753 / `NOR` 561 / `NAND` 75，
- * 合计 ≈13000 块，`game-scripts/game/**`）。大小写敏感时这些块在 **param** 父位置
- * （如 `trigger > assert_if > NOT`）不被认作容器 ⇒ 整块按参数表处置、body 不扫（C2 位置相关假阴）；
- * 在 **context** 位置**侥幸能扫**（未知名块在 context 里保持 context）⇒ 光看块名列表发现不了。
+ * The mechanism changes the `has` of **these built-in lists** to be case insensitive, and it does **not** add a name:
+ * vanilla writes many of them in upper case (the measurement gives `NOT` 6478 blocks, `AND` 1157, `OR` 4753, `NOR` 561, and `NAND` 75,
+ * for about 13000 blocks in total under `game-scripts/game/**`). With a case sensitive match these blocks at a **param** parent position
+ * (such as `trigger > assert_if > NOT`) never count as a container, so the whole block is treated as a parameter table and the body stays unscanned (a C2 position dependent false negative).
+ * At a **context** position such a block **happens to be scanned** (an unknown block name keeps context inside context), so a look at the block name list alone cannot find it.
  *
- * 边界（卡 A14 硬约束）：只对这些**内置表**归一。用户自定义名 / 对象名 / 值**不**归一 ——
- * `checkCandidate` 的 `dict.knownNames` / `modDefined` 与 `pushBlock` 的 `dict.names` /
- * `modScripted` 一律保持原样（C1/C3 的对象名核对大小写可能确有意义）。
+ * The boundary (a hard constraint): only these **built-in lists** normalize. A custom name of the player, an object name, and a value **do not** normalize, because
+ * `dict.knownNames` and `modDefined` of `checkCandidate` and `dict.names` and
+ * `modScripted` of `pushBlock` all stay as they are (the letter case of an object name can really matter for the C1 and C3 checks).
  *
- * 实现方式（为何给实例替换 `has`，而不改调用点）：
- *   ① 调用点保持 `SET.has(x)` 字面形状 —— 审计 harness（`probe14.mjs` / `audit2/param-gap-ab.mjs`）
- *      以这些行为 temp 副本实验锚点；
- *   ② 审计 harness 的 `setFromSource` 以 `const NAME = new Set([`
- *      从源码解析名单 ⇒ 声明形式必须保持。
+ * The implementation choice (why an instance replaces `has` instead of each call site changing):
+ *   1. A call site keeps the literal shape `SET.has(x)`, because an experiment on a temporary copy
+ *      uses those lines as its text anchor.
+ *   2. A list extractor parses a list from the source by `const NAME = new Set([`, so
+ *      the declaration form must stay.
  */
 function normalizeKeywordLookup(set: Set<string>): void {
   const lower = new Set([...set].map((n) => n.toLowerCase()));
@@ -877,9 +877,9 @@ function normalizeKeywordLookup(set: Set<string>): void {
     Set.prototype.has.call(set, value) || lower.has(value.toLowerCase());
 }
 
-// A14：内置表的匹配统一大小写不敏感（机理与边界见 normalizeKeywordLookup 的 JSDoc）。
-// 注：`ROOT`（A13 为收口大写实例显式加入）在归一后与 `root` 等价；保留该条目以免改动
-//     名单计数与文档数字（表 B1 的 53 项 / plan §1.1 的 0/53）。
+// The match of every built-in list is case insensitive (the mechanism and the boundary are in the JSDoc of normalizeKeywordLookup).
+// Note: `ROOT` (added explicitly to close the upper case instance) is equal to `root` after the normalization. The entry stays so that the
+//     list count and the document numbers do not change (the 53 entries of the list and the 0/53 of the comparison).
 for (const keywordTable of [
   CONTEXT_ENTER_NAMES,
   TRIGGER_CONTAINER_NAMES,
@@ -891,21 +891,21 @@ for (const keywordTable of [
 }
 
 interface ContainerModel {
-  /** 容器名（解析成功时为 dump 派生集 ∪ dump 不可见容器）。 */
+  /** The container names (a successful parse gives the dump derived set union the dump invisible containers). */
   names: Set<string>;
-  /** 前缀族（仅退化模式非空；解析成功时 dump 已枚举 1212 个）。 */
+  /** The prefix family (it is non-empty only in the fallback mode, and a successful parse already enumerates 1212 of them from the dump). */
   prefixes: string[];
-  /** true = 来自 script_docs 结构示例；false = 退化手工名单。 */
+  /** true = the entry came from a script_docs structure example, and false = the fallback hand written list. */
   derived: boolean;
 }
 
-/** 进程内缓存的容器模型（按 script_docs 目录）。 */
+/** The container model cached inside the process (per `script_docs` directory). */
 const containerModelCache = new Map<string, ContainerModel>();
 
-/** 退化容器模型（新建 Set，避免调用方意外共享可变集合）。 */
+/** The fallback container model (a new Set, so that a caller never shares a mutable set by accident). */
 function fallbackContainerModel(): ContainerModel {
   const names = new Set([...CONTAINER_CONTROL_NAMES, ...DUMP_INVISIBLE_CONTAINERS]);
-  normalizeKeywordLookup(names); // A14：容器名匹配大小写不敏感（展开复制不继承 has，需重建）
+  normalizeKeywordLookup(names); // the container name match is case insensitive (a spread copy does not inherit `has`, so the set is rebuilt)
   return {
     names,
     prefixes: [...CONTAINER_CONTROL_PREFIXES],
@@ -914,13 +914,13 @@ function fallbackContainerModel(): ContainerModel {
 }
 
 /**
- * 从 effects.log / triggers.log 的**结构示例行**解析容器名。
- * 逐 `## <name>` 块，**两步**找示例起始行（大小写不敏感）：
- *   ① 行首对齐：`^\s*<name>\s*=\s*\{`；
- *   ② A23 回退：段内**任意位置**含 `\b<name>\s*=\s*\{`（dump 把示例写在行中，如
- *      `conditional_effect` 的 `… Usage: conditional_effect = { … }`）。
- * 从起始行起取**平衡大括号**示例块，块内含 `<effects>` 或 `<triggers>` ⇒ 容器。
- * 两步都找不到起始行/无占位符 ⇒ 不加入（如 `random`）。
+ * Parse the container names from the **structure example lines** of effects.log and triggers.log.
+ * For each `## <name>` block, **two steps** look for the example start line (case insensitive):
+ *   1. an alignment at the line start, that is `^\s*<name>\s*=\s*\{`, and
+ *   2. the position fallback, where **any position** inside the section holds `\b<name>\s*=\s*\{` (the dump writes the example inside a line, as with
+ *      the `… Usage: conditional_effect = { … }` of `conditional_effect`).
+ * From the start line the code takes the **balanced brace** example block, and a block that holds `<effects>` or `<triggers>` is a container.
+ * When neither step finds a start line, or the block has no placeholder, the name does not join (as with `random`).
  */
 function containersFromLogText(text: string): Set<string> {
   const found = new Set<string>();
@@ -933,7 +933,7 @@ function containersFromLogText(text: string): Set<string> {
       continue;
     }
     const name = header[1];
-    // name 来自 \w+（无正则元字符），直接内插安全。
+    // The name comes from \w+ and holds no regular expression metacharacter, so the direct interpolation is safe.
     const exampleRe = new RegExp(`^\\s*${name}\\s*=\\s*\\{`, "i");
     let j = i + 1;
     let blockStart = -1;
@@ -941,8 +941,8 @@ function containersFromLogText(text: string): Set<string> {
       if (blockStart < 0 && exampleRe.test(lines[j])) blockStart = j;
       j += 1;
     }
-    // A23 回退：行首没有示例时，退一步用「段内任意位置含 `<name> = {`」
-    // （`\b` + 名字后紧跟 `\s*=` 已排除更长标识符的前缀/后缀误配）。
+    // The position fallback: when no example sits at the line start, the code falls back to "any position inside the section holds `<name> = {`"
+    // (the `\b` plus the `\s*=` directly after the name already excludes a wrong match on the prefix or the suffix of a longer identifier).
     if (blockStart < 0) {
       const anywhereRe = new RegExp(`\\b${name}\\s*=\\s*\\{`, "i");
       for (let k = i + 1; k < j; k += 1) {
@@ -979,8 +979,8 @@ function containersFromLogText(text: string): Set<string> {
 }
 
 /**
- * 从 effects.log / triggers.log 文本解析容器名（不含退化名单、不含 dump 不可见容器）。
- * 不含有意排除项：A12 起 `switch` 也是容器（「标签容器」，由 `LABEL_CONTAINER_NAMES` 处置）。
+ * Parse the container names from the effects.log and triggers.log text (without the fallback list and without the dump invisible containers).
+ * The result holds no deliberate exclusion: `switch` is also a container (a label container, handled by `LABEL_CONTAINER_NAMES`).
  */
 function deriveContainerNames(effectsText: string, triggersText: string): Set<string> {
   const names = new Set<string>();
@@ -990,9 +990,9 @@ function deriveContainerNames(effectsText: string, triggersText: string): Set<st
 }
 
 /**
- * 测试/审计入口：给定 `docs/script_docs` 目录，返回结构示例派生的容器集合
- * （= 权威容器集合；文件缺失/无示例时为空集）。
- * 「权威容器集合 ⊆ 我们的容器集合」这条对照与冻结清单都用它。
+ * A test and audit entry point: given the `docs/script_docs` directory, it returns the container set derived from the structure examples
+ * (= the authoritative container set, and an empty set when a file is absent or holds no example).
+ * The comparison "the authoritative container set is a subset of our container set" and the frozen list both use it.
  */
 export function deriveScriptDocContainers(scriptDocsDir: string): Set<string> {
   const effects = readText(join(scriptDocsDir, "effects.log"));
@@ -1002,8 +1002,8 @@ export function deriveScriptDocContainers(scriptDocsDir: string): Set<string> {
 }
 
 /**
- * 解析 / 取缓存的容器模型。解析出 0 个容器（dump 无结构示例）⇒ 退化手工名单。
- * 缓存按 script_docs 目录：verify.mjs 的 sweep 对 33 个 mod 调 33 次，只解析一次。
+ * Parse the container model or read the cached one. A parse that gives 0 containers (a dump with no structure example) gives the fallback hand written list.
+ * The cache is per script_docs directory, because the sweep calls it 33 times for 33 mods and the parse runs only once.
  */
 function loadContainerModel(
   dir: string,
@@ -1016,7 +1016,7 @@ function loadContainerModel(
   let model: ContainerModel;
   if (names.size > 0) {
     for (const n of DUMP_INVISIBLE_CONTAINERS) names.add(n);
-    normalizeKeywordLookup(names); // A14：容器名匹配大小写不敏感（展开复制不继承 has，需重建）
+    normalizeKeywordLookup(names); // the container name match is case insensitive (a spread copy does not inherit `has`, so the set is rebuilt)
     model = { names, prefixes: [], derived: true };
   } else {
     model = fallbackContainerModel();
@@ -1026,68 +1026,68 @@ function loadContainerModel(
 }
 
 /**
- * 本次校验生效的容器模型。
- * 为何是进程级变量而不是参数：保持 `isContainerControl(name)` 与 `pushBlock` 的字面形状，
- * 审计 harness（`probe13.mjs` / `probe14.mjs`）以这些行做 temp 副本实验的文本锚点；
- * `analyzeSemantics` 是同步单线程的，设置后立即用于扫描，无并发可观测性。
+ * The container model in effect for this validation.
+ * Why it is a process level variable and not a parameter: it keeps the literal shape of `isContainerControl(name)` and `pushBlock`, because
+ * an experiment on a temporary copy uses those lines as a text anchor, and
+ * `analyzeSemantics` is synchronous and single threaded, so the value is set and used by the scan at once and no concurrency is observable.
  */
 let activeContainers: ContainerModel = fallbackContainerModel();
 
 /**
- * 合法结构字段（像是左值、实为文件结构字段）：进「已知名」排除集，**不作候选**。
- * 依据 = 文件结构（wiki 的 `Building_modding` 等）+ vanilla 实际语料（A9 卡差距 B / 修法 1），
- * **不是** script_docs（dump 里没有这些字段）。名单已冻结。
+ * A legal structure field (it looks like a left-hand value but really is a file structure field) enters the "known name" exclusion set and **never becomes a candidate**.
+ * The evidence is the file structure (the wiki page `Building_modding` and others) plus the actual vanilla corpus,
+ * and **not** script_docs (the dump holds none of those fields). The list is frozen.
  */
 const LEGITIMATE_STRUCTURAL_FIELDS = new Set([
-  // building_types 的建筑结构字段（vanilla `building_types/capital_buildings.txt` 等 10+ 处）
+  // The building structure fields of building_types (10 or more places in vanilla, such as `building_types/capital_buildings.txt`)
   "remove_if",
   "lifts_fog_of_war",
 ]);
 
 function isContainerControl(name: string): boolean {
   if (activeContainers.names.has(name)) return true;
-  // A14：前缀族只在退化模式非空（派生模式已枚举）；归一后比对小写前缀。
+  // the prefix family is non-empty only in the fallback mode (the derived mode already enumerates it), and the comparison uses the lower case prefix after the normalization.
   return activeContainers.prefixes.some((p) => name.toLowerCase().startsWith(p));
 }
 
 /**
- * **非双用**容器（A7 + A17）：容器名**不在** `CONTAINER_CONTROL_NAMES`
- * （`if`/`else`/`else_if`/`while`/`trigger_if`/`trigger_else`/`trigger_else_if`）。
+ * A **non-dual-use** container: the container name is **not** in `CONTAINER_CONTROL_NAMES`
+ * (`if`/`else`/`else_if`/`while`/`trigger_if`/`trigger_else`/`trigger_else_if`).
  *
- * 为何要分：`if` 这类控制关键字是**双用**的 —— 既作 effect/trigger 列表容器，又作**脚本值表达式**
- * 节点（param 块里的值分支，vanilla 全量 `if`×19 / `else`×3，如
- * `add_research_progress = { if = { limit = {…} value = … } }`），在 param 父块下必须保守（不放行）。
- * 其余容器（`every_*`/`any_*`/`ordered_*`/`random_*` 作用域迭代，`random`/`random_list`，
- * `and`/`or`/`not`/`nor`/`nand`/`any_false`/`all_false`）的 body **只可能**是 effect/trigger 列表
- * ⇒ 即使在 param / **neutral** 下也放行（否则真形态 `create_character > every_country > <typo>`、
- * 以及 vanilla `events/**` 顶层 `scripted_trigger xx = { NOT = { … } }` 的 body 整块不扫）。
+ * Why the split exists: a control keyword such as `if` is **dual use**, because it is both an effect or trigger list container and a **script value expression**
+ * node (a value branch inside a param block, and the full vanilla corpus gives `if` 19 times and `else` 3 times, as in
+ * `add_research_progress = { if = { limit = {…} value = … } }`). Under a param parent block the rule must stay conservative and never pass it through.
+ * The body of every other container (`every_*`, `any_*`, `ordered_*`, and `random_*` scope iteration, `random` and `random_list`, and
+ * `and`, `or`, `not`, `nor`, `nand`, `any_false`, and `all_false`) **can only** be an effect or trigger list,
+ * so it passes through even under param or **neutral** (otherwise the real shape `create_character > every_country > <typo>`, and
+ * the body of a top-level `scripted_trigger xx = { NOT = { … } }` in vanilla `events/**`, would go unscanned).
  *
- * **`neutral` 父块下的处置（显式记录）**：
- * 放行判据与 A7 **同源**（同为 `isUnambiguousContainer` 家族，故**双用控制关键字在 neutral 下同样不放行**），
- * **但不共用同一个函数** —— neutral 用 `isUnambiguousContainerExactCase`（**原样大小写**），
- * 原因见后者 JSDoc（`NOR` 国家 tag 会与 `nor` 容器撞车）。
- * `else`/`else_if` 在 vanilla 的 neutral 站点里真实出现 **15 次**（如 `common/script_values/**`
- * 的脚本值分支），放行会把值分支当左值列表扫 ⇒ 扩大误报面（违反 GOAL #4），故与 param 同口径保守。
- * 本卡（A17）的机理是「**父模式 = neutral 不放行**」这一个根因；不是「名字不在 ENTER 名单」（A13），
- * 也不是「块没有名字」（A16）。
- * 判据只叠加在**派生容器集合**（A0）之上，不引入手写前缀名单。
- * A14：两处比较（`isContainerControl` / `CONTAINER_CONTROL_NAMES.has`）都改为**大小写不敏感**。
+ * **The handling under a `neutral` parent block (recorded explicitly)**:
+ * The pass-through rule shares its source with the dual use rule (both belong to the `isUnambiguousContainer` family, so **a dual use control keyword does not pass through under neutral either**),
+ * **but the two do not share one function**. neutral uses `isUnambiguousContainerExactCase` with **the original letter case**, and
+ * the reason is in the JSDoc of the latter (the country tag `NOR` collides with the `nor` container).
+ * `else` and `else_if` really appear **15 times** at a vanilla neutral site (such as the script value branches of `common/script_values/**`), and
+ * a pass-through would scan a value branch as a left-hand value list, which widens the false report surface, so the rule stays conservative as under param.
+ * The mechanism here is one root cause, "**a neutral parent mode does not pass through**". It is not "the name is absent from the ENTER list",
+ * and it is not "the block has no name".
+ * The rule only adds to the **derived container set** and introduces no hand written prefix list.
+ * Both comparisons (`isContainerControl` and `CONTAINER_CONTROL_NAMES.has`) change to a **case insensitive** match.
  */
 function isUnambiguousContainer(name: string): boolean {
   return isContainerControl(name) && !CONTAINER_CONTROL_NAMES.has(name);
 }
 
 /**
- * A17-1：**neutral 父**下的放行判据 —— 与 param 父（A7，A14 大小写归一）**不同**，
- * 这里用**原样大小写**比对容器名。
+ * The pass-through rule under a **neutral parent**. It **differs** from the param parent (which uses the case normalization), because
+ * here the container name compares with **the original letter case**.
  *
- * 为何要分开（实测，否则会误报）：A14 把容器判定改成大小写不敏感后，
- * vanilla `main_menu/setup/start/10_countries.txt` 的国家 tag **`NOR = { … }`** 与布尔容器
- * `nor` 等价；若 neutral 父也归一放行，整个国家对象 body 进 context ⇒ 结构化字段
- * `end_date = …` 被当左值候选（vanilla-as-mod C2 **1 条误报**，违反 GOAL #4）。
- * ⇒ neutral 下只认**词典原样字面**：派生的容器名与作用域迭代前缀都是小写，故 `nor`/`not`/
- * `or`/`every_*` 等照常放行，而 `NOR`/`AND` 这类全大写 token 不匹配。
- * param 父保持 A14 归一（那里的大写 `NOT`/`AND`/`OR` 是真关键字 —— 如 `assert_if > NOT`）。
+ * Why the two are separate (a measurement, because otherwise a false report appears): after the container test changed to be case insensitive,
+ * the country tag **`NOR = { … }`** in vanilla `main_menu/setup/start/10_countries.txt` became equal to the boolean container
+ * `nor`. If a neutral parent also passed through after the normalization, the whole body of the country object would enter context, so the structure field
+ * `end_date = …` would become a left-hand value candidate (vanilla-as-mod C2 gives **1 false report**).
+ * So under neutral only the **original literal of the dictionary** counts. A derived container name and a scope iteration prefix are both lower case, so `nor`, `not`,
+ * `or`, and `every_*` pass through as usual, while an all upper case token such as `NOR` or `AND` never matches.
+ * The param parent keeps the normalization, because an upper case `NOT`, `AND`, or `OR` there is a real keyword (such as `assert_if > NOT`).
  */
 function isUnambiguousContainerExactCase(name: string): boolean {
   const isContainer =
@@ -1096,70 +1096,70 @@ function isUnambiguousContainerExactCase(name: string): boolean {
   return isContainer && !CONTAINER_CONTROL_NAMES.has(name);
 }
 
-/** 相对路径是否在 common/scripted_effects/ 或 common/scripted_triggers/ 下（目录即上下文）。 */
+/** Whether a relative path sits under common/scripted_effects/ or common/scripted_triggers/ (a directory is a context). */
 function isScriptedDir(rel: string): boolean {
   const c = categoryFromRel(rel);
   return c === "scripted_effects" || c === "scripted_triggers";
 }
 
 /**
- * ===== 数据驱动目录（A6，2026-10）：「目录即上下文」第二类 =====
+ * ===== data driven directories (2026-10): the second kind of "a directory is a context" =====
  *
- * 判据（什么样的 `<目录>` 算「body 是左值列表」的数据驱动目录，块名不可枚举）：
- *  1. 目录里的**顶层块名是作者自起的 id**（`<id> = { … }`），不可能按名字进 ENTER / 容器 / 词典，
- *     因此 `pushBlock` 对顶层对象只能给 neutral（`isScripted` 分支是唯一的入口）→ 整个 body 不扫；
- *  2. 对象 body 里存在**直接依赖 script_docs 词典的左值**——`name = <number|yes/no|scope|…>` 形式的
- *     modifier / effect / trigger 名（或与词典撞名的资源/成本键），使「左值写成 dist ≤2 的 typo」
- *     在名字级是**可判**的；
- *  3. **全量真实语料零误报（硬门槛）**：加入后必须在 33 个真实 mod（reference + workshop +
- *     Paradox mod 目录）上保持 C2 WARN = 0（`probe13.mjs` 的目录集实验 + `tool-content-sweep.mjs`）。
+ * The rule for which `<directory>` counts as a data driven directory whose "body is a left-hand value list" and whose block names cannot be enumerated:
+ *  1. The **top-level block name in the directory is an author-chosen id** (`<id> = { … }`), which can never enter ENTER, a container, or the dictionary by name,
+ *     so `pushBlock` can only give neutral for a top-level object (the `isScripted` branch is the only entry), and the whole body stays unscanned.
+ *  2. The object body holds a **left-hand value that depends directly on the script_docs dictionary**, that is a modifier, effect, or trigger name in the form `name = <number|yes/no|scope|…>`
+ *     (or a resource or cost key that collides with a dictionary name), so that "a left-hand value written as a typo within a distance of 2"
+ *     is **decidable** at the name level.
+ *  3. **Zero false reports over the whole real corpus (a hard bar)**: after the addition the C2 WARN count must stay 0 over 33 real mods (the reference, the workshop, and the
+ *     Paradox mod directories), which the directory set experiment measures.
  *
- * 满足 1+2+3 的目录 → 其**顶层对象**（及内部 scope 块）进入 context，与 scripted_effects 走同一条
- * `scanStickyContext` 通路。顶层对象名本身**不**参与候选（C2 只查 body 左值，与 `(top)` 噪声同口径）。
+ * A directory that meets 1, 2, and 3 sends its **top-level objects** (and the inner scope blocks) into context, on the same
+ * `scanStickyContext` path as scripted_effects. A top-level object name itself **never** becomes a candidate (C2 checks only a body left-hand value, which matches the `(top)` noise criterion).
  *
- * 成员（6 个；括号 = 在 `game-scripts/game/**` 真原版全量语料上，该目录的对象 body **直系**
- * `depth=1` 出现词典左值的次数 / distinct id 数；eff/trg/mod = effects/triggers/modifiers 词典）：
- *  - `static_modifiers`  body 是纯 modifier 左值表：726 个 distinct modifier 名（monthly_legitimacy 113、
- *                       monthly_prestige 112、local_max_control 51 …），2616 个 id。
- *  - `auto_modifiers`    242 个 distinct modifier 名（monthly_towards_hellenization 26 …），140 个 id。
- *  - `advances`          487 个 distinct（`unlock_unit` effect 186 + modifier 名，monthly_prestige 68 …），
- *                       2892 个 id；body 是 effect + modifier 左值表。
- *  - `prices`            17 个资源/成本键（gold 109、stability 87、prestige 53 …）——这些键同时是词典名
- *                       （词典名与结构化键撞车，正是可判的前提），332 个 id。
- *  - `holy_sites`        `importance`（trigger 名，241 次），241 个 id。
- *  - `building_types`    `employment_size`(465) / `is_foreign`(456)（trigger 名），465 个 id。
- * 6 个目录全部有目录夹具（命中 6/6）与 `c2-dir-context-data-*` 用例。
+ * The 6 members (the parenthesized numbers come from the whole real original corpus under `game-scripts/game/**`, where the object body of the directory holds a dictionary left-hand value **directly**
+ * at depth=1, and they give the count of such values and the number of distinct ids, where eff, trg, and mod mean the effects, triggers, and modifiers dictionaries):
+ *  - `static_modifiers`  The body is a pure modifier left-hand value table with 726 distinct modifier names (monthly_legitimacy 113,
+ *                       monthly_prestige 112, local_max_control 51, and others) and 2616 ids.
+ *  - `auto_modifiers`    242 distinct modifier names (monthly_towards_hellenization 26, and others) and 140 ids.
+ *  - `advances`          487 distinct entries (the `unlock_unit` effect 186 times plus modifier names such as monthly_prestige 68, and others),
+ *                       2892 ids, and the body is an effect plus modifier left-hand value table.
+ *  - `prices`            17 resource or cost keys (gold 109, stability 87, prestige 53, and others), and those keys are also dictionary names
+ *                       (the collision of a dictionary name with a structure key is exactly the premise that makes the check decidable), with 332 ids.
+ *  - `holy_sites`        `importance` (a trigger name used 241 times) and 241 ids.
+ *  - `building_types`    `employment_size` (465) and `is_foreign` (456), which are trigger names, with 465 ids.
+ * All 6 directories have a data driven context directory fixture (6 of 6 hits).
  *
- * 有意**排除**（看起来像数据驱动目录，但**不该**按目录进 context；避免「未记录的洞」）：
- *  - **无 depth=1 词典左值**（唯一命中是已在 ENTER 的容器名）→ 纳入零收益：
- *    `country_interactions` / `character_interactions` / `generic_actions`（depth=1 唯一词典名是
- *    `ai_will_do`，A5 已 ENTER）、`death_reason`（0 条）。
- *  - **body 是结构化字段表（布尔/枚举/颜色/贴图/局部化键），depth=1 的词典名是「字段名与词典
- *    合法撞车」，不是左值列表**；纳入等于把字段名当左值候选（只扩大潜在误报面），且这些目录里
- *    真正的 effect/trigger 列表容器（`potential_trigger` / `on_*` / `*_trigger` / 各 `*_modifier`）
- *    已由名字级 ENTER/容器名单覆盖 → 不纳入：
- *      `religions`（`has_karma = yes` 等 14 名）、`gods`（`is_female`）、`laws`（`requires_vote`）、
- *      `casus_belli`（`war_goal_type`）、`parliament_agendas`（`importance`）、`subject_types`
- *      （`has_overlords_ruler` 等 7 名）、`international_organizations`（`leader_type` 等 10 个枚举
- *      字段）、`topography`（`movement_cost`/`proximity` 等 3 个地形字段）、`script_values`
- *      （`value`/`if`/`multiply` 脚本值表达式 + `save_temporary_scope_as`；其 `if > limit` 是脚本值
- *      的**值分支**，与 A7 的「param 值分支」同族，需外科式规则，不属本卡）。
- *    注：`subject_types` 的 `visible_through_diplomacy = { <trigger 列表> }` 是作者自起名的
- *    trigger 容器，属**已知的名字级不可判**面；若真实语料给出反例，按下方维护规则重新评估。
- *  - 其余 `common/<目录>`（`countries` / `locations` / … 游戏状态表、界面/贴图表、loc 表）：顶层块名
- *    不是「作者 id 对象」或 body 无词典左值，一律不纳入。
- *  - 顶层 `REPLACE:` / `INJECT:` **覆盖对象**的 body（如 `REPLACE:slave_center = { … }`，见 workshop
- *    3610028078 `…/building_types/ftc_foreign_buildings.txt:66`）仍不进 context —— `KEYWORD:` 前缀使
- *    行扫描只看到一个无名 scope 块。这是与 `common/scripted_effects/**` **同源的既有行为**（覆盖体
- *    不查，`REPLACE:foo = { add_goldd = 1 }` 在 scripted_effects 里也为 0 条），不是本目录判据的
- *    一部分；若要覆盖，属独立卡（C2 覆盖体规则），且需另做零误报验证。
+ * The list deliberately **excludes** the following entries, which look like a data driven directory but **must not** enter context as a directory, so that no "unrecorded hole" appears:
+ *  - a directory with **no dictionary left-hand value at depth=1** (the only hit is a container name that is already in ENTER), so the entry gains nothing:
+ *    `country_interactions`, `character_interactions`, and `generic_actions` (the only dictionary name at depth=1 is
+ *    `ai_will_do`, which is already in the ENTER list), and `death_reason` (0 entries).
+ *  - a directory whose **body is a structure field table (a boolean, an enum, a color, a texture, or a localization key)**, where a dictionary name at depth=1 is "a legal collision of a field name with the
+ *    dictionary" and not a left-hand value list. The entry would treat a field name as a left-hand value candidate (which only widens the potential false report surface), and inside those directories the
+ *    real effect and trigger list containers (`potential_trigger`, `on_*`, `*_trigger`, and each `*_modifier`)
+ *    are already covered by the name level ENTER and container lists, so the entry is not added:
+ *      `religions` (14 names such as `has_karma = yes`), `gods` (`is_female`), `laws` (`requires_vote`),
+ *      `casus_belli` (`war_goal_type`), `parliament_agendas` (`importance`), `subject_types`
+ *      (7 names such as `has_overlords_ruler`), `international_organizations` (10 enum
+ *      fields such as `leader_type`), `topography` (3 terrain fields such as `movement_cost` and `proximity`), and `script_values`
+ *      (`value`, `if`, and `multiply` script value expressions plus `save_temporary_scope_as`, where the `if > limit` is the
+ *      **value branch** of a script value, which is the same family as the "param value branch" rule above and needs a surgical rule, so it does not belong to this change).
+ *    Note: `visible_through_diplomacy = { <trigger list> }` in `subject_types` is a trigger container with an author-chosen name,
+ *    so it is a **known name level undecidable** surface. If the real corpus gives a counterexample, the maintenance rule below re-evaluates it.
+ *  - every other `common/<directory>` (`countries`, `locations`, and others, which are game state tables, interface and texture tables, and loc tables). Its top-level block name
+ *    is not an "author id object", or its body holds no dictionary left-hand value, so the list never adds it.
+ *  - the body of a top-level **override object** of `REPLACE:` or `INJECT:` (such as `REPLACE:slave_center = { … }` in the workshop mod
+ *    3610028078 at `…/building_types/ftc_foreign_buildings.txt:66`) still does not enter context, because the `KEYWORD:` prefix makes
+ *    the line scan see only an unnamed scope block. This is **existing behaviour of the same source** as for `common/scripted_effects/**` (an override body
+ *    goes unchecked, and `REPLACE:foo = { add_goldd = 1 }` gives 0 entries in scripted_effects too). It is not part of this directory
+ *    rule, and a coverage of it belongs to a separate change (the C2 override body rule) that needs its own zero false report verification.
  *
- * 维护规则（验收 6，零误报优先）：真实语料一旦在**已纳入**目录里出现 C2 WARN，先逐条判定——
- *  **真命中**（作者把 modifier/effect/trigger 名写错）→ 保留；**新误报**（词典名与结构化字段
- *  合法撞车）→ 收紧该目录（必要时移出清单）并**在此记录依据**。宁可少纳，不可误报。
+ * The maintenance rule (where zero false reports comes first): as soon as the real corpus gives a C2 WARN inside an **included** directory, check each item first, and
+ *  keep a **true hit** (the author misspelled a modifier, effect, or trigger name), then tighten the directory for a **new false report** (a legal collision of a dictionary name with a structure
+ *  field), which may mean removing it from the list, and **record the evidence here**. A missing entry is better than a false report.
  *
- * 命名说明：不叫 `DATA_DRIVEN_DIRS` / `isDataDrivenDir`，是为了不撞审计 harness `probe13.mjs`
- * 在 temp 副本里插入的同名 Set/函数（`const` 重名会 SyntaxError，令 D1/D2 实验跑不起来）。
+ * A note on the names: the constant is not called `DATA_DRIVEN_DIRS` and the function is not called `isDataDrivenDir`, so that they never collide with the `Set` and the
+ * function of the same name that an experiment inserts into a temporary copy (a duplicate `const` name gives a SyntaxError and the experiments cannot run).
  */
 const DATA_DRIVEN_CONTEXT_DIRS = new Set([
   "static_modifiers",
@@ -1170,7 +1170,7 @@ const DATA_DRIVEN_CONTEXT_DIRS = new Set([
   "building_types",
 ]);
 
-/** 相对路径是否在「数据驱动目录」下（顶层块名是作者 id、body 是词典左值列表）。 */
+/** Whether a relative path sits under a data driven directory (the top-level block name is an author id and the body is a dictionary left-hand value list). */
 function isDataDrivenContextDir(rel: string): boolean {
   const c = categoryFromRel(rel);
   return c !== null && DATA_DRIVEN_CONTEXT_DIRS.has(c);
@@ -1178,31 +1178,31 @@ function isDataDrivenContextDir(rel: string): boolean {
 
 interface ScriptDictionary {
   names: Set<string>;
-  /** 按首字母分桶，供有界纠错缩小候选。 */
+  /** Buckets by first letter, which narrow the candidates for the bounded correction search. */
   byFirstLetter: Map<string, string[]>;
   /**
-   * **已知名**（候选排除集，A9）：names ∪ event_targets ∪ on_actions ∪ custom_localization
-   * ∪ vanilla 键名 ∪ 合法结构字段。
+   * The **known names** (the candidate exclusion set): names union event_targets union on_actions union custom_localization
+   * union the vanilla key names union the legal structure fields.
    *
-   * ⚠️ 为何**不**直接把它合进 `names`：`names` 在 `pushBlock` 里还决定 block 是 param
-   * 还是 context —— 如 `dynasty_home = { <trigger 列表> }` 的 body 是 trigger 列表，
-   * 加进 `names` 会把整块变 param、body 不再扫（新的漏查）。故**块分类逻辑不动**，
-   * 本集合只影响 `checkCandidate`。
+   * Warning: why it is **not** merged into `names` directly: inside `pushBlock` `names` also decides whether a block is param
+   * or context. For example the body of `dynasty_home = { <trigger list> }` is a trigger list, so
+   * adding it to `names` would turn the whole block into param and stop the body scan (a new missed check). So the **block classification logic stays as it is**, and
+   * this set affects only `checkCandidate`.
    */
   knownNames: Set<string>;
-  /** 容器模型（来自 script_docs 结构示例；解析不可用时为退化手工名单）。 */
+  /** The container model (from the script_docs structure examples, or the fallback hand written list when the parse is unavailable). */
   containers: ContainerModel;
 }
 
-/** `### <name>`（event_targets.log，334 条）。 */
+/** `### <name>` (event_targets.log, 334 entries). */
 function parseEventTargetNames(text: string | null): string[] {
   if (text === null) return [];
   return [...text.matchAll(/^### (\w+)/gm)].map((m) => m[1]);
 }
 
 /**
- * on_actions.log：`<name>:` **独占一行**（行尾是 CRLF ⇒ 用 `\r?$`，不能用 `$` 锚点）。
- * 实测 256 条（>8 长度的用于排除；数字/短名无害）。
+ * on_actions.log: `<name>:` occupies a whole line (the line end is CRLF, so the pattern uses `\r?$` and not a `$` anchor).
+ * The measurement gives 256 entries (a length above 8 serves the exclusion, and a number or a short name is harmless).
  */
 function parseOnActionNames(text: string | null): string[] {
   if (text === null) return [];
@@ -1210,9 +1210,9 @@ function parseOnActionNames(text: string | null): string[] {
 }
 
 /**
- * custom_localization.log：**有层级** —— 顶层 `<name>:`，`Entries:` 下的子项（裸标识符）
- * **也是名字**，所以不能一行一个（naive 逐行会同时把 `Scope:` / `Random Valid:` 当名字）。
- * 实测：顶层 926 条（464 distinct）+ Entries 子项 ~47k ⇒ 并入已知名（只减误报）。
+ * custom_localization.log **has a hierarchy**: a top-level `<name>:` and the sub-items (bare identifiers) under `Entries:`
+ * are **also names**, so one line cannot give one name (a naive line by line parse would also treat `Scope:` and `Random Valid:` as names).
+ * The measurement gives 926 top-level entries (464 distinct) plus about 47k Entries sub-items, so they join the known names and only reduce the false reports.
  */
 function parseCustomLocalizationNames(text: string | null): string[] {
   if (text === null) return [];
@@ -1226,7 +1226,7 @@ function parseCustomLocalizationNames(text: string | null): string[] {
     }
     if (inEntries) {
       if (line === "" || line.startsWith("-")) {
-        inEntries = false; // 分隔线/空行 → Entries 段结束
+        inEntries = false; // a separator line or a blank line ends the Entries section
       } else if (/^[A-Za-z0-9_]+$/.test(line)) {
         out.push(line);
         continue;
@@ -1239,21 +1239,21 @@ function parseCustomLocalizationNames(text: string | null): string[] {
 }
 
 /**
- * vanilla 键名/对象名的**行首**形态：`name =`、`REPLACE:name =`（`==` 不算；`name:` 不算）。
- * 只取行首（`^`）—— 值里的标识符不是「作为键名出现过」。
+ * The **line start** forms of a vanilla key name or object name: `name =` and `REPLACE:name =` (an `==` does not count, and a `name:` does not count).
+ * Only the line start counts (the `^` anchor), because an identifier inside a value has not "appeared as a key name".
  */
 const VANILLA_KEY_RE = /^\s*(?:[A-Z_]+:)?([A-Za-z_][A-Za-z0-9_]*)\s*=(?!=)/gm;
 
-/** 进程内缓存的 vanilla 键名集合（按 vanilla 根路径）。实测 2830 文件 / ~0.7s。 */
+/** The set of vanilla key names cached inside the process (per vanilla root path). The measurement gives 2830 files in about 0.7s. */
 const vanillaKeyNameCache = new Map<string, Set<string>>();
 
 /**
- * 收集真原版 `game-scripts/game/**` 里**作为键名/对象名出现过**的全部名字（A9 修法 1）。
- * 只取 vanilla：① vanilla 是唯一权威的「已知名」来源；② 取其它 mod 会让流传的 typo 互相背书；
- * ③ 语义上「合法」= vanilla 已知 **或** 本 mod 自己定义。
- * 实测能档住 remove_if×82 / dynasty_home×2 / lifts_fog_of_war×3 / birth_date×8612 /
- * opinions×2390 / dynasty_names×547 / building_levels×1 / antigonish×3 / cultural_ties×1。
- * 副作用（已记录、可接受）：vanilla 自己的错字 `hidden_Effect` 会被放过 —— 不是我们的职责。
+ * Collect every name that has **appeared as a key name or an object name** in the real original `game-scripts/game/**`.
+ * Only vanilla counts: 1. vanilla is the only authoritative source of a "known name". 2. A name from another mod would let a circulating typo endorse itself.
+ * 3. A name is "legal" when vanilla knows it **or** this mod defines it.
+ * The measurement shows this blocks remove_if 82 times, dynasty_home 2 times, lifts_fog_of_war 3 times, birth_date 8612 times, and
+ * opinions 2390 / dynasty_names 547 / building_levels 1 / antigonish 3 / cultural_ties 1.
+ * One side effect (recorded and acceptable): a typo of vanilla itself such as `hidden_Effect` passes through, and that is not our responsibility.
  */
 function collectVanillaKeyNames(vanillaRoot: string): Set<string> {
   const cached = vanillaKeyNameCache.get(vanillaRoot);
@@ -1268,16 +1268,16 @@ function collectVanillaKeyNames(vanillaRoot: string): Set<string> {
   return keys;
 }
 
-/** 进程内缓存的词典（按 repoRoot|vanillaRoot）。避免 sweep 对 33 个 mod 重复解析/扫 vanilla。 */
+/** The dictionary cached inside the process (keyed by repoRoot and vanillaRoot). It stops the sweep from parsing and scanning vanilla again for each of the 33 mods. */
 const dictionaryCache = new Map<string, ScriptDictionary | null>();
 
 /**
- * 现解析 script_docs 词典：effects/triggers/modifiers（→ `names`，兼作块分类）+ 已知名补充
- * （event_targets/on_actions/custom_localization，仅排除候选）+ vanilla 键名（A9）。
- * 容器模型也从同一目录的 effects.log/triggers.log 结构示例解析（A0）。
- * 优先相对模块自身定位（import.meta.dirname → ../../docs/script_docs，Node 24 ESM 可用）；
- * 找不到再退回 repo 根的 docs/script_docs（workshop 真实 mod 下 findRepoRoot 常为 null）。
- * 全部找不到返回 null，C2 安全跳过（不产 WARN/NOTE）。
+ * The code parses the script_docs dictionary: effects, triggers, and modifiers (which give `names` and also serve the block classification), plus the known name additions
+ * (event_targets, on_actions, and custom_localization, which only exclude a candidate) plus the vanilla key names.
+ * The container model also comes from the structure examples in effects.log and triggers.log of the same directory.
+ * The location prefers the module itself (import.meta.dirname gives ../../docs/script_docs, which Node 24 ESM supports), and
+ * falls back to docs/script_docs at the repository root when it finds nothing (under a real workshop mod findRepoRoot is often null).
+ * When nothing is found it returns null, and C2 skips safely (it produces no WARN and no NOTE).
  */
 function loadScriptDictionary(
   repoRoot: string | null,
@@ -1331,7 +1331,7 @@ function loadScriptDictionary(
   return null;
 }
 
-/** 有界 Levenshtein：一旦最坏可能距离超过 max 即剪枝返回 max+1（避免 O(n·m) 全算）。 */
+/** A bounded Levenshtein distance: as soon as the worst possible distance passes max, the code prunes and returns max+1 (which avoids the full O(n*m) computation). */
 function boundedLevenshtein(a: string, b: string, max: number): number {
   const m = a.length;
   const n = b.length;
@@ -1353,7 +1353,7 @@ function boundedLevenshtein(a: string, b: string, max: number): number {
   return prev[n];
 }
 
-/** 首字母同 + 长度 ±1 + 编辑距离 ≤2 的词典名（纠错候选）。 */
+/** A dictionary name with the same first letter, a length within 1, and an edit distance of 2 or less (a correction candidate). */
 function findDidYouMean(name: string, dict: ScriptDictionary): string | null {
   const bucket = dict.byFirstLetter.get(name[0].toLowerCase());
   if (!bucket) return null;
@@ -1365,16 +1365,16 @@ function findDidYouMean(name: string, dict: ScriptDictionary): string | null {
     if (d < bestDist) {
       bestDist = d;
       best = candidate;
-      if (bestDist === 1) break; // name 不在词典，最小距离为 1，已最优
+      if (bestDist === 1) break; // the name is absent from the dictionary, so the minimum distance is 1 and the result is already optimal
     }
   }
   return bestDist <= 2 ? best : null;
 }
 
 /**
- * C2 候选命中条件：长度 ≥8、**不在已知名集合**（词典 ∪ event_targets ∪ on_actions ∪
- * custom_localization ∪ vanilla 键名 ∪ 合法结构字段）、不是 mod 自己定义的名、且有 ≤2 的纠错候选。
- * A9：`knownNames` 的判定只在这里（候选层），不影响 `pushBlock` 的 param/context 分类。
+ * The C2 candidate hit condition: the length is 8 or more, the name is **absent from the known name set** (the dictionary union event_targets union on_actions union
+ * custom_localization union the vanilla key names union the legal structure fields), it is not a name this mod defines, and it has a correction candidate within 2.
+ * The `knownNames` test happens only here (at the candidate layer) and never affects the param and context classification of `pushBlock`.
  */
 function checkCandidate(
   name: string,
@@ -1407,28 +1407,28 @@ function isWs(ch: string): boolean {
 }
 
 /**
- * 粘性上下文扫描（注释/字符串感知的 char 级扫描，栈记每层块的 interior 模式）：
- * - 进入 context：块名 ∈ 名单，或 scripted_effects/scripted_triggers 的顶层对象；
- * - **标签模式（label）**：块名 ∈ `LABEL_CONTAINER_NAMES`（`switch`）⇒ 该块内为 label ——
- *   直接子键（case 标签）**不作候选**，其子块（case body / `trigger = { … }`）进 context；
- *   标签的 **scope 前缀形**（`location:constantinople = { … }`）走裸 `{` 路径，同样进 context；
- * - 保持：scope 块（块名不在词典）不退出 context；
- * - 退出：块名在词典（已知 effect/trigger/modifier 的参数块），或块名 ∈ mod 自定义的
- *   scripted effect/trigger 名（调用体是参数列表，如 `_cmm_register_bool_setting_internal = { is_global = 0 }`）
- *   → 该块内部为 param；
- * - context 里 `name = ...` 左值（含块名）是候选；裸值、长度 <8、mod 定义名不扫。
- * - A8：扫描前剥掉**行首覆盖关键字前缀**（`REPLACE:`/`INJECT:`/`TRY_*`/`*_OR_CREATE`），
- *   于是 `KEYWORD:foo = { … }` 的 `foo` 是普通块名、覆盖体由上面这些**既有规则**处置。
- * - A17-2：顶层内联 `scripted_trigger <名> = { … }` / `scripted_effect <名> = { … }`
- *   （vanilla 大量写在 `events/**` 这类**非 scripted 目录**里）的 **body 是 effect/trigger 列表** ——
- *   与 `common/scripted_effects|triggers` 目录规则**同源**。旧实现只按**目录**判定 ⇒ 这里顶层对象
- *   得 `neutral`、body 不扫。现按「块名前一个词是 `scripted_trigger`/`scripted_effect`（大小写不敏感）
- *   且是顶层」显式放行进 context。
- * - A18：上面这条对**带点名字**的定义（`scripted_trigger flavor_chi.15_foreign_country_trigger = {`）
- *   原本不生效 —— 块名判定带 `prev !== "."` / `prev !== ":"` 守卫，ident-run 在 `.` 处截断、
- *   该 `{` 不产生块名（⇒ 走裸 `{` 路径、继承 neutral）、A17-2 的放行**永不触发** ⇒ body 整块不扫。
- *   **守卫不动**（它们防的正是 `scope:actor = {` / `ROOT.province:xxx = {` 这类 scope 路径被当块名）；
- *   改由 `inlineScriptedDottedBodyStart` 这条**窄通路**在**顶层**位置把那个 `{` 单判成 context。
+ * The sticky context scan (a character level scan with comment and string awareness, where a stack holds the interior mode of each block):
+ * - entering context: the block name is in a list, or the block is a top-level object of scripted_effects or scripted_triggers,
+ * - **label mode**: the block name is in `LABEL_CONTAINER_NAMES` (`switch`), so the interior of that block is a label, where
+ *   a direct child key (a case label) **never becomes a candidate**, and its child block (a case body or `trigger = { … }`) enters context,
+ *   and the **scope prefixed form** of a label (`location:constantinople = { … }`) takes the bare `{` path and also enters context,
+ * - keeping context: a scope block (whose block name is absent from the dictionary) never leaves context,
+ * - leaving context: the block name is in the dictionary (the parameter block of a known effect, trigger, or modifier), or the block name is a scripted effect or trigger name
+ *   this mod defines itself (a call body is a parameter list, such as `_cmm_register_bool_setting_internal = { is_global = 0 }`),
+ *   and the interior of that block becomes param,
+ * - a `name = ...` left-hand value inside context (including a block name) is a candidate, while a bare value, a length below 8, and a name the mod defines are never scanned.
+ * - the scan strips a **line start override keyword prefix** first (`REPLACE:`, `INJECT:`, `TRY_*`, and `*_OR_CREATE`), and
+ *   the `foo` of `KEYWORD:foo = { … }` is then an ordinary block name, and the **existing rules** above handle the override body.
+ * - the **body of a top-level inline** `scripted_trigger <name> = { … }` or `scripted_effect <name> = { … }`
+ *   (which vanilla writes in large numbers inside a **non-scripted directory** such as `events/**`) **is an effect or trigger list**,
+ *   which shares its source with the `common/scripted_effects|triggers` directory rule. The old implementation decided by the **directory** alone, so a top-level object here
+ *   became `neutral` and its body stayed unscanned. The current code passes it into context explicitly when "the word before the block name is `scripted_trigger` or `scripted_effect` (case insensitive)
+ *   and the block sits at the top level".
+ * - the rule above did not work for a definition with a **dotted name** (`scripted_trigger flavor_chi.15_foreign_country_trigger = {`),
+ *   because the block name test carries a `prev !== "."` and a `prev !== ":"` guard, the ident-run stops at the `.`,
+ *   that `{` produces no block name (so it takes the bare `{` path and inherits neutral), and the pass-through above **never triggered**, so the whole body stayed unscanned.
+ *   **The guards stay as they are** (they stop exactly a scope path such as `scope:actor = {` or `ROOT.province:xxx = {` from becoming a block name), and
+ *   the **narrow path** of `inlineScriptedDottedBodyStart` now judges that one `{` as context at a **top level** position.
  */
 function scanStickyContext(
   rawCleaned: string,
@@ -1437,12 +1437,12 @@ function scanStickyContext(
   modDefined: Set<string>,
   modScripted: Set<string>,
   warnings: SemanticWarning[],
-  // A6：文件是否在「数据驱动目录」下（顶层对象是作者 id、body 是词典左值列表）。
-  // 与 `isScripted` 分开传（不在此处 OR）是为了保持调用点第二行 `isScriptedDir(rel),` 的
-  // 字面不变——审计 harness probe13.mjs 以此行做 temp 副本的 D1/D2 实验锚点。
+  // whether the file sits under a data driven directory (a top-level object is an author id and the body is a dictionary left-hand value list).
+  // It passes separately from `isScripted` and is not ORed here, so that the literal form of the second line
+  // `isScriptedDir(rel),` at the call site stays unchanged, because a temporary-copy experiment uses that line as its anchor.
   isDataDriven: boolean,
 ): void {
-  // A8：先剥行首覆盖关键字前缀（理由与判据见 stripOverrideKeywordPrefixes 的 JSDoc）。
+  // the code strips the line start override keyword prefix first (the reason and the rule are in the JSDoc of stripOverrideKeywordPrefixes).
   const cleaned = stripOverrideKeywordPrefixes(rawCleaned);
   const n = cleaned.length;
   const stack: ContextMode[] = [];
@@ -1452,8 +1452,8 @@ function scanStickyContext(
   const currentMode = (): ContextMode =>
     stack.length > 0 ? stack[stack.length - 1] : "neutral";
 
-  // A17-2：取某位置**前一个词**（跳过空白，向回读一整段标识符字符）—— 用于识别
-  // `scripted_trigger <名> = {` / `scripted_effect <名> = {` 的内联定义（块名前的词）。
+  // take the **word before** a position (skip the whitespace and read a whole identifier run backward), which identifies
+  // the inline definition of `scripted_trigger <name> = {` or `scripted_effect <name> = {` (the word before the block name).
   const prevWordBefore = (pos: number): string => {
     let p = pos - 1;
     while (p >= 0 && isWs(cleaned[p])) p -= 1;
@@ -1461,24 +1461,24 @@ function scanStickyContext(
     while (q >= 0 && isIdentChar(cleaned[q])) q -= 1;
     return q === p ? "" : cleaned.slice(q + 1, p + 1);
   };
-  /** 顶层内联 scripted 定义的关键字（大小写不敏感，同 A14 的内置关键字口径）。 */
+  /** The keywords of a top-level inline scripted definition (case insensitive, which matches the built-in keyword criterion). */
   const isInlineScriptedKeyword = (word: string): boolean => {
     const w = word.toLowerCase();
     return w === "scripted_trigger" || w === "scripted_effect";
   };
   /**
-   * A21：`scripted_trigger|scripted_effect` 关键字是否位于**行首**（关键字前到行首只有空白）。
+   * Whether the `scripted_trigger|scripted_effect` keyword sits at the **line start** (only whitespace precedes it up to the line start).
    *
-   * 为什么要这一条：旧判据只看「块名前一个词是 scripted_* 关键字」⇒ **关键字作值**的写法
-   * （`zz_meta = scripted_trigger`）之后的**下一个顶层块**被误认成内联定义 ⇒ 该块 body 进 context
-   * ⇒ 过扫（A17 引入、A18 扩到带点名字的**潜在误报面**）。真形态的关键字都在行首
-   * （vanilla 全量 548 个「关键字 + 名 + `=`」站点全在行首；33 真实 mod + vanilla 里
-   * 「关键字作值」实测 0 处）。
+   * Why this rule exists: the old rule looked only at "the word before the block name is a scripted_* keyword", so after a form where the **keyword is a value**
+   * (`zz_meta = scripted_trigger`) the **next top-level block** was taken for an inline definition, so the body of that block entered context
+   * and the scan went too wide (a **potential false report surface** that the earlier pass-through introduced and the dotted name path extended). In a real shape the keyword sits at the line start
+   * (all 548 "keyword + name + `=`" sites of the full vanilla corpus sit at the line start, and across vanilla and 33 real mods the measurement
+   * gives 0 places of "the keyword is a value").
    *
-   * A22 订正：判据是这条**更严**的「关键字必须在**行首**（关键字前到行首只有空白）」——
-   * 能排掉 `x = scripted_trigger`（关键字作值）这种写法，且不放宽任何真命中（A17/A18 正例不回归）。
-   * 旧 JSDoc 写的「前一非空白字符不是 `=`」只是本例的**等价现象**、不是实现判据（实现不比它松）；
-   * 此处把措辞与实现对齐。
+   * The correction: the rule is this **stricter** one, "the keyword must sit at the **line start** (only whitespace precedes it up to the line start)", which
+   * excludes a form such as `x = scripted_trigger` (the keyword as a value) and relaxes no true hit (the positive cases above do not regress).
+   * The old JSDoc text "the previous non-whitespace character is not `=`" is only an **equivalent effect** in this case and not the implementation rule (the implementation is never looser than it), so
+   * the wording here matches the implementation.
    */
   const isInlineScriptedKeywordAtLineStart = (pos: number): boolean => {
     if (!isInlineScriptedKeyword(prevWordBefore(pos))) return false;
@@ -1486,7 +1486,7 @@ function scanStickyContext(
     while (p >= 0 && isWs(cleaned[p])) p -= 1;
     let q = p;
     while (q >= 0 && isIdentChar(cleaned[q])) q -= 1;
-    let s = q; // q = 关键字（ident-run）前一个字符
+    let s = q; // q = the character before the keyword (the ident-run)
     while (
       s >= 0 &&
       (cleaned[s] === " " || cleaned[s] === "\t" || cleaned[s] === "\r")
@@ -1496,19 +1496,19 @@ function scanStickyContext(
   };
 
   /**
-   * A18：**带点名字**的顶层内联 scripted 定义 —— 返回其 body `{` 的索引（未命中返回 -1）。
+   * A top-level inline scripted definition with a **dotted name**. It returns the index of its body `{` and returns -1 on a miss.
    *
-   * 机理（别与相邻卡混淆）：块名判定带 `prev !== "."` / `prev !== ":"` 守卫 ⇒
-   * `scripted_trigger flavor_chi.15_foreign_country_trigger = {` 的 ident-run 在 `.` 处截断、
-   * 该 `{` **不产生块名** ⇒ A17-2 的「块名前一个词是 scripted_*」放行**永不触发** ⇒ body 整块不扫
-   * （**不是** A17 的「父模式 = neutral 不放行」、**不是** A13 的「名字不在 ENTER」、
-   * **不是** A16 的「scope 路径没有块名」）。
+   * The mechanism (do not confuse it with a neighbouring rule): the block name test carries a `prev !== "."` and a `prev !== ":"` guard, so
+   * the ident-run of `scripted_trigger flavor_chi.15_foreign_country_trigger = {` stops at the `.`,
+   * that `{` **produces no block name**, the pass-through of "the word before the block name is scripted_*" **never triggers**, and the whole body stays unscanned
+   * (it is **not** the "a neutral parent mode does not pass through" rule, **not** "the name is absent from ENTER", and
+   * **not** "a scope path has no block name").
    *
-   * 这条通路是**另给**的窄口径：调用方已确认「前一个词 ∈ {scripted_trigger, scripted_effect}」
-   * 且**顶层**；这里只接受 `<名> (.<名段>)+ = {` —— `.` 后必须是标识符，遇 `:` 即不命中
-   * （⇒ `ROOT.province:xxx = {` / `scope:actor = {` 天然不被这条吃掉）。返回的只是那一个 `{`，
-   * 由 `pushBlock(..., isInlineScriptedDecl = true)` 判成 context；**不**改普通块名检测路径、
-   * **不**新增其它块名、**不**放松守卫。
+   * This path is a **separate** narrow rule: the caller has already confirmed that "the word before is in {scripted_trigger, scripted_effect}"
+   * and that the block sits at the **top level**. Here the code accepts only `<name> (.<name segment>)+ = {`, where an identifier must follow each `.` and a `:` means no match
+   * (so `ROOT.province:xxx = {` and `scope:actor = {` are never consumed by this path). The return value is only that one `{`,
+   * which `pushBlock(..., isInlineScriptedDecl = true)` judges as context. It **does not** change the ordinary block name path,
+   * **does not** add another block name, and **does not** relax a guard.
    */
   const inlineScriptedDottedBodyStart = (nameEnd: number): number => {
     let d = nameEnd;
@@ -1516,7 +1516,7 @@ function scanStickyContext(
     while (d < n && cleaned[d] === ".") {
       let e = d + 1;
       while (e < n && isIdentChar(cleaned[e])) e += 1;
-      if (e === d + 1) return -1; // `.` 后不是标识符 ⇒ 不是带点名字
+      if (e === d + 1) return -1; // an identifier does not follow the `.`, so the name is not a dotted name
       d = e;
       sawDot = true;
     }
@@ -1530,29 +1530,29 @@ function scanStickyContext(
   };
 
   /**
-   * A16：当前位置的裸 `{` 是否紧跟**被 `prev === ":"` 守卫跳过的 `name =` 形态**。
+   * Whether the bare `{` at the current position directly follows **a `name =` form that the `prev === ":"` guard skipped**.
    *
-   * 机理：`scope:zz_case_tgt = { … }` / `ROOT.province:zzz = { … }` / `location:constantinople = { … }`
-   * 里的「名字」前一个字符是 `:` ⇒ 主循环 ident 分支的守卫（`prev !== ":"`）跳过它、
-   * 该 `{` **不产生块名** ⇒ 走裸 `{` 分支、只继承父模式。父模式是 `param` / `neutral` 时
-   * 整个 body（effect/trigger 列表）不扫 —— **C2 假阴**。
-   * （这是 A13 的同族、**机制不同**：A13 是「名字在 ENTER 名单里但位置在 param」，
-   *  A18 是「带点名字 + scripted 关键字」，本卡是「**根本没有块名**可比对」。）
+   * The mechanism: in `scope:zz_case_tgt = { … }`, `ROOT.province:zzz = { … }`, and `location:constantinople = { … }`
+   * the character before each "name" is a `:`, so the guard of the ident branch in the main loop (`prev !== ":"`) skips it,
+   * that `{` **produces no block name**, it takes the bare `{` branch, and it only inherits the parent mode. When the parent mode is `param` or `neutral`,
+   * the whole body (an effect or trigger list) stays unscanned, which is a **C2 false negative**.
+   * (This is the same family as the position rule with a **different mechanism**: there the name is in the ENTER list but the position is param",
+   *  the dotted name case is "a dotted name plus a scripted keyword", and this one is "there is **no block name at all** to compare".)
    *
-   * 判据（严、只看紧邻文本）：从 `{` 向左 —— 空白（含换行，与 `isWs` 同集合）→ `=`（且不是 `==`）
-   * → 空白 → **一整段标识符**（且以标识符起始字符开头，即确是一个「名字」）→ 紧邻的 **`:`**。
-   * 其它形态（`?= {`、`"…" = {`、`name = {`、`0.5 = {`）都不命中，仍继承父模式。
+   * The rule (strict, and it looks only at the adjacent text): from the `{` leftward there is whitespace (including a newline, the same set as `isWs`), then an `=` (and not an `==`),
+   * then whitespace, then **a whole identifier run** (which starts with an identifier start character and is therefore really a "name"), then a **`:`** right before it.
+   * Every other form (`?= {`, `"…" = {`, `name = {`, and `0.5 = {`) never matches and still inherits the parent mode.
    *
-   * ⚠️ **为何只认 `:`、不认 `.`**（与卡上「`prev === ':'` / `'.'`」的字面差、务必保留此说明）：
-   * 卡的两条对照行（`scope:xxx` / `ROOT.province:xxx`）**都**以 `:` 紧邻赋值名，所以 `:` 已覆盖卡的全部验收面；
-   * 而 `.` 紧邻的赋值名还有一类**不是 scope 路径**的形态 —— 带点**对象 id**（`zz_ns.zz_t = { … }`）。
-   * 把它也判成 context 会直接反掉 A21 的负用例 `c2-negative-inline-scripted-kw-value-dotted`
-   * （`some_kind = scripted_effect` 之后的 `zz_ns.zz_t = { has_traitq = yes }` 必须保持 **0 条**）
-   * ⇒ 与卡自身「验收 3：`verify.mjs --e2e` 全绿」直接冲突。
-   * 带 `:` 的路径（`scope:x` / `X.y:z` / `location:constantinople`）一定是"**带目标的 scope 引用**"、
-   * body 就是 effect/trigger 列表；而无 `:` 的 `a.b = {` 无法与对象 id 区分 ⇒ 只认 `:` 是最小且被否证风险最低的修法。
-   * **守卫本身不动**（A8 的覆盖前缀剥离、A18 的窄通路都不受影响：后者在 ident 分支就已
-   * `i = bodyStart + 1` 跳过该 `{`）。
+   * Warning: **why only a `:` counts and a `.` does not** (this differs from the literal "`prev === ':'` / `'.'`", and this note must stay):
+   * Both comparison lines (`scope:xxx` and `ROOT.province:xxx`) have a `:` directly before the assigned name, so the `:` already covers the whole comparison surface, and
+   * an assigned name directly after a `.` appears in another form that is **not a scope path**, namely a dotted **object id** (`zz_ns.zz_t = { … }`).
+   * A judgment of context for it would break that negative case directly
+   * (the `zz_ns.zz_t = { has_traitq = yes }` after `some_kind = scripted_effect` must stay at **0 entries**),
+   * which conflicts directly with the required result of that case.
+   * A path with a `:` (`scope:x`, `X.y:z`, and `location:constantinople`) is always a **scope reference with a target**, and
+   * its body is an effect or trigger list, while an `a.b = {` without a `:` cannot be told apart from an object id. So "only a `:` counts" is the smallest fix with the lowest risk of refutation.
+   * **The guard itself stays as it is** (neither the override prefix strip nor the narrow path above is affected, because the latter already runs
+   * `i = bodyStart + 1` in the ident branch and skips that `{`).
    */
   const isScopePrefixedBodyBrace = (pos: number): boolean => {
     let p = pos - 1;
@@ -1562,8 +1562,8 @@ function scanStickyContext(
     while (p >= 0 && isWs(cleaned[p])) p -= 1;
     const nameEnd = p;
     while (p >= 0 && isIdentChar(cleaned[p])) p -= 1;
-    if (p === nameEnd) return false; // `=` 左边没有标识符
-    if (!isIdentStart(cleaned[p + 1])) return false; // 段以数字开头 ⇒ 不是「名字」（如 `flavor.1`）
+    if (p === nameEnd) return false; // the left side of the `=` holds no identifier
+    if (!isIdentStart(cleaned[p + 1])) return false; // the segment starts with a digit, so it is not a "name" (as in `flavor.1`)
     return cleaned[p] === ":";
   };
 
@@ -1573,33 +1573,33 @@ function scanStickyContext(
     isInlineScriptedDecl: boolean,
   ): void => {
     const isTopLevel = stack.length === 0;
-    // 标签容器（`switch`）：**直接子键是标签/值** ⇒ 进「标签模式」——标签不当候选、
-    // 其子块（case body）进 context。放在**最前**：switch 无论父块是什么，直接子键都是标签。
+    // A label container (`switch`): its **direct child keys are labels or values**, so it enters "label mode", where a label never becomes a candidate and
+    // its child block (a case body) enters context. This test comes **first**, because a direct child key of switch is a label whatever the parent block is.
     if (LABEL_CONTAINER_NAMES.has(name)) {
       stack.push("label");
       return;
     }
-    // 标签模式下的任何子块都是 case body（`<label> = { … }`）或 switch 的 `trigger = { … }`：
-    // 二者 body 都是 effect/trigger 列表 ⇒ 进 context（否则 case body 整块不扫）。
+    // Inside label mode every child block is a case body (`<label> = { … }`) or the `trigger = { … }` of switch, and
+    // the body of both is an effect or trigger list, so it enters context (otherwise a case body stays unscanned as a whole).
     if (parentMode === "label") {
       stack.push("context");
       return;
     }
-    // A17-2：顶层内联 `scripted_trigger <名> = { … }` / `scripted_effect <名> = { … }`
-    // （non-scripted 目录，如 `events/**`）：body 是 effect/trigger 列表，与 scripted 目录同源
-    // ⇒ 进 context（否则整块 neutral、body 不扫）。只认**顶层**，不扩大嵌套面。
+    // a top-level inline `scripted_trigger <name> = { … }` or `scripted_effect <name> = { … }`
+    // (in a non-scripted directory such as `events/**`), where the body is an effect or trigger list from the same source as a scripted directory,
+    // so it enters context (otherwise the whole block is neutral and the body stays unscanned). Only the **top level** counts, so no nested surface is added.
     if (isInlineScriptedDecl && isTopLevel) {
       stack.push("context");
       return;
     }
-    // A7（P2）+ A17-1：param / **neutral** 父块下的**非双用容器**（作用域迭代
-    // every_/any_/ordered_/random_、random/random_list、and/or/not/nor/nand/any_false/all_false）
-    // body 仍是 effect/trigger 列表 ⇒ 放行进 context；否则整块被短路成 param/neutral、body 不扫
-    // （真形态 `create_character = { every_country = { <typo> } }`，以及 vanilla `events/**` 顶层
-    // `scripted_trigger xx = { NOT = { … } }` 的 `NOT`）。**不放行**双用控制关键字
-    // （见 isUnambiguousContainer 的 JSDoc：param/neutral 里的值分支 if/else 必须保持不扫）。
-    // ⚠️ 两条父模式的放行判据**不同**：param 用 A14 归一版本；neutral 用原样大小写
-    // （原因见 isUnambiguousContainerExactCase 的 JSDoc：`NOR` 这类国家 tag 会与 `nor` 撞车）。
+    // the pass-through rule (both parent modes): a **non-dual-use container** under a param or **neutral** parent block (a scope iteration
+    // every_/any_/ordered_/random_, random/random_list, and/or/not/nor/nand/any_false/all_false)
+    // still has an effect or trigger list as its body, so it passes into context. Otherwise the whole block is short circuited to param or neutral and the body stays unscanned
+    // (the real shape `create_character = { every_country = { <typo> } }`, and the `NOT` of a top-level
+    // `scripted_trigger xx = { NOT = { … } }` in vanilla `events/**`). A dual use control keyword **never passes through**
+    // (see the JSDoc of isUnambiguousContainer: a value branch of if or else inside param or neutral must stay unscanned).
+    // Warning: the pass-through rule **differs** between the two parent modes, because param uses the normalized version and neutral uses the original letter case
+    // (the reason is in the JSDoc of isUnambiguousContainerExactCase: a country tag such as `NOR` collides with `nor`).
     if (
       (parentMode === "param" && isUnambiguousContainer(name)) ||
       (parentMode === "neutral" && isUnambiguousContainerExactCase(name))
@@ -1608,12 +1608,12 @@ function scanStickyContext(
       return;
     }
     let mode: ContextMode;
-    // ENTER 名单**优先**于 param / neutral（A5 G2a/G2b；A13 又把 `limit`/`hidden`/
-    // `ai_prerequisite`/`prev`/`root`/`ROOT`/`ruler_or_regent` 纳入这条通路；父模式 `neutral`
-    // 主要来自非 scripted/非数据驱动目录的顶层对象）：已知效果的参数块里嵌套的
-    // effect/trigger/hidden_effect/hidden_trigger/容器块（真实形态
-    // `create_building_country_in_location > hidden_effect > <effect>`）body 仍是
-    // effect/trigger 列表；先判 `parentMode === "param"` 会把整块短路成参数表而漏查。
+    // The ENTER list takes priority **above** param and neutral (the later additions brought `limit`, `hidden`,
+    // `ai_prerequisite`, `prev`, `root`, `ROOT`, and `ruler_or_regent` into this path, where the `neutral` parent mode
+    // comes mainly from a top-level object of a directory that is neither scripted nor data driven). An effect, a trigger, a hidden_effect, a hidden_trigger, or a container block
+    // nested inside the parameter block of a known effect (the real shape is
+    // `create_building_country_in_location > hidden_effect > <effect>`) still has an
+    // effect or trigger list as its body, and a test of `parentMode === "param"` first would short circuit the whole block into a parameter table and miss the check.
     if (CONTEXT_ENTER_NAMES.has(name) || TRIGGER_CONTAINER_NAMES.has(name))
       mode = "context";
     else if (parentMode === "param") mode = "param";
@@ -1638,13 +1638,13 @@ function scanStickyContext(
       continue;
     }
     if (ch === "{") {
-      // 裸 `{`（`?=`、`scope:actor =` 等之后）：视作 scope 块，继承父模式。
-      // ⚠️ 标签模式下例外：`location:constantinople = {` 这类 **scope 前缀标签**不产生块名
-      // （`prev === ":"` 守卫），这里遇到的 `{` 就是 **case body** ⇒ 进 context。
-      // A16：`scope:xxx = {` / `ROOT.province:xxx = {` / `location:constantinople = {` 的 body
-      // 同样是 effect/trigger 列表，但该 `{` 因 `prev === ":"` 守卫**不产生块名** ⇒ 旧实现只继承
-      // 父模式、param/neutral 时整块不扫。命中 `isScopePrefixedBodyBrace` 时同样进 context
-      // （守卫仍不动；只认 `:`、不认 `.` 的理由见该 helper 的 JSDoc）。
+      // A bare `{` (after `?=`, `scope:actor =`, and others) counts as a scope block and inherits the parent mode.
+      // Warning: label mode is an exception, because a **scope prefixed label** such as `location:constantinople = {` produces no block name
+      // (the `prev === ":"` guard), so the `{` met here is a **case body** and enters context.
+      // the body of `scope:xxx = {`, `ROOT.province:xxx = {`, and `location:constantinople = {`
+      // is also an effect or trigger list, but that `{` **produces no block name** because of the `prev === ":"` guard, so the old implementation only inherited
+      // the parent mode and left the whole block unscanned under param or neutral. A hit of `isScopePrefixedBodyBrace` also enters context
+      // (the guard still stays as it is, and the reason that only a `:` counts and a `.` does not is in the JSDoc of that helper).
       stack.push(
         currentMode() === "label" || isScopePrefixedBodyBrace(i)
           ? "context"
@@ -1663,10 +1663,10 @@ function scanStickyContext(
       while (j < n && isIdentChar(cleaned[j])) j += 1;
       const name = cleaned.slice(i, j);
       const prev = i > 0 ? cleaned[i - 1] : "";
-      // A18：顶层内联 `scripted_trigger|scripted_effect <带点名字> = {` 的窄通路（见
-      // inlineScriptedDottedBodyStart 的 JSDoc）。**只在顶层**、且关键字在**行首**时
-      // 生效（A21 收紧：排掉 `x = scripted_trigger` 这种**关键字作值**的过扫）
-      // —— 该 `{` 由于 `prev !== "."` 守卫本不产生块名，这里把它单判成 context。
+      // the narrow path of a top-level inline `scripted_trigger|scripted_effect <dotted name> = {` (see
+      // the JSDoc of inlineScriptedDottedBodyStart). It takes effect **at the top level only**, and only when the keyword sits at the **line start**
+      // (the line start tightening, which excludes the over-wide scan of a form such as `x = scripted_trigger` where the **keyword is a value**),
+      // because that `{` produces no block name under the `prev !== "."` guard, and this path judges it as context on its own.
       if (
         stack.length === 0 &&
         prev !== ":" &&
@@ -1716,33 +1716,33 @@ function scanStickyContext(
   }
 }
 
-// ---- C3：新对象缺约定 loc key ----
+// ---- C3: a new object that lacks the expected loc key ----
 
-/** C3 关注的对象类别（plan §2 C3）：mod 新加的建筑 / 商品。 */
+/** The object classes that C3 covers: a building or a good that the mod adds. */
 const C3_CATEGORY_ORDER = ["building_types", "goods"];
-/** 文案里的类别名词。 */
+/** The class noun used in the text. */
 const C3_CATEGORY_NOUN: Record<string, string> = {
   building_types: "building",
   goods: "goods",
 };
 /**
- * mod 一个 localization 目录都没有时的判定语言（基语言）。
- * 「只查 mod 已提供的语言」的语义是「不因缺**其它**语言而报警」，不是「没有 loc 就不查」——
- * 新对象全无 loc 正是 C3 要抓的情形，故退化为按基语言 english 判一次。
+ * The language used for the judgment when the mod has no localization directory at all (the base language).
+ * The meaning of "only the languages the mod already provides are checked" is "never report a missing **other** language", and not "skip the check when no loc exists", because
+ * a new object with no loc at all is exactly the case C3 looks for, so the check falls back to the base language english and runs once.
  */
 const C3_DEFAULT_LANGUAGE = "english";
-/** loc 文件名里的语言后缀：`<name>_l_<lang>.yml`（也容忍 `.yaml`）。 */
+/** The language suffix in a loc file name, that is `<name>_l_<lang>.yml` (a `.yaml` also passes). */
 const LOC_FILE_LANG_RE = /_l_([a-z0-9_]+)\.ya?ml$/i;
 /**
- * loc 行的定义 key。**宽松匹配**（不要求 value 带引号）：多认一个假 key 只会少报一条，
- * 少认一个真 key 会造出误报——零误报是硬门槛，故宁松勿严。
+ * The definition key of a loc line, with a **loose match** that does not require quotes around the value. One extra false key only drops one report, while
+ * one missed true key creates a false report. Zero false reports is a hard bar, so the loose match is the safer side.
  */
 const LOC_KEY_LINE_RE = /^\s*([A-Za-z0-9_]+)\s*:\s*(?:\d+\s*)?/;
 
 /**
- * 扫 mod 的 `{in_game|main_menu}/localization/**`，按**文件名语言后缀**归集 loc key。
- * 语言取自文件名而非目录名：真实 workshop mod 有 `localization/replace/<lang>/…` 这类嵌套，
- * 目录名会多出一个 `replace` 假语言。目录递归，覆盖 `<lang>/<子目录>/…`。
+ * Scan `{in_game|main_menu}/localization/**` of the mod and collect the loc keys by the **language suffix of the file name**.
+ * The language comes from the file name and not from the directory name, because a real workshop mod has a nesting such as `localization/replace/<lang>/…`
+ * where the directory name would add a false language `replace`. The scan is recursive and covers `<lang>/<subdirectory>/…`.
  */
 function collectLocKeys(modPath: string): Map<string, Set<string>> {
   const byLang = new Map<string, Set<string>>();
@@ -1793,16 +1793,16 @@ export function analyzeSemantics(
 
   const modFiles = walkTxtFiles(modPath);
 
-  // 一遍扫 mod：按 `<目录>` 收集覆盖声明 + 顶层定义（in_game/main_menu 合并为同类）。
+  // One pass over the mod collects the override declarations and the top-level definitions by `<directory>` (in_game and main_menu merge into one class).
   const overridesByCategory = new Map<
     string,
     Array<{ keyword: string; name: string }>
   >();
   const modDefsByCategory = new Map<string, Set<string>>();
-  // C2 排除「本 mod 自己定义的名」：全部 .txt 的顶层 `name =` 定义名（跨 category 合并）。
+  // C2 excludes "a name this mod defines itself", which is a top-level `name =` definition name of any .txt file (merged across category).
   const modDefinedNames = new Set<string>();
-  // 仅 scripted_effects/scripted_triggers 目录的顶层定义名：这些才是「会被调用、
-  // 调用体是参数列表」的名，用于 param 判定（building/goods 等对象名不参与）。
+  // Only the top-level definition names of a scripted_effects or scripted_triggers directory, because only those are names that
+  // a call invokes with a parameter list. They serve the param judgment (an object name such as a building or a good takes no part).
   const modScriptedNames = new Set<string>();
   for (const { abs, rel } of modFiles) {
     const category = categoryFromRel(rel);
@@ -1811,10 +1811,10 @@ export function analyzeSemantics(
     const cleanedText = stripLineComments(text);
     const scan = scanTopLevel(cleanedText);
     for (const d of scan.definitions) modDefinedNames.add(d);
-    // A21：**顶层内联** scripted 定义名同样是「本 mod 自定义名」—— `TOPLEVEL_DEF_RE` 只认
-    // 「名字 + `=`」形态、匹配不到 `scripted_trigger <名> =` ⇒ 调用它时被当未知名报出（既有缺口）。
-    // 内联定义与 `common/scripted_effects|triggers` **同源**（见 scanStickyContext 的 A17-2）
-    // ⇒ 其名同时进 modDefinedNames（抑制 C2 候选）与 modScriptedNames（调用体是参数列表 → param）。
+    // a **top-level inline** scripted definition name is also "a name this mod defines". `TOPLEVEL_DEF_RE` accepts only
+    // the "name + `=`" form and cannot match `scripted_trigger <name> =`, so a call to it is reported as an unknown name (a pre-existing gap).
+    // An inline definition shares its source with `common/scripted_effects|triggers` (see the inline pass-through in scanStickyContext), so
+    // its name enters modDefinedNames (which suppresses a C2 candidate) and modScriptedNames (where a call body is a parameter list, which gives param) at the same time.
     for (const d of topLevelInlineScriptedNames(cleanedText)) {
       modDefinedNames.add(d);
       modScriptedNames.add(d);
@@ -1835,12 +1835,12 @@ export function analyzeSemantics(
     }
   }
 
-  // vanilla 侧可用性：`game-scripts/game/` 缺失，或其中按 `<目录>` 收集到的 common 文件总数为 0
-  // （空/坏），都无法判定目标是否为 vanilla 对象 → 退化：只给一条 NOTE，跳过 per-target 产出。
-  // 注意：vanilla 根有内容、只是某个特定 `<目录>` 恰好无 vanilla 文件 → 那是真命中，照常 WARN。
+  // The availability of the vanilla side: `game-scripts/game/` is absent, or the total number of common files collected under it for `<directory>` is 0
+  // (empty or broken). In either case the code cannot decide whether a target is a vanilla object, so it falls back to one NOTE and skips the per-target output.
+  // Note: when the vanilla root holds content and only one particular `<directory>` happens to have no vanilla file, that is a true hit and gives WARN as usual.
   const repoRoot = findRepoRoot(modPath);
-  // game-scripts 定位顺序：①mod 所在 repo 根（findRepoRoot）→ ②工具自身 repo 根（import.meta.dirname 往上）。
-  // workshop/Paradox mod 目录在仓库外，findRepoRoot 常为 null → 用工具自身 repo 兜底（与 loadScriptDictionary 同思路）。
+  // The order that locates game-scripts: 1. the repository root of the mod (findRepoRoot), then 2. the repository root of the tool itself (upward from import.meta.dirname).
+  // A workshop or Paradox mod directory sits outside the repository, so findRepoRoot is often null and the tool falls back to its own repository (the same approach as loadScriptDictionary).
   const gameScriptsCandidates: string[] = [];
   if (repoRoot) gameScriptsCandidates.push(join(repoRoot, "game-scripts"));
   gameScriptsCandidates.push(
@@ -1848,27 +1848,27 @@ export function analyzeSemantics(
   );
   const gameScriptsRoot =
     gameScriptsCandidates.find((c) => isDirectory(c)) ?? null;
-  // vanilla 根严格限定为真原版 `game-scripts/game/**`（**不含** `game-scripts/workshop/**`）。
-  // 为何排除 workshop 镜像：`sync_game_scripts` 把**所有已订阅 workshop mod** 的内容镜像到
-  // `game-scripts/workshop/<mod_id>/**`（见 sync-game-scripts.ts）。若并入 vanilla，
-  // 镜像过的 mod 只要自己的对象也在镜像里 → 被 `vanilla.has(id)` 判为「vanilla 已有」：
-  //   - C3：新对象的 loc 检查被跳过 —— 对镜像过的 workshop mod C3 实际失效（假阴性）；
-  //   - C1：`REPLACE:` 一个只存在于他 mod 镜像里的目标被判「存在」→ 少报。
-  // 决议（workshop 镜像不算 vanilla）：
-  // vanilla 严格 = 真原版 `game-scripts/game/**`。
-  // 退化口径不变：`game-scripts/game/` 缺失/空 → 跳过 vanilla 侧核对并给 NOTE。
+  // The vanilla root is strictly the real original `game-scripts/game/**` and **excludes** `game-scripts/workshop/**`.
+  // Why the workshop mirror is excluded: `sync_game_scripts` mirrors the content of **every subscribed workshop mod** to
+  // `game-scripts/workshop/<mod_id>/**` (see sync-game-scripts.ts). If it counted as vanilla, then
+  // a mirrored mod whose own object also sits in the mirror would be judged "vanilla already has it" by `vanilla.has(id)`, so
+  //   - C3: the loc check of a new object is skipped, and C3 is effectively dead for a mirrored workshop mod (a false negative), and
+  //   - C1: a `REPLACE:` target that exists only in the mirror of another mod is judged "present", which drops a report.
+  // The decision (the workshop mirror does not count as vanilla):
+  // vanilla in the strict sense means the real original `game-scripts/game/**`.
+  // The fallback criterion stays unchanged: an absent or empty `game-scripts/game/` skips the vanilla side and gives NOTE.
   const vanillaRoot =
     gameScriptsRoot !== null && isDirectory(join(gameScriptsRoot, "game"))
       ? join(gameScriptsRoot, "game")
       : null;
 
-  // C3 也要 vanilla 侧的建筑/商品名；为省一次全树遍历，与 C1 的 `<目录>` 并成一次收集。
-  // 但 C1 的可用性判定（totalVanillaFiles/vanillaAvailable）仍**只统计 C1 自己的 `<目录>`**，
-  // 以免新增 C3 类别把 C1 的 game-scripts 退化分支从 NOTE 变回正常核对。
-  // T7：只挑 `INJECT:`（`REPLACE:` / `TRY_INJECT:` / `*_OR_CREATE` 不在本检查内）。
-  // T9：同时记住**覆盖声明自身所在的 category** —— T7 的「目标是不是 scripted 名」要按 category 收窄
-  // （跨 category 同名碰撞）。例：`common/effect_localization/` 里的 `INJECT:unlock_advance_effect`
-  // 目标其实是 effect_localization 对象（该名**恰好**也是 vanilla 的 scripted_effect 名）⇒ 不是 T7 的陷阱。
+  // C3 also needs the vanilla side building and good names, and to save one walk of the whole tree the code collects them together with the `<directory>` of C1 in one pass.
+  // However the availability test of C1 (totalVanillaFiles and vanillaAvailable) still **counts only the `<directory>` of C1 itself**, so that
+  // the added C3 classes never turn the game-scripts fallback branch of C1 from NOTE back into a normal check.
+  // the code picks only `INJECT:` (`REPLACE:`, `TRY_INJECT:`, and `*_OR_CREATE` are outside this check).
+  // the code also records **the category of the override declaration itself**, because the question "is the target a scripted name" narrows by category
+  // (a same-name collision across categories). For example the target of `INJECT:unlock_advance_effect` in `common/effect_localization/`
+  // really is an effect_localization object (that name **happens** to be a vanilla scripted_effect name too), so it is not a trap.
   const injectOverrides: Array<{
     category: string;
     keyword: string;
@@ -1883,7 +1883,7 @@ export function analyzeSemantics(
   );
   const vanillaCategories = new Set<string>(overridesByCategory.keys());
   for (const c of c3DefCategories) vanillaCategories.add(c);
-  // T7：本 mod 真的写了 `INJECT:` 时才去收 vanilla 的 scripted 名（省一次目录匹配）。
+  // the code collects the vanilla scripted names only when this mod really writes an `INJECT:` (which saves one directory match).
   if (injectOverrides.length > 0)
     for (const c of SCRIPTED_CATEGORIES) vanillaCategories.add(c);
 
@@ -1899,7 +1899,7 @@ export function analyzeSemantics(
       vanillaDefsByCategory.set(category, definitionsFrom(files));
     }
   }
-  // T7：vanilla 侧的 scripted effect/trigger 顶层名（vanilla 根缺失时为空 → 只按本 mod 名判定）。
+  // the top-level scripted effect and trigger names of the vanilla side (an empty set when the vanilla root is absent, so only the mod names are judged).
   const vanillaScriptedNames = new Set<string>();
   if (injectOverrides.length > 0) {
     for (const c of SCRIPTED_CATEGORIES)
@@ -1914,15 +1914,15 @@ export function analyzeSemantics(
   for (const category of overridesByCategory.keys()) {
     checked.push(`common/${category}`);
   }
-  // 本 mod 有任何覆盖声明，就说明本检查的分支前提成立（不论有没有 INJECT）——用于用例的 checked 断言。
+  // Any override declaration in this mod means the branch premise of this check holds (with or without an INJECT), which serves the `checked` output of this check.
   if (overridesByCategory.size > 0) checked.push("c1:inject-scripted");
 
-  // C1 的 game-scripts/game/ 缺失退化逻辑（NOTE）保持不动；但不再 early-return，C2 独立运行。
+  // The fallback logic of C1 for an absent game-scripts/game/ (NOTE) stays as it is, but it no longer returns early and C2 runs on its own.
   if (overridesByCategory.size > 0 && !vanillaAvailable) {
     warnings.push({
       code: "semantic:c1",
       message:
-        "semantic: game-scripts/ unavailable (missing or empty); REPLACE/INJECT target lookup against vanilla skipped",
+        "semantic: game-scripts/ is not available (missing or empty). The REPLACE: and INJECT: target lookup against the vanilla scripts is skipped",
       level: "note",
     });
   } else {
@@ -1943,13 +1943,13 @@ export function analyzeSemantics(
     }
   }
 
-  // ---- C1（T7）：`INJECT:` 指向 scripted effect/trigger → WARN ----
-  // 独立于上面的「目标存在性」判定：目标**存在**（正是本 mod / vanilla 的 scripted 名），
-  // 但 wiki 明说 INJECT 对 scripted effects/triggers 无效、会整体覆盖 → 仍是错。
-  // T9 收窄：目标名若**在声明自身所在 category 的 vanilla 名集合里**出现 → 它指的就是该 category
-  // 的对象（如 `common/effect_localization/` 的 `INJECT:unlock_advance_effect`），不是 scripted
-  // effect/trigger ⇒ 不报（跨 category 同名碰撞的 FP）。**声明本身在 scripted 目录时不适用此豁免**：
-  // 那里的目标确实落在 scripted_effects/scripted_triggers 数据库里，正是本检查要报的陷阱。
+  // ---- C1: an `INJECT:` that points at a scripted effect or trigger gives WARN ----
+  // This is independent of the "target exists" judgment above, because the target **does** exist (it is exactly a scripted name of this mod or of vanilla),
+  // but the wiki states that INJECT has no effect on scripted effects and scripted triggers and overwrites the whole definition, so it is still a mistake.
+  // The category narrowing: when the target name **appears in the vanilla name set of the category of the declaration itself**, it points at an object of that
+  // category (such as `INJECT:unlock_advance_effect` in `common/effect_localization/`) and not at a scripted
+  // effect or trigger, so no report appears (a false positive from a same-name collision across categories). **This exemption does not apply when the declaration itself sits in a scripted directory**, because
+  // the target there really falls into the scripted_effects or scripted_triggers database, which is exactly the trap this check reports.
   for (const o of injectOverrides) {
     if (!modScriptedNames.has(o.name) && !vanillaScriptedNames.has(o.name)) continue;
     if (
@@ -1960,17 +1960,17 @@ export function analyzeSemantics(
     warnings.push({
       code: "semantic:c1-inject-scripted",
       message:
-        `semantic: INJECT target '${o.name}' is a scripted effect/trigger; ` +
-        `INJECT does not work for scripted effects/triggers and will overwrite the original definition ` +
-        `(use REPLACE: to replace it; to append, use another mechanism or a new object)`,
+        `semantic: INJECT target '${o.name}' is a scripted effect or trigger. ` +
+        `INJECT does not work for a scripted effect or trigger, and it overwrites the original definition. ` +
+        `Use REPLACE: to replace it. To add to it, use a new object or another mechanism.`,
     });
   }
 
-  // ---- C2：粘性上下文拼写校验（独立运行，不依赖 C1 的 overrides 非空） ----
+  // ---- C2: the spelling check inside a sticky context (it runs on its own and does not need the overrides of C1 to be non-empty) ----
   const dict = loadScriptDictionary(repoRoot, vanillaRoot);
   if (dict !== null) {
     checked.push("c2:script_docs");
-    // 容器模型：从 script_docs 结构示例解析（A0）；不可用时为退化手工名单。
+    // The container model: from the script_docs structure examples, or the fallback hand written list when they are unavailable.
     activeContainers = dict.containers;
     for (const { abs, rel } of modFiles) {
       const text = readText(abs);
@@ -1987,7 +1987,7 @@ export function analyzeSemantics(
     }
   }
 
-  // ---- C3：新对象缺约定 loc key（只查 mod 新加的建筑/商品；独立于 C1/C2） ----
+  // ---- C3: a new object that lacks the expected loc key (only a building or a good that the mod adds, and independent of C1 and C2) ----
   if (c3DefCategories.length > 0) {
     for (const category of c3DefCategories) checked.push(`c3:common/${category}`);
     let c3VanillaFiles = 0;
@@ -1997,8 +1997,8 @@ export function analyzeSemantics(
     if (vanillaRoot !== null && c3VanillaFiles > 0) {
       checked.push("c3:localization");
       const locByLang = collectLocKeys(modPath);
-      // plan §2 C3 v3：只查 mod 已经提供的语言，各语言分别报；一个语言都没提供时
-      // 按基语言 english 判一次（见 C3_DEFAULT_LANGUAGE 注释）。
+      // only the languages the mod already provides are checked and each language reports separately, and when the mod provides no language at all
+      // the check runs once under the base language english (see the comment on C3_DEFAULT_LANGUAGE).
       const languages =
         locByLang.size > 0 ? [...locByLang.keys()] : [C3_DEFAULT_LANGUAGE];
       const multiLang = languages.length > 1;
@@ -2008,12 +2008,12 @@ export function analyzeSemantics(
           const vanilla =
             vanillaDefsByCategory.get(category) ?? new Set<string>();
           for (const id of modDefsByCategory.get(category) ?? []) {
-            if (vanilla.has(id)) continue; // vanilla 已有 → 覆盖，不是新对象
+            if (vanilla.has(id)) continue; // vanilla already has it, so the object is an override and not a new object
             const missingDesc = !keys.has(`${id}_desc`);
             const missingId = !keys.has(id);
             if (!missingDesc && !missingId) continue;
-            // 一个 (对象, 语言) 只出一条：`_desc` 优先（约定里最常漏的那个 key）。
-            // 两个都缺时在同一行括号里补一句 base key，不另开一条（保持一条一对象的粒度）。
+            // One (object, language) pair gives one report only, with `_desc` first (the key that goes missing most often in practice).
+            // When both are missing the line adds one clause about the base key inside the same parentheses and opens no second report (which keeps one object to one report).
             const namedKey = missingDesc ? `${id}_desc` : id;
             const extras: string[] = [];
             if (missingId && missingDesc)
@@ -2030,11 +2030,11 @@ export function analyzeSemantics(
         }
       }
     } else {
-      // 与 C1 同口径退化：game-scripts/game/ 缺失或空 → 无法区分 vanilla/新对象，跳过 + NOTE（不 crash）。
+      // The same fallback criterion as C1: an absent or empty game-scripts/game/ cannot tell a vanilla object from a new one, so the check skips with NOTE and never crashes.
       warnings.push({
         code: "semantic:c3",
         message:
-          "semantic: game-scripts/ unavailable (missing or empty); new building/goods localization lookup skipped",
+          "semantic: game-scripts/ is not available (missing or empty). The localization lookup for a new building or good is skipped",
         level: "note",
       });
     }

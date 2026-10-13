@@ -39,9 +39,15 @@ const STANDARD_METADATA_FIELDS = [
 ];
 const IMAGE_EXTS = new Set([".png", ".dds", ".jpg", ".jpeg", ".tga"]);
 const SEMVER_RE = /^\d+\.\d+(\.\d+)?$/;
-// A minor-level wildcard ("1.*") names no concrete game version. A patch-level wildcard
-// ("1.3.*") still names the minor release, so only the minor-level form is too loose.
-const LOOSE_GAME_VERSION_RE = /^\d+\.\*$/;
+// A wildcard supported_game_version names no concrete game version, so it is too loose. This table
+// is the single place to add a form. A value that names a concrete minor release ("1.3.*", or the
+// two-level form "1.0.*") stays silent, because it still tells the player which release works.
+const LOOSE_GAME_VERSION_RES = [
+  /^\d+\.\*$/, // "1.*"   - wildcard patch level
+  /^\d+\.\*\.\*$/, // "1.*.*" - wildcard minor and patch level
+  /^\*$/, // "*"     - any game version
+  /^\d+\.[xX]$/, // "1.x"   - wildcard patch level, spelled with x
+];
 const PUA_RE = /[\ue000-\uf8ff]/;
 const LOC_KEY_RE = /^\s+(?<key>[^\s:#][^:]*):(?<ver>\d*)\s*(?<rest>.*?)\s*$/;
 const LOC_HEADER_RE = /^\ufeff?\s*l_(?<lang>[a-z_]+):(?<tail>.*)$/;
@@ -362,12 +368,14 @@ function checkMetadata(modRoot: string): Finding[] {
         message: `missing expected field '${field}' (EU5 wiki metadata.json standard structure)`,
       });
   }
-  // The field presence check above does not read the value. A value such as "1.*" matches every
-  // 1.x release and tells the player nothing about the supported game version, so warn. A concrete
-  // value ("1.0.4") and a patch-level wildcard ("1.3.*") stay silent.
+  // The field presence check above does not read the value. A value such as "1.*" or "*" matches
+  // every release and tells the player nothing about the supported game version, so warn. A concrete
+  // value ("1.0.4") and a concrete-minor wildcard ("1.3.*", "1.0.*") stay silent.
+  const supportedGameVersion =
+    typeof obj.supported_game_version === "string" ? obj.supported_game_version.trim() : null;
   if (
-    typeof obj.supported_game_version === "string" &&
-    LOOSE_GAME_VERSION_RE.test(obj.supported_game_version.trim())
+    supportedGameVersion !== null &&
+    LOOSE_GAME_VERSION_RES.some((re) => re.test(supportedGameVersion))
   ) {
     findings.push({
       severity: "warn",

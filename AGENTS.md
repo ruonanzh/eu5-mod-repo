@@ -4,6 +4,23 @@
 Mods are pure PDXScript text files. There is no compilation and no runtime SDK.
 The game is **Windows-only**.
 
+## Environment facts
+
+These are fixed facts about this machine and this workspace. They prevent wasted turns.
+
+- **Prefer `node` for scripts.** The product ships its own node, so every player machine has it.
+  On this machine `python` is a Microsoft Store stub (Microsoft Store 存根): it exits with `exit 49`
+  and is a silent no-op (静默无操作). If python is truly needed, run `command -v py` first; if `py`
+  is missing, fall back to `node` / `awk`.
+- **When you develop, read scripts only from the mirror `game-scripts/`** (this does not affect mod
+  runtime). The vanilla scripts live in the mirror at `game-scripts/game/game/...` — **two** `game/`
+  levels. The real install directory `.../Europa Universalis V/game/...` — **one** `game/` level —
+  is the vanilla source that `sync_game_scripts` reads to build the mirror; do not `cat` / `grep`
+  there while developing. Installing a mod is a third place: `install_mod` writes to the Paradox
+  launcher mod directory, `<user documents>/Paradox Interactive/Europa Universalis V/mod/`.
+- **`supported_game_version`: write the exact version (写准版本)** (e.g. `1.0.4` / `1.3.*`). Do not
+  take the easy way out with a loose `1.*` — the linter WARNs on it.
+
 ## Directory map
 
 - `docs/` — the knowledge layer. Start at [`docs/INDEX.md`](docs/INDEX.md) for the map.

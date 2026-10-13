@@ -213,8 +213,14 @@ export default function (pi: ExtensionAPI) {
           ? pruneTree(join(destRoot, "workshop"))
           : { copied: 0, staleRemoved: 0 };
 
+      // The `mirrored N` count above is what this run copied, so an up-to-date mirror reports 0.
+      // That reads as "the mirror is empty", which is wrong: the mirror keeps every file the earlier
+      // runs copied. Count the mirror itself, after the sync, and report that total as well.
+      const mirrorTotal = walkFiles(destRoot).length;
+
       const lines = [
         `PASS: mirrored ${g.copied + w.copied} script file(s) into ${toPosix(relative(repoRoot, destRoot))}/ (game: ${g.copied}, workshop: ${w.copied})`,
+        `mirror now holds ${mirrorTotal} file(s).`,
       ];
       if (g.staleRemoved + w.staleRemoved > 0) {
         lines.push(`deleted ${g.staleRemoved + w.staleRemoved} stale file(s) that the source no longer has.`);

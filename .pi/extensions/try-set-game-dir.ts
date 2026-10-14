@@ -5,10 +5,11 @@
  *
  *   1. The remembered gameDir is still valid, and the derived mod install directory and Workshop
  *      directory match the recorded ones. The tool writes nothing, and returns
- *      `PASS: gameDir already correct`.
+ *      `PASS: gameDir already correct`. It returns the cached gameBuild, and it does not read the
+ *      executable again.
  *   2. The path is invalid, stale, or never recorded. The tool locates the game, checks every
- *      candidate, and records gameDir with the two derived paths. It returns
- *      `PASS: gameDir located and recorded`.
+ *      candidate, reads the build tag one time, and records gameDir, gameBuild, and the two derived
+ *      paths. It returns `PASS: gameDir located and recorded`.
  *   3. It finds nothing. The tool returns FAIL, and it writes no state.
  *
  * Why no arguments: the agent does not have to know the path first. The tool ensures the state is
@@ -45,7 +46,7 @@ export default function (pi: ExtensionAPI) {
           "INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json. Reopen or update the game workspace. Do not edit its maintainer configuration.",
         );
       }
-      const r = ensureGameDir(cwd, cfg);
+      const r = await ensureGameDir(cwd, cfg);
       if (r.status === "missing") {
         return {
           content: [

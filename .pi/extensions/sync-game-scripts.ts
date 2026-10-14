@@ -158,15 +158,7 @@ function pruneTree(dstRoot: string): { copied: number; staleRemoved: number } {
   return { copied: 0, staleRemoved: removed };
 }
 
-const HARNESS_NO_WORKSHOP = "EU5_HARNESS_NO_WORKSHOP";
-
-/** True when an automated test denies the Workshop content to the agent under test. */
-function harnessSkipsWorkshop(): boolean {
-  const raw = process.env[HARNESS_NO_WORKSHOP];
-  if (typeof raw !== "string") return false;
-  const value = raw.trim().toLowerCase();
-  return value !== "" && value !== "0" && value !== "false" && value !== "no";
-}
+const NO_WORKSHOP_MARKER = ".no-workshop";
 
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
@@ -211,10 +203,10 @@ export default function (pi: ExtensionAPI) {
       const g = syncTree(gameDir, join(destRoot, "game"));
       // The harness denies the Workshop content to the agent under test, so that it cannot read the
       // mods of another player. An earlier mirror is cleared too, because a copy on disk stays
-      // readable. The harness sets the environment variable, and the agent under test cannot change
-      // it. A tool parameter would show this switch in the tool schema, which the agent reads, so
-      // there is none.
-      const skipWorkshop = harnessSkipsWorkshop();
+      // readable. The harness creates the marker file with a shell command, and the agent under test
+      // has no reason to look for it. A tool parameter would show this switch in the tool schema,
+      // which the agent reads, so there is none.
+      const skipWorkshop = existsSync(join(destRoot, NO_WORKSHOP_MARKER));
       const workshopMirror = join(destRoot, "workshop");
       let clearedForSkip = 0;
       let w = { copied: 0, staleRemoved: 0 };

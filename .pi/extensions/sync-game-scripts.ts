@@ -158,6 +158,16 @@ function pruneTree(dstRoot: string): { copied: number; staleRemoved: number } {
   return { copied: 0, staleRemoved: removed };
 }
 
+const HARNESS_NO_WORKSHOP = "EU5_HARNESS_NO_WORKSHOP";
+
+/** True when an automated test denies the Workshop content to the agent under test. */
+function harnessSkipsWorkshop(): boolean {
+  const raw = process.env[HARNESS_NO_WORKSHOP];
+  if (typeof raw !== "string") return false;
+  const value = raw.trim().toLowerCase();
+  return value !== "" && value !== "0" && value !== "false" && value !== "no";
+}
+
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "sync_game_scripts",
@@ -199,19 +209,37 @@ export default function (pi: ExtensionAPI) {
 
       const destRoot = join(repoRoot, "game-scripts");
       const g = syncTree(gameDir, join(destRoot, "game"));
-      // The Workshop source can disappear, when the player unsubscribes or deletes the directory.
-      // The tool must not silently keep the old mirror, because the agent would keep reading it as
-      // the current game content. Distinguish that from an unknown path:
-      //   - The path is known and no longer exists: the source is gone. Clear the mirror and say so.
-      //   - The path is unknown (try_set_game_dir never ran): leave the mirror alone, because it
-      //     may be a valid mirror from an earlier run.
-      const wsVerdict = checkWorkshopDir(workshopDir, steamAppId);
-      const workshopGone = typeof workshopDir === "string" && !existsSync(workshopDir);
-      const w = wsVerdict.ok
-        ? syncTree(wsVerdict.path as string, join(destRoot, "workshop"))
-        : workshopGone
-          ? pruneTree(join(destRoot, "workshop"))
-          : { copied: 0, staleRemoved: 0 };
+      // The harness denies the Workshop content to the agent under test, so that it cannot read the
+      // mods of another player. An earlier mirror is cleared too, because a copy on disk stays
+      // readable. The harness sets the environment variable, and the agent under test cannot change
+      // it. A tool parameter would show this switch in the tool schema, which the agent reads, so
+      // there is none.
+      const skipWorkshop = harnessSkipsWorkshop();
+      const workshopMirror = join(destRoot, "workshop");
+      let clearedForSkip = 0;
+      let w = { copied: 0, staleRemoved: 0 };
+      let workshopGone = false;
+      let wsRejected = false;
+      let wsRejectReason = "";
+      if (skipWorkshop) {
+        clearedForSkip = pruneTree(workshopMirror).staleRemoved;
+      } else {
+        // The Workshop source can disappear, when the player unsubscribes or deletes the directory.
+        // The tool must not silently keep the old mirror, because the agent would keep reading it as
+        // the current game content. Distinguish that from an unknown path:
+        //   - The path is known and no longer exists: the source is gone. Clear the mirror and say so.
+        //   - The path is unknown (try_set_game_dir never ran): leave the mirror alone, because it
+        //     may be a valid mirror from an earlier run.
+        const wsVerdict = checkWorkshopDir(workshopDir, steamAppId);
+        workshopGone = typeof workshopDir === "string" && !existsSync(workshopDir);
+        wsRejected = !wsVerdict.ok;
+        wsRejectReason = wsVerdict.reason;
+        w = wsVerdict.ok
+          ? syncTree(wsVerdict.path as string, workshopMirror)
+          : workshopGone
+            ? pruneTree(workshopMirror)
+            : { copied: 0, staleRemoved: 0 };
+      }
 
       // The `mirrored N` count above is what this run copied, so an up-to-date mirror reports 0.
       // That reads as "the mirror is empty", which is wrong: the mirror keeps every file the earlier
@@ -225,9 +253,9 @@ export default function (pi: ExtensionAPI) {
       if (g.staleRemoved + w.staleRemoved > 0) {
         lines.push(`deleted ${g.staleRemoved + w.staleRemoved} stale file(s) that the source no longer has.`);
       }
-      if (workshopDir && !wsVerdict.ok && !workshopGone) {
+      if (workshopDir && wsRejected && !workshopGone) {
         lines.push(
-          `NOTE: the workshop directory was rejected (${wsVerdict.reason}). The existing mirror under game-scripts/workshop was left untouched.`,
+          `NOTE: the workshop directory was rejected (${wsRejectReason}). The existing mirror under game-scripts/workshop was left untouched.`,
         );
       }
       if (workshopGone) {
@@ -237,7 +265,7 @@ export default function (pi: ExtensionAPI) {
       }
       return {
         content: [{ type: "text", text: lines.join("\n") }],
-        details: { ok: true, copied: g.copied + w.copied, staleRemoved: g.staleRemoved + w.staleRemoved, workshopSourceMissing: workshopGone },
+        details: { ok: true, copied: g.copied + w.copied, staleRemoved: g.staleRemoved + w.staleRemoved, workshopSourceMissing: workshopGone, workshopSkipped: skipWorkshop, workshopCleared: clearedForSkip },
       };
     },
   });

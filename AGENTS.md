@@ -4,6 +4,23 @@
 Mods are pure PDXScript text files. There is no compilation and no runtime SDK.
 The game is **Windows-only**.
 
+## Environment facts
+
+These are fixed facts about this machine and this workspace. They prevent wasted turns.
+
+- **Prefer `node` for scripts.** The product ships its own node, so every player machine has it.
+  On this machine `python` is a Microsoft Store stub (Microsoft Store 存根): it exits with `exit 49`
+  and is a silent no-op (静默无操作). If python is truly needed, run `command -v py` first; if `py`
+  is missing, fall back to `node` / `awk`.
+- **When you develop, read scripts only from the mirror `game-scripts/`** (this does not affect mod
+  runtime). The vanilla scripts live in the mirror at `game-scripts/game/game/...` — **two** `game/`
+  levels. The real install directory `.../Europa Universalis V/game/...` — **one** `game/` level —
+  is the vanilla source that `sync_game_scripts` reads to build the mirror; do not `cat` / `grep`
+  there while developing. Installing a mod is a third place: `install_mod` writes to the Paradox
+  launcher mod directory, `<user documents>/Paradox Interactive/Europa Universalis V/mod/`.
+- **`supported_game_version`: write the exact version (写准版本)** (e.g. `1.0.4` / `1.3.*`). Do not
+  take the easy way out with a loose `1.*` — the linter WARNs on it.
+
 ## Directory map
 
 - `docs/` — the knowledge layer. Start at [`docs/INDEX.md`](docs/INDEX.md) for the map.
@@ -76,3 +93,14 @@ Clear every ERROR before you end the turn.
 The tool checks syntax, conventions, and **name-level semantics**: that effect, trigger, and modifier
 names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
 keys. It is not a scope or type validator.
+
+## mod-guard（mod 会话工具，本 worktree 新增）
+
+`.pi/extensions/mod-guard.ts` 复制自 `pi-desktop/extensions/mod-guard.ts`（产品侧模拟「玩家 mod 会话」的那份）。
+
+- `create_mod_folder`：建 `your_mods/<name>/` 并绑定到本 session（唯一的写豁免通道）。
+- **写隔离（fail-closed）**：本 workspace 里**未绑定** mod 目录的 session，`write`/`edit` 一律被拒；绑定后只能写该 mod 目录。
+- `before_agent_start`：为本 workspace 的 session 追加 `## Mod development session` 提示。
+
+> 以 `pi-desktop/extensions/mod-guard.ts` 为准；改动请同步回产品。
+

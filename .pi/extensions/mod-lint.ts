@@ -22,8 +22,7 @@ import { join, relative, resolve, sep, basename } from "node:path";
  *     exist; the INJECT: and REPLACE: targets exist in the same database directory; and a new
  *     object has its localization keys.
  *
- * The tool
- * is read-only, and it has no third-party dependency. Its content output uses PASS or FAIL with NEXT,
+ * The tool is read-only, and it has no third-party dependency. Its content output uses PASS or FAIL with NEXT,
  * in ASCII English, and its details hold only ok, errors, and warnings.
  */
 
@@ -39,8 +38,17 @@ const STANDARD_METADATA_FIELDS = [
 ];
 const IMAGE_EXTS = new Set([".png", ".dds", ".jpg", ".jpeg", ".tga"]);
 const SEMVER_RE = /^\d+\.\d+(\.\d+)?$/;
+// A wildcard supported_game_version names no concrete game version, so it is too loose. This table
+// is the single place to add a form. A value that names a concrete minor release ("1.3.*", or the
+// two-level form "1.0.*") stays silent, because it still tells the player which release works.
+const LOOSE_GAME_VERSION_RES = [
+  /^\d+\.\*$/, // "1.*"   - wildcard patch level
+  /^\d+\.\*\.\*$/, // "1.*.*" - wildcard minor and patch level
+  /^\*$/, // "*"     - any game version
+  /^\d+\.[xX]$/, // "1.x"   - wildcard patch level, spelled with x
+];
 const PUA_RE = /[\ue000-\uf8ff]/;
-const LOC_KEY_RE = /^\s+(?<key>[^\s:#][^:]*):(?<ver>\d*)\s*(?<rest>.*?)\s*$/;
+const LOC_KEY_RE = /^[ \t]*(?<key>[^\s:#][^:]*):(?<ver>\d*)\s*(?<rest>.*?)\s*$/;
 const LOC_HEADER_RE = /^\ufeff?\s*l_(?<lang>[a-z_]+):(?<tail>.*)$/;
 const OVERRIDE_KEYWORD_RE = /(?:TRY_)?(?:INJECT|REPLACE)(?:_OR_CREATE)?:/;
 const TOPLEVEL_KEY_RE =
@@ -83,16 +91,58 @@ function isLocalizationYml(rel: string): boolean {
   return r.endsWith(".yml") && r.includes("/localization/");
 }
 
-function expectedLanguageFromPath(rel: string): string | null {
+// The languages EU5 ships. A localization file names its language with the `_l_<lang>` filename
+// suffix (wiki Modding/Localization: "the filename must end with `_l_<language>`; any file name can
+// be used as long as this format is respected"). The engine and DLC trees group files as
+// `localization/<group>/<file>_l_<lang>.yml`, so the first directory is often a group and not a
+// language. This set is the single place to add a language.
+const LOC_LANGUAGES = new Set([
+  "braz_por",
+  "english",
+  "french",
+  "german",
+  "japanese",
+  "korean",
+  "polish",
+  "russian",
+  "simp_chinese",
+  "spanish",
+  "turkish",
+]);
+
+/** The known language named by the `_l_<lang>.yml` filename suffix, or null. */
+function filenameLanguage(rel: string): string | null {
+  const name = rel.split("/").pop() ?? rel;
+  const stem = name.endsWith(".yml") ? name.slice(0, -4) : name;
+  const lang = /_l_([a-z_]+)$/.exec(stem)?.[1];
+  return lang !== undefined && LOC_LANGUAGES.has(lang) ? lang : null;
+}
+
+/**
+ * The known language named by the localization directory, or null when the directory is a group.
+ * The `replace/` level is skipped, because `localization/replace/<lang>/` overrides the vanilla keys
+ * of <lang>.
+ */
+function directoryLanguage(rel: string): string | null {
   const parts = rel.split("/");
   const lowered = parts.map((p) => p.toLowerCase());
   const idx = lowered.indexOf("localization");
   if (idx < 0) return null;
-  const tail = parts.slice(idx + 1, -1);
+  const tail = lowered.slice(idx + 1, -1);
   if (tail.length === 0) return null;
-  if (tail[0].toLowerCase() === "replace" && tail.length >= 2)
-    return tail[1].toLowerCase();
-  return tail[0].toLowerCase();
+  const dir = tail[0] === "replace" && tail.length >= 2 ? tail[1] : tail[0];
+  return LOC_LANGUAGES.has(dir) ? dir : null;
+}
+
+/**
+ * The language that a localization file must declare. The directory is only a hint: the engine and
+ * DLC trees group files as `localization/<group>/<file>_l_<lang>.yml`, where the first directory is
+ * a group and not a language, so a directory that does not name a known language is ignored and the
+ * `_l_<lang>` filename suffix decides. Returns null when neither names a known language, which
+ * means the filename does not end with `_l_<language>.yml`.
+ */
+function expectedLanguageFromPath(rel: string): string | null {
+  return directoryLanguage(rel) ?? filenameLanguage(rel);
 }
 
 function decodeUtf8(raw: Buffer): { text: string | null; err?: string } {
@@ -119,29 +169,24 @@ function simpChineseMojibakeHint(text: string): boolean {
 }
 
 /**
- * Checks the quote structure of a localization value. The value starts with `"`, and the tool looks
- * for the first closing `"` that is not escaped. Only whitespace or a `#` comment may follow the
- * closing quote. An escaped quote does not count as the pair, and a bare quote such as `"a"b"c"`
- * fails the check, because text remains after the closing quote.
+ * Checks the quote structure of a localization value. The value starts with `"` and ends at an
+ * unescaped `"` that has only whitespace or a `#` comment after it. The tool accepts the last such
+ * quote, so an inner quote and a doubled `""` are both legal: vanilla writes
+ * `""L'État, c'est moi!""` and `"Enables a "bloom" effect."`. The check fails only when no
+ * unescaped quote closes the value, for example `"unterminated` or `"a" trailing text`.
  */
 function localizationValueQuoteOk(rest: string): boolean {
-  let i = 1; // Skip the opening quote. The caller guarantees that rest starts with one.
-  while (i < rest.length) {
-    if (rest[i] !== '"') {
-      i += 1;
-      continue;
-    }
+  let closed = false;
+  for (let i = 1; i < rest.length; i += 1) {
+    // Skip the opening quote. The caller guarantees that rest starts with one.
+    if (rest[i] !== '"') continue;
     let backslashes = 0;
     for (let j = i - 1; j >= 0 && rest[j] === "\\"; j -= 1) backslashes += 1;
-    if (backslashes % 2 === 1) {
-      i += 1; // An escaped quote, so continue.
-      continue;
-    }
-    // The closing quote is at i. Only whitespace or a comment may follow it.
+    if (backslashes % 2 === 1) continue; // An escaped quote is text, not a delimiter.
     const tail = rest.slice(i + 1).trim();
-    return tail === "" || tail.startsWith("#");
+    if (tail === "" || tail.startsWith("#")) closed = true; // This quote closes the value.
   }
-  return false; // No closing quote was found, so the string is unterminated.
+  return closed; // false when no closing quote was found, so the string is unterminated.
 }
 
 // ---- localization YAML ----
@@ -203,19 +248,19 @@ function checkLocalization(modRoot: string): Finding[] {
     const expectedLang = expectedLanguageFromPath(rel);
     const name = rel.split("/").pop() ?? rel;
     const stem = name.endsWith(".yml") ? name.slice(0, -4) : name;
-    if (expectedLang) {
-      if (!stem.endsWith(`_l_${expectedLang}`)) {
-        findings.push({
-          severity: "error",
-          rel,
-          message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization directory`,
-        });
-      }
-    } else if (!/_l_[a-z_]+$/.test(stem)) {
+    if (expectedLang === null) {
+      // Neither the directory nor the `_l_<lang>` suffix names a known language, so the required
+      // filename suffix is missing or misspelled.
       findings.push({
         severity: "error",
         rel,
         message: "filename must end with '_l_<language>.yml'",
+      });
+    } else if (!stem.endsWith(`_l_${expectedLang}`)) {
+      findings.push({
+        severity: "error",
+        rel,
+        message: `filename must end with '_l_${expectedLang}.yml' to match the '${expectedLang}' localization directory`,
       });
     }
 
@@ -243,7 +288,7 @@ function checkLocalization(modRoot: string): Finding[] {
             findings.push({
               severity: "error",
               rel,
-              message: `line ${lineNo}: header 'l_${lang}:' does not match the language of the directory '${expectedLang}'`,
+              message: `line ${lineNo}: header 'l_${lang}:' does not match the expected language '${expectedLang}'`,
             });
           }
           continue;
@@ -359,6 +404,21 @@ function checkMetadata(modRoot: string): Finding[] {
         message: `missing expected field '${field}' (EU5 wiki metadata.json standard structure)`,
       });
   }
+  // The field presence check above does not read the value. A value such as "1.*" or "*" matches
+  // every release and tells the player nothing about the supported game version, so warn. A concrete
+  // value ("1.0.4") and a concrete-minor wildcard ("1.3.*", "1.0.*") stay silent.
+  const supportedGameVersion =
+    typeof obj.supported_game_version === "string" ? obj.supported_game_version.trim() : null;
+  if (
+    supportedGameVersion !== null &&
+    LOOSE_GAME_VERSION_RES.some((re) => re.test(supportedGameVersion))
+  ) {
+    findings.push({
+      severity: "warn",
+      rel,
+      message: `supported_game_version '${obj.supported_game_version}' is too loose; prefer a concrete version such as 1.0.4`,
+    });
+  }
   if (
     typeof obj.version === "string" &&
     obj.version !== "" &&
@@ -405,13 +465,17 @@ function checkMetadata(modRoot: string): Finding[] {
             statSync(f, { throwIfNoEntry: false })?.isFile()
           );
         });
-      if (versioned.length > 0) {
-        findings.push({
-          severity: "warn",
-          rel,
-          message: `picture '${picture}' not found, but other image files are versioned here (possible filename mismatch)`,
-        });
-      }
+      // The file is missing, so always warn. The wording depends on whether the mod has other
+      // images: with one or more, a filename mismatch is the likely cause; with none, the mod
+      // simply has no image, and the mismatch hint would be false.
+      findings.push({
+        severity: "warn",
+        rel,
+        message:
+          versioned.length > 0
+            ? `picture '${picture}' not found, but other image files are versioned here (possible filename mismatch)`
+            : `picture '${picture}' not found, and the mod has no image file (the value must name an existing file in the mod root or .metadata/)`,
+      });
     }
   }
   return findings;
@@ -534,14 +598,14 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
       if (hasKw && depth > 0) {
-        // Downgraded to warn (was error): the rule should be "directly before a database entry", and the *entry level* differs from directory to directory
-        // (in most common/ directories the entry level is the file top level, and in container directories such as genes/ it is the level inside `accessory_genes = { <entry> = {} }`
-        //  one level in). vanilla writes it that way itself: dlc/D008_fate_of_the_phoenix/in_game/common/genes/
-        //  D008_genes_accessories.txt has 6 occurrences of `INJECT_OR_CREATE:` and every one of them sits inside accessory_genes.
+        // 降级为 warn（原为 error）：规则应是“紧邻一个 database entry”，而**条目层**因目录而异
+        // （多数 common/ 目录 = 文件顶层；容器型目录如 genes/ 在 `accessory_genes = { <entry> = {} }`
+        //  一层里）。vanilla 自己就这么写：dlc/D008_fate_of_the_phoenix/in_game/common/genes/
+        //  D008_genes_accessories.txt 共 6 处 `INJECT_OR_CREATE:` 都在 accessory_genes 内。
         findings.push({
           severity: "warn",
           rel: "",
-          message: `line ${line}: '${m.groups.kw}' override keyword is nested at depth ${depth}. It must sit directly before a database entry. In most common/ folders the entry is the file's top level. In a container folder such as genes/accessory_genes the entry is one level in. The vanilla files do this too.`,
+          message: `line ${line}: '${m.groups.kw}' override keyword is nested (depth ${depth}); it must sit directly before a *database entry* - that is the file's top level in most common/ folders, but in container folders (e.g. genes/accessory_genes) the entry is one level in, and vanilla does that too. Confirm before treating as an error.`,
         });
       }
       // Skip the whole `[KEYWORD:]key = {` up to the `{`, so the next round counts that brace.
@@ -591,7 +655,7 @@ function checkPdxScript(modRoot: string): Finding[] {
     if (!bal.ok && bal.message)
       findings.push({ severity: "error", rel, message: bal.message });
     for (const f of checkOverrideKeywords(cleaned)) {
-      // Keep the severity that checkOverrideKeywords gives itself (a nested keyword is warn, not error)
+      // 保留 checkOverrideKeywords 自己给出的 severity（嵌套关键字是 warn，不是 error）
       findings.push({ severity: f.severity ?? "error", rel, message: f.message });
     }
   }
@@ -605,7 +669,7 @@ export default function (pi: ExtensionAPI) {
     name: "validate_mod",
     label: "Validate Mod",
     description:
-      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks one convention rule: an INJECT: or REPLACE: keyword must sit directly before a database entry. A keyword at a lower depth is a WARN. The tool then runs the name-level semantic checks. An effect, a trigger, or a modifier name must exist. An INJECT: or REPLACE: target must exist. A new object must have its localization keys. It is not a scope or type validator.",
+      "Validate an EU5 mod of the pdx-script type, under your_mods/. It checks the metadata.json fields, the localization YAML, and the brace and quote balance in PDXScript and GUI files. It also checks the rule that INJECT: and REPLACE: stay at the top level, and it runs the name-level semantic checks: effect, trigger, and modifier names exist, INJECT:/REPLACE: targets exist, and new objects have their localization keys. It is not a scope or type validator.",
     promptSnippet: "Validate a mod under your_mods/",
     promptGuidelines: [
       "Use validate_mod after you write a mod, to check that it passes the rules.",
@@ -640,8 +704,8 @@ export default function (pi: ExtensionAPI) {
       const warnings = findings.filter((f) => f.severity === "warn");
       const semantic = analyzeSemantics(modDir);
 
-      // Append the semantic lines as their own paragraph to content (the agent reads only content, and details never enter its view).
-      // w.message already starts with `semantic: `, so this place does not add the prefix a second time.
+      // 语义行作为独立一段追加进 content（agent 只看 content，details 不进其视野）。
+      // w.message 已以 `semantic: ` 开头，这里不再重复加前缀。
       const semanticLines = semantic.warnings
         .slice(0, MAX_CONTENT_LINES)
         .map((w) => `${w.level === "note" ? "NOTE" : "WARN"}: ${w.message}`);

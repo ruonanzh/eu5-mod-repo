@@ -26,24 +26,30 @@ and its bound directory gate those actions.
      framework. Run `sync_game_scripts` to load the modding context into `game-scripts/`. Then grep
      that directory carefully to pin down the real vanilla values and their connections: which
      goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
-     names alone.
+     names alone. Two hard ordering rules:
+     1. For a player-worded feature request, grep vanilla first, within calls 2 to 4:
+        `grep -rln <keyword> game-scripts/`, to confirm "does vanilla already have it?".
+     2. Read in this fixed order: `docs/eu5-modding-conventions.md` (the single source of truth),
+        then locate 1 or 2 reference mods of the same kind, then write.
   2. **Agree with the player before you write.** Give a short description of the mod content: what it
      modifies, its scope, and the shape of the mod. Then wait for the player's confirmation. Do this
      **even when the request looks specific**. Skip it only when the player explicitly says to start,
      for example "start now, no confirmation".
   3. **Then write.** Produce or modify a mod under `your_mods/<ModName>/`. Reuse
      `reference/example_mod/`. You may write only inside the bound mod directory. With no binding,
-     call `create_mod_folder` with a `lower_snake_case` name. Do not create a second binding when
-     one already exists.
+     call `create_mod_folder` with a `lower_snake_case` name, with **no hyphens**
+     (`fix-trade-companies` ❌ → `fix_trade_companies` ✓). Do not create a second binding when one
+     already exists.
   4. **Then check the UI side.** A mod here is mostly PDXScript code, but an in-game check often
      fails without the UI part. Before you finish, ask: does this modification need an icon, a UI
      label (localization), a menu entry, a column, a filter, or a panel? Add what is missing. Reuse
      an existing in-game icon or asset when one fits, because you do not have to create new art. Do
      not wait for the player to ask about the icon.
-- **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name starts with
-  a lowercase letter, then holds only lowercase letters, digits, and underscores, at most 40
-  characters. It must not be a Windows reserved device name: `con`, `prn`, `aux`, `nul`, `com1` to
-  `com9`, and `lpt1` to `lpt9`.
+- **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name is
+  `lower_snake_case`: it starts with a lowercase letter, then holds only lowercase letters, digits,
+  and underscores, at most 40 characters. Do **not** use hyphens: `fix-trade-companies` ❌ →
+  `fix_trade_companies` ✓. It must not be a Windows reserved device name: `con`, `prn`, `aux`,
+  `nul`, `com1` to `com9`, and `lpt1` to `lpt9`.
 
 ## Mod structure
 
@@ -66,7 +72,7 @@ and its bound directory gate those actions.
 | `name` | A non-empty string: the mod title that the player reads. |
 | `id` | A non-empty string. The game requires only that the value identifies the mod (EU5 wiki). **This repository suggests** lowercase snake_case that matches the `your_mods/` directory name. That is not a game rule. `install_mod` uses the `your_mods/` directory name as the install directory name, so a match helps the player. `validate_mod` does **not** report an error when the two differ. |
 | `version` | `x.x` or `x.x.x`, two or three parts. |
-| `supported_game_version` | The `1.*` form. |
+| `supported_game_version` | The exact version, for example `1.0.4` (a patch-level wildcard such as `1.3.*` is also fine). A loose `1.*` is a WARN. |
 | `short_description` | A one-line summary. The field is **`short_description`**, not `description`. |
 | `tags` | An array of strings. |
 | `picture` | `"thumbnail.png"`, placed **after `tags`**. |
@@ -78,7 +84,7 @@ and its bound directory gate those actions.
   "name": "Elite Education Cost Tweak",
   "id": "elite_education_cost_tweak",
   "version": "1.0",
-  "supported_game_version": "1.*",
+  "supported_game_version": "1.0.4",
   "short_description": "Adjusts expensive child education costs.",
   "tags": ["Gameplay", "Balance"],
   "picture": "thumbnail.png",
@@ -92,11 +98,13 @@ and its bound directory gate those actions.
 The files are `**/localization/**/*.yml`, under `in_game/` and `main_menu/`.
 
 - **The encoding must be UTF-8 with BOM** (`EF BB BF`). Without a BOM the game ignores the file in
-  silence. That failure is fatal, not cosmetic.
+  silence. That failure is fatal, not cosmetic. A fixed command to add the BOM:
+  `printf '\xEF\xBB\xBF' | cat - <file> > tmp && mv tmp <file>`.
 - The filename must end with `_l_<language>`, which matches the language directory.
 - The first content line is `l_<lang>:`, and it must match the directory.
-- An entry is `  key: "value"` or `  key:0 "value"` with an explicit version. Put the value in
-  double quotes, keep the quotes balanced, and keep the `[` and `]` placeholders balanced.
+- An entry is `  key: "value"` or `  key:0 "value"` with an explicit version. The value starts
+  and ends with a double quote on the same line, so an inner `"` and a doubled `""` are legal. A
+  value with no closing `"` on its line is an error. Keep the `[` and `]` placeholders balanced.
 - One file must not hold duplicate keys.
 - To override a vanilla loc key, use a `replace/` subdirectory:
   `<lang>/replace/overwriting_l_<lang>.yml`. Keys there overwrite identical keys elsewhere.
@@ -173,9 +181,9 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
 - `FAIL: localization file is not UTF-8 with BOM`: save the file as UTF-8 **with BOM** (`EF BB BF`).
 - `FAIL: filename must end with _l_<language>`: rename the file to `<name>_l_<language>.yml`.
 - `FAIL: missing/incorrect l_<lang>: header`: the first content line must be `l_<lang>:`.
-- `FAIL: key line not in 'key: "value"' form`: write `  key: "value"` with double quotes that are
-  balanced.
-- `FAIL: unbalanced { }` or `unbalanced "`: fix the brace or quote balance.
+- `FAIL: key line not in 'key: "value"' form`: write `  key: "value"` with a closing double quote
+  on the same line.
+- `FAIL: unbalanced { }` or `unbalanced "`: fix the brace balance or add the missing closing quote.
 - `FAIL: INJECT:/REPLACE: must be in a top-level block`: move the keyword to the top level.
 
 ## Semantic lookup path

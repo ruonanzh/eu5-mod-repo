@@ -72,7 +72,7 @@ and its bound directory gate those actions.
 | `name` | A non-empty string: the mod title that the player reads. |
 | `id` | A non-empty string. The game requires only that the value identifies the mod (EU5 wiki). **This repository suggests** lowercase snake_case that matches the `your_mods/` directory name. That is not a game rule. `install_mod` uses the `your_mods/` directory name as the install directory name, so a match helps the player. `validate_mod` does **not** report an error when the two differ. |
 | `version` | `x.x` or `x.x.x`, two or three parts. |
-| `supported_game_version` | The exact version, for example `1.0.4` (a patch-level wildcard such as `1.3.*` is also fine). A loose `1.*` is a WARN. |
+| `supported_game_version` | A patch-level wildcard, for example `1.3.*`. An exact version such as `1.0.4` goes stale: this game updates its minor version often, and the game then flags the mod outdated. A loose `1.*` is a WARN. |
 | `short_description` | A one-line summary. The field is **`short_description`**, not `description`. |
 | `tags` | An array of strings. |
 | `picture` | `"thumbnail.png"`, placed **after `tags`**. |
@@ -84,7 +84,7 @@ and its bound directory gate those actions.
   "name": "Elite Education Cost Tweak",
   "id": "elite_education_cost_tweak",
   "version": "1.0",
-  "supported_game_version": "1.0.4",
+  "supported_game_version": "1.3.*",
   "short_description": "Adjusts expensive child education costs.",
   "tags": ["Gameplay", "Balance"],
   "picture": "thumbnail.png",

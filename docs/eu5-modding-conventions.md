@@ -128,7 +128,7 @@ and `Mod_files_load_order`, section "Localization".
 
 Per `Mod_structure`, section "Metadata": every mod **requires** a `metadata.json` inside a
 `.metadata` directory, or "the game will error". The documented standard structure is valid JSON
-with `name`, `id`, `version` (`x.x` or `x.x.x`), `supported_game_version` (for example `1.0.*`),
+with `name`, `id`, `version` (`x.x` or `x.x.x`), `supported_game_version` (for example `1.3.*`),
 `short_description`, and `tags`, plus optional `relationships` and `game_custom_data`. The summary
 field is `short_description`, not `description`. The wiki does not document an individual missing
 field as load-fatal, so the linter treats a missing file or invalid JSON as an ERROR, and a missing

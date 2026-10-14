@@ -28,7 +28,7 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
 `Mod_files_load_order`, sections "Overview" and "Inject and replace".
 
 - **Direct file overwrite:** a mod file with the *same path and filename* as a base-game/DLC/other-mod
-  file takes precedence; the lower-in-playlist mod wins, and the losing files are treated "as if they
+  file takes precedence. The lower-in-playlist mod wins, and the losing files are treated "as if they
   did not exist." Whole-file, so anything you omit is lost - brittle across patches.
 - **Implicit replace:** in folders that do **not** use the keyword system, if two files define the
   same top-level object, the **later-loaded definition wins** (the object is redefined). This works
@@ -57,10 +57,10 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
   }
   ```
 
-**Rule of thumb:** prefer additive new objects; use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
-variants) for surgical changes in keyword folders; reserve full-file overwrite for when you must
+**Rule of thumb:** prefer additive new objects. Use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
+variants) for surgical changes in keyword folders. Reserve full-file overwrite for when you must
 change most of a file. `validate_mod` flags a keyword nested below the entry level as a **WARN** (not a
-hard error — container folders legitimately nest entries one level in, and vanilla does so); whether a
+hard error — container folders legitimately nest entries one level in, and vanilla does so). Whether a
 top-level object redefines a vanilla name **without** a keyword is a soft rule the agent checks with
 `grep`/`read` against the local game directory (the exact list of keyword folders is not yet fully
 documented on the wiki - marked "TBA").
@@ -140,7 +140,7 @@ The `.metadata` directory should also hold a `thumbnail.png`: the launcher and W
 must be smaller than 1 MB, and the recommended size is 512x512. Reference it with a
 `"picture": "thumbnail.png"` entry, placed after `tags`. The image can live only in the Paradox mod
 directory, and you do not have to version it in the repository. The linter still warns when the
-`picture` value names no existing file in the mod root or `.metadata/`; only the warning wording
+`picture` value names no existing file in the mod root or `.metadata/`. Only the warning wording
 depends on whether other image files **are** versioned.
 
 ## 6. Housekeeping
@@ -167,7 +167,7 @@ The last row of this table lists the other mechanisms in the index.
 | --- | --- | --- | --- |
 | `character_interactions` | The action becomes available **after the player selects a character** (the interaction fires on that character). | `in_game/common/character_interactions/`, for example `dismiss_artist.txt` | `character_interactions` |
 | `scripted_gui` | The feature needs a **custom panel** (its own buttons or widgets on the interface). | the definition in `in_game/common/scripted_guis/` and the layout under `in_game/gui/`, for example `in_game/common/scripted_guis/economy_satisfaction_target.txt` | `scripted_gui` |
-| `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers; the action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` | `generic_actions` |
+| `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers. The action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` | `generic_actions` |
 | `events` | The feature surfaces as an **event popup** (a one-off window with a choice or a notification). | `in_game/events/`, for example `ages.txt` | `events` |
 | `situations` | The feature is a **persistent state** (it stays active, is visible to a subset of countries, and runs until its end condition is met). | `in_game/common/situations/`, for example `black_death.txt` | `situations` |
 | Other indexed mechanisms | The index also holds these mechanisms for existing screens and hooks, and the five entry points above do not cover them. | `locate_entry` returns the folder, the readme, and the examples and skeleton that the index holds for each one. | `lateralview`, `topbar`, `on_action`, `shortcut`, `scripted_widgets`, `context_menu` |
@@ -185,7 +185,7 @@ prints, then write. If it does not, skip this whole page.
 ## Going deeper (semantics the linter does not check)
 
 The linter checks syntax, conventions, and **name-level semantics** (do the effect, trigger, and
-modifier names exist; does an `INJECT:`/`REPLACE:` target exist; does a new object have its
+modifier names exist. Does an `INJECT:`/`REPLACE:` target exist. Does a new object have its
 localization keys). For **scope and type** correctness, and for exact vanilla values, follow the
 lookup hierarchy in [`INDEX.md`](INDEX.md).
 

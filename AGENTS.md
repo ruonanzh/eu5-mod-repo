@@ -15,7 +15,7 @@ These are fixed facts about this machine and this workspace. They prevent wasted
 - **When you develop, read scripts only from the mirror `game-scripts/`** (this does not affect mod
   runtime). The vanilla scripts live in the mirror at `game-scripts/game/game/...` — **two** `game/`
   levels. The real install directory `.../Europa Universalis V/game/...` — **one** `game/` level —
-  is the vanilla source that `sync_game_scripts` reads to build the mirror; do not `cat` / `grep`
+  is the vanilla source that `sync_game_scripts` reads to build the mirror. Do not `cat` / `grep`
   there while developing. Installing a mod is a third place: `install_mod` writes to the Paradox
   launcher mod directory, `<user documents>/Paradox Interactive/Europa Universalis V/mod/`.
 - **`supported_game_version`: write a patch-level wildcard** (e.g. `1.3.*`). An exact

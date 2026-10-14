@@ -28,7 +28,7 @@ and its bound directory gate those actions.
      goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
      names alone. Two hard ordering rules:
      1. For a player-worded feature request, grep vanilla first, within calls 2 to 4:
-        `grep -rln <keyword> game-scripts/`, to confirm "does vanilla already have it?".
+        `grep -rln <keyword> game-scripts/`, to check "does vanilla already have it?".
      2. Read in this fixed order: `docs/eu5-modding-conventions.md` (the single source of truth),
         then locate 1 or 2 reference mods of the same kind, then write.
   2. **Agree with the player before you write.** Give a short description of the mod content: what it
@@ -38,7 +38,7 @@ and its bound directory gate those actions.
   3. **Then write.** Produce or modify a mod under `your_mods/<ModName>/`. Reuse
      `reference/example_mod/`. You may write only inside the bound mod directory. With no binding,
      call `create_mod_folder` with a `lower_snake_case` name, with **no hyphens**
-     (`fix-trade-companies` ❌ → `fix_trade_companies` ✓). Do not create a second binding when one
+     (use `fix_trade_companies`, not `fix-trade-companies` ❌). Do not create a second binding when one
      already exists.
   4. **Then check the UI side.** A mod here is mostly PDXScript code, but an in-game check often
      fails without the UI part. Before you finish, ask: does this modification need an icon, a UI
@@ -47,8 +47,8 @@ and its bound directory gate those actions.
      not wait for the player to ask about the icon.
 - **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name is
   `lower_snake_case`: it starts with a lowercase letter, then holds only lowercase letters, digits,
-  and underscores, at most 40 characters. Do **not** use hyphens: `fix-trade-companies` ❌ →
-  `fix_trade_companies` ✓. It must not be a Windows reserved device name: `con`, `prn`, `aux`,
+  and underscores, at most 40 characters. Do **not** use hyphens: use `fix_trade_companies`, not
+  `fix-trade-companies` ❌. It must not be a Windows reserved device name: `con`, `prn`, `aux`,
   `nul`, `com1` to `com9`, and `lpt1` to `lpt9`.
 
 ## Mod structure

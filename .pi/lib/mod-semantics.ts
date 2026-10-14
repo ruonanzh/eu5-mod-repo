@@ -1272,10 +1272,23 @@ function collectVanillaKeyNames(vanillaRoot: string): Set<string> {
 const dictionaryCache = new Map<string, ScriptDictionary | null>();
 
 /**
+ * The directory of this module, for both loaders: `import.meta.dirname` exists only in ESM
+ * (Node 24), while a CJS bundle exposes `__dirname` instead (pi-desktop's contract test bundles
+ * the tools to CJS, and there that path points at the bundle, not at this file).
+ * Returns null when neither is usable, so a caller skips the candidate instead of joining undefined.
+ */
+function moduleDir(): string | null {
+  const metaDir = (import.meta as ImportMeta & { dirname?: unknown }).dirname;
+  if (typeof metaDir === "string" && metaDir.length > 0) return metaDir;
+  if (typeof __dirname === "string" && __dirname.length > 0) return __dirname;
+  return null;
+}
+
+/**
  * The code parses the script_docs dictionary: effects, triggers, and modifiers (which give `names` and also serve the block classification), plus the known name additions
  * (event_targets, on_actions, and custom_localization, which only exclude a candidate) plus the vanilla key names.
  * The container model also comes from the structure examples in effects.log and triggers.log of the same directory.
- * The location prefers the module itself (import.meta.dirname gives ../../docs/script_docs, which Node 24 ESM supports), and
+ * The location prefers the module itself (moduleDir() gives ../../docs/script_docs in both ESM and a CJS bundle), and
  * falls back to docs/script_docs at the repository root when it finds nothing (under a real workshop mod findRepoRoot is often null).
  * When nothing is found it returns null, and C2 skips safely (it produces no WARN and no NOTE).
  */
@@ -1286,9 +1299,9 @@ function loadScriptDictionary(
   const cacheKey = `${repoRoot ?? "<null>"}|${vanillaRoot ?? "<null>"}`;
   const cached = dictionaryCache.get(cacheKey);
   if (cached !== undefined) return cached;
-  const dirs: string[] = [
-    join(import.meta.dirname, "..", "..", "docs", "script_docs"),
-  ];
+  const dirs: string[] = [];
+  const ownRoot = moduleDir();
+  if (ownRoot) dirs.push(join(ownRoot, "..", "..", "docs", "script_docs"));
   if (repoRoot) dirs.push(join(repoRoot, "docs", "script_docs"));
   for (const dir of dirs) {
     const effects = readText(join(dir, "effects.log"));
@@ -1839,13 +1852,12 @@ export function analyzeSemantics(
   // (empty or broken). In either case the code cannot decide whether a target is a vanilla object, so it falls back to one NOTE and skips the per-target output.
   // Note: when the vanilla root holds content and only one particular `<directory>` happens to have no vanilla file, that is a true hit and gives WARN as usual.
   const repoRoot = findRepoRoot(modPath);
-  // The order that locates game-scripts: 1. the repository root of the mod (findRepoRoot), then 2. the repository root of the tool itself (upward from import.meta.dirname).
+  // The order that locates game-scripts: 1. the repository root of the mod (findRepoRoot), then 2. the repository root of the tool itself (upward from moduleDir()).
   // A workshop or Paradox mod directory sits outside the repository, so findRepoRoot is often null and the tool falls back to its own repository (the same approach as loadScriptDictionary).
   const gameScriptsCandidates: string[] = [];
   if (repoRoot) gameScriptsCandidates.push(join(repoRoot, "game-scripts"));
-  gameScriptsCandidates.push(
-    join(import.meta.dirname, "..", "..", "game-scripts"),
-  );
+  const ownRoot = moduleDir();
+  if (ownRoot) gameScriptsCandidates.push(join(ownRoot, "..", "..", "game-scripts"));
   const gameScriptsRoot =
     gameScriptsCandidates.find((c) => isDirectory(c)) ?? null;
   // The vanilla root is strictly the real original `game-scripts/game/**` and **excludes** `game-scripts/workshop/**`.

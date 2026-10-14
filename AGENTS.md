@@ -9,8 +9,8 @@ The game is **Windows-only**.
 These are fixed facts about this machine and this workspace. They prevent wasted turns.
 
 - **Prefer `node` for scripts.** The product ships its own node, so every player machine has it.
-  On this machine `python` is a Microsoft Store stub (Microsoft Store 存根): it exits with `exit 49`
-  and is a silent no-op (静默无操作). If python is truly needed, run `command -v py` first; if `py`
+  On this machine `python` is a Microsoft Store stub: it exits with `exit 49`
+  and is a silent no-op. If python is truly needed, run `command -v py` first. If `py`
   is missing, fall back to `node` / `awk`.
 - **When you develop, read scripts only from the mirror `game-scripts/`** (this does not affect mod
   runtime). The vanilla scripts live in the mirror at `game-scripts/game/game/...` — **two** `game/`
@@ -18,7 +18,7 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   is the vanilla source that `sync_game_scripts` reads to build the mirror; do not `cat` / `grep`
   there while developing. Installing a mod is a third place: `install_mod` writes to the Paradox
   launcher mod directory, `<user documents>/Paradox Interactive/Europa Universalis V/mod/`.
-- **`supported_game_version`: write a patch-level wildcard (写补丁级通配)** (e.g. `1.3.*`). An exact
+- **`supported_game_version`: write a patch-level wildcard** (e.g. `1.3.*`). An exact
   version such as `1.0.4` goes stale. This game updates its minor version often, and the game flags
   an exact version as outdated. Do not take the easy way out with a loose `1.*` — the linter WARNs on it.
   Read `supported_game_version` from the `supportedGameVersion` value of `get_game_info`. Do not do
@@ -97,13 +97,13 @@ The tool checks syntax, conventions, and **name-level semantics**: that effect, 
 names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
 keys. It is not a scope or type validator.
 
-## mod-guard（mod 会话工具，本 worktree 新增）
+## mod-guard (mod session tools, added in this worktree)
 
-`.pi/extensions/mod-guard.ts` 复制自 `pi-desktop/extensions/mod-guard.ts`（产品侧模拟「玩家 mod 会话」的那份）。
+`.pi/extensions/mod-guard.ts` is a copy of `pi-desktop/extensions/mod-guard.ts`. The product copy simulates the player mod session.
 
-- `create_mod_folder`：建 `your_mods/<name>/` 并绑定到本 session（唯一的写豁免通道）。
-- **写隔离（fail-closed）**：本 workspace 里**未绑定** mod 目录的 session，`write`/`edit` 一律被拒；绑定后只能写该 mod 目录。
-- `before_agent_start`：为本 workspace 的 session 追加 `## Mod development session` 提示。
+- `create_mod_folder`: creates `your_mods/<name>/` and binds it to this session. This tool is the only sanctioned write path.
+- **Write isolation (fail-closed):** the mod-guard extension refuses every `write` and `edit` call from a session that has no bound mod directory in this workspace. After the session binds a directory, it can write only inside that mod directory.
+- `before_agent_start`: appends the `## Mod development session` prompt to a session in this workspace.
 
-> 以 `pi-desktop/extensions/mod-guard.ts` 为准；改动请同步回产品。
+> `pi-desktop/extensions/mod-guard.ts` is authoritative. Sync your change back to the product.
 

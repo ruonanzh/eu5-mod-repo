@@ -18,7 +18,7 @@
  *   - The search     The tool must scan Steam: the registry and libraryfolders.vdf in each
  *                    library. It does not use installDirHint.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { createReadStream, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { basename, isAbsolute, join, resolve } from "node:path";
 import os from "node:os";
@@ -273,6 +273,46 @@ export function pathsFor(
   const workshopDir = workshopDirFor(gameDir, cfg);
   if (!workshopDir && cfg.game?.steamAppId) notes.push("NOTE: the Workshop directory does not exist, so it was not recorded (optional, read-only reference).");
   return { modInstallDir, workshopDir, notes };
+}
+
+// The build tag. It is the only true version source for the game, and the tool reads it once.
+// The pattern anchors the `/release/` prefix, because the executable also holds dependency version
+// strings, and zlib `1.2.11` is one of them. `VersionInfo` is not a source: it says `1.0`.
+// The lookahead rejects a match that a further digit follows, so a window that ends in `1.3.1` of
+// `1.3.11` does not match.
+const BUILD_TAG_RE = /[a-zA-Z0-9_]+\/release\/(\d+\.\d+\.\d+)(?![0-9])/;
+const BUILD_TAG_TIMEOUT_MS = 30_000;
+/** The overlap between two chunks. A tag that starts in one chunk and ends in the next must still match. */
+const BUILD_TAG_OVERLAP = 64;
+
+/**
+ * Reads the game build tag from `<gameDir>/binaries/eu5.exe`, for example `1.3.11`.
+ * It reads the file in chunks, because the executable is larger than 100 MB, and it stops at the
+ * 30-second limit. It returns `null` when the file is missing, unreadable, holds no tag, or does not
+ * finish in time. It does not guess.
+ */
+export async function readGameBuildTag(gameDir: string): Promise<string | null> {
+  if (typeof gameDir !== "string" || !gameDir.trim()) return null;
+  try {
+    const stream = createReadStream(join(gameDir, GAME_SENTINEL), {
+      encoding: "latin1",
+      signal: AbortSignal.timeout(BUILD_TAG_TIMEOUT_MS),
+    });
+    let tail = "";
+    for await (const chunk of stream) {
+      const text = tail + (chunk as string);
+      const m = text.match(BUILD_TAG_RE);
+      // A match that ends at the window end can be cut: the next byte can be a digit, so the
+      // match is not the full tag. Keep the window and match again with the next chunk.
+      if (m && (m.index ?? 0) + m[0].length < text.length) return m[1];
+      tail = text.slice(-BUILD_TAG_OVERLAP);
+    }
+    // The stream ended. Here a match at the tail end is complete, because no byte follows it.
+    const last = tail.match(BUILD_TAG_RE);
+    return last ? last[1] : null;
+  } catch {
+    return null;
+  }
 }
 
 /** The fallback for a file name, with the basename behavior that the other tools share. */

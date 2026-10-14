@@ -9,8 +9,8 @@
  * Order of work, and the reason for it:
  *   1. The mirror is checked first, because every path is relative to it, so a missing mirror makes
  *      every answer wrong. The FAIL points at `sync_game_scripts`.
- *   2. The id is matched against the index. A miss is not an error of the agent: the index holds 11
- *      common mechanisms, so the FAIL lists the ids and points at section 7 of the conventions
+ *   2. The id is matched against the index. A miss is not an error of the agent: the index holds the
+ *      common mechanisms only, so the FAIL lists its ids and points at section 7 of the conventions
  *      page, which is the general method for the unlisted mechanisms.
  *   3. Every indexed path is checked with `existsSync`, and only the paths that exist are printed.
  *      The index is a snapshot of one game build, and a game patch can move a path.
@@ -132,11 +132,11 @@ export default function (pi: ExtensionAPI) {
     name: "locate_entry",
     label: "Locate Entry",
     description:
-      "Locates one EU5 entry mechanism in the script mirror in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The mechanism argument is an id of the static index, which holds 11 common mechanisms. It is read-only, and it writes nothing.",
+      `Locates one EU5 entry mechanism in the script mirror in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The mechanism argument is an id of the static index, which holds ${ENTRY_POINTS.length} common mechanisms. It is read-only, and it writes nothing.`,
     promptSnippet: "Locate one entry mechanism: registration path, readme, example, frame, wiring",
     promptGuidelines: [
       "Use locate_entry with an entry mechanism id before you write a new entry, in place of searching the mirror yourself.",
-      "Call locate_entry before you read docs/eu5-modding-conventions.md section 7. The index holds 11 common mechanisms only, so an unlisted mechanism still needs section 7 and a grep of the registration directory.",
+      `Call locate_entry before you read docs/eu5-modding-conventions.md section 7. The index holds ${ENTRY_POINTS.length} common mechanisms only, so an unlisted mechanism still needs section 7 and a grep of the registration directory.`,
       "locate_entry is read-only. It prints the paths that this mirror holds, and it omits an indexed path that the mirror no longer has.",
     ],
     parameters: Type.Object({
@@ -163,7 +163,7 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      // Step 2: the id. A miss lists the 11 ids and the general method.
+      // Step 2: the id. A miss lists the indexed ids and the general method.
       const entry: EntryPoint | undefined = ENTRY_POINTS.find((e) => e.id === mechanism);
       if (!entry) {
         const ids = ENTRY_POINTS.map((e) => e.id).sort().join(", ");
@@ -172,10 +172,10 @@ export default function (pi: ExtensionAPI) {
             {
               type: "text",
               text:
-                `FAIL: unknown mechanism '${mechanism}' - the index holds 11 common mechanisms, and it is not the complete set.\n` +
-                `index ids (11): ${ids}\n` +
-                `NEXT: choose the entry point in docs/eu5-modding-conventions.md section 7, then locate it in the mirror by grepping the registration directory, for example ` +
-                "`ls game-scripts/game/game/in_game/common/`.",
+                `FAIL: unknown mechanism '${mechanism}' - the index holds ${ENTRY_POINTS.length} common mechanisms, and it is not the complete set.\n` +
+                `index ids (${ENTRY_POINTS.length}): ${ids}\n` +
+                `NEXT: choose the entry point in docs/eu5-modding-conventions.md section 7, then locate it in the mirror with a grep for the key that you plan to use, for example ` +
+                `\`grep -rln "black_death" ${ENTRY_POINT_ROOT_REL}/\`.`,
             },
           ],
           details: {

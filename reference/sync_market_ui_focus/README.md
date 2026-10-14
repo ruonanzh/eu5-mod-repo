@@ -33,7 +33,7 @@
 
 **维护说明：** 本 mod 以仓库内 vanilla 的 `game/in_game/gui/selected_market_view.gui` 为底，**仅追加**几处 `SetUIFocusMarket`；游戏大版本更新后若市场 / 贸易页报错，需对照新版 vanilla 重新合并，不要继续整文件覆盖旧版 gui。
 
-**游戏版本：** 见 `.metadata/metadata.json` 的 `supported_game_version`（当前为 `1.*`）。
+**游戏版本：** 见 `.metadata/metadata.json` 的 `supported_game_version`（当前为 `1.3.*`）。
 
 ### 更新说明
 
@@ -80,7 +80,7 @@ In *Europa Universalis V*, **Production** (buildings, raw goods, etc.) and **Tra
 
 **Maintenance:** This mod is based on vanilla `game/in_game/gui/selected_market_view.gui` in the repo, with **only** a few `SetUIFocusMarket` calls added. After a major game update, if the market / trade panel throws errors, re-merge against the new vanilla file—do not keep overwriting with an old full gui copy.
 
-**Game version:** See `supported_game_version` in `.metadata/metadata.json` (currently `1.*`).
+**Game version:** See `supported_game_version` in `.metadata/metadata.json` (currently `1.3.*`).
 
 ### Changelog
 

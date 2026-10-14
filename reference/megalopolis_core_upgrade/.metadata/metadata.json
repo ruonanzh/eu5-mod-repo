@@ -2,7 +2,7 @@
 	"name": "Megalopolis: Core Instead of Capital",
 	"id": "megalopolis_core_upgrade",
 	"version": "1.0.0",
-	"supported_game_version": "1.*",
+	"supported_game_version": "1.3.*",
 	"short_description": "Megalopolis upgrade requires a core province instead of the capital. Other vanilla requirements unchanged.",
 	"tags": ["Gameplay", "Balance"],
 	"picture": "thumbnail.png",

@@ -133,6 +133,8 @@ with `name`, `id`, `version` (`x.x` or `x.x.x`), `supported_game_version` (for e
 field is `short_description`, not `description`. The wiki does not document an individual missing
 field as load-fatal, so the linter treats a missing file or invalid JSON as an ERROR, and a missing
 standard field as a WARN.
+Read `supported_game_version` from the `supportedGameVersion` value of `get_game_info`. Do not do
+binary forensics.
 
 The `.metadata` directory should also hold a `thumbnail.png`: the launcher and Workshop image. It
 must be smaller than 1 MB, and the recommended size is 512x512. Reference it with a

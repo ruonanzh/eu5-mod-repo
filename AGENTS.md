@@ -21,6 +21,8 @@ These are fixed facts about this machine and this workspace. They prevent wasted
 - **`supported_game_version`: write a patch-level wildcard (写补丁级通配)** (e.g. `1.3.*`). An exact
   version such as `1.0.4` goes stale. This game updates its minor version often, and the game flags
   an exact version as outdated. Do not take the easy way out with a loose `1.*` — the linter WARNs on it.
+  Read `supported_game_version` from the `supportedGameVersion` value of `get_game_info`. Do not do
+  binary forensics.
 
 ## Directory map
 

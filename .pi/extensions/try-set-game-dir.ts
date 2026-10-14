@@ -4,9 +4,9 @@
  * The check and the search live in `.pi/lib/game-paths.ts`. This tool is only the entry point.
  *
  *   1. The remembered gameDir is still valid, and the derived mod install directory and Workshop
- *      directory match the recorded ones. The tool writes nothing, and returns
- *      `PASS: gameDir already correct`. It returns the cached gameBuild, and it does not read the
- *      executable again.
+ *      directory match the recorded ones. The tool records no path, and it returns
+ *      `PASS: gameDir already correct`. It returns the cached gameBuild, and it reads the
+ *      executable again only when no tag is cached (`null`), and it writes that tag back then.
  *   2. The path is invalid, stale, or never recorded. The tool locates the game, checks every
  *      candidate, reads the build tag one time, and records gameDir, gameBuild, and the two derived
  *      paths. It returns `PASS: gameDir located and recorded`.

@@ -12,10 +12,10 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   On this machine `python` is a Microsoft Store stub: it exits with `exit 49`
   and is a silent no-op. If python is truly needed, run `command -v py` first. If `py`
   is missing, fall back to `node` / `awk`.
-- **When you develop, read scripts only from the mirror `game-scripts/`** (this does not affect mod
-  runtime). The vanilla scripts live in the mirror at `game-scripts/game/game/...` — **two** `game/`
+- **When you develop, read scripts only from the vanilla scripts at `game-scripts/`** (this does not affect mod
+  runtime). The vanilla scripts live at `game-scripts/game/game/...` — **two** `game/`
   levels. The real install directory `.../Europa Universalis V/game/...` — **one** `game/` level —
-  is the vanilla source that `sync_game_scripts` reads to build the mirror. Do not `cat` / `grep`
+  is the vanilla source that `sync_game_scripts` reads to build that copy. Do not `cat` / `grep`
   there while developing. Installing a mod is a third place: `install_mod` writes to the Paradox
   launcher mod directory, `<user documents>/Paradox Interactive/Europa Universalis V/mod/`.
 - **`supported_game_version`: write a patch-level wildcard** (e.g. `1.3.*`). An exact
@@ -30,8 +30,8 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   The modding conventions live **only** in
   [`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md). They cover override,
   load order, localization, and metadata.
-- `game-scripts/` — the script mirror. `sync_game_scripts` copies the vanilla `game/` scripts and
-  the `workshop/` scripts into it, and git ignores it. This is the modding context you must load
+- `game-scripts/` — the vanilla scripts. `sync_game_scripts` copies them and the
+  `workshop/` scripts into it, and git ignores it. This is the modding context you must load
   before writing mods. PDXScript has no self-describing API, so you cannot write a correct override
   or `INJECT` without it.
 - `.pi/skills/` — the step guidance: role skills `setup-workspace`, `mod-creator`, and `mod-installer`,

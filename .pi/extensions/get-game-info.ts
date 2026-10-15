@@ -5,7 +5,7 @@
  * The facts:
  *   - the three paths: gameDir, modInstallDir, and workshopDir;
  *   - supportedGameVersion: the version value for the mod metadata;
- *   - the script layout, the mirror state, and where the entry points are.
+ *   - the script layout, whether the vanilla scripts are present, and where the entry points are.
  *
  * The version rule: the tool derives supportedGameVersion from the build tag in the runtime state
  * (`gameBuild`), and it prints the major and the minor version with a wildcard, for example `1.3.*`.
@@ -16,8 +16,8 @@
  * Read-only: the tool reads `.gamer-agent.local.json`, and it never writes it. A missing or invalid
  * gameDir is a FAIL, and the agent then runs try_set_game_dir, which records the paths.
  *
- * EU5 facts: the install scripts live in `<gameDir>/game/...`. The mirror lives in
- * `game-scripts/game/game/...`, which carries one more `game/` layer. The mirror holds vanilla
+ * EU5 facts: the install scripts live in `<gameDir>/game/...`. The vanilla copy lives in
+ * `game-scripts/game/game/...`, which carries one more `game/` layer. That copy holds vanilla
  * scripts only, and the agent must count it with `find -L`, because `game-scripts` is a symlink.
  */
 import { existsSync } from "node:fs";
@@ -45,10 +45,10 @@ export default function (pi: ExtensionAPI) {
     name: "get_game_info",
     label: "Get Game Info",
     description:
-      "Reports the recorded game environment facts for Europa Universalis V in one call: the game directory, the mod install directory, the Workshop directory, the supported game version, the script layout, the mirror state, and where the entry points are. It takes no arguments, it reads the runtime state only, and it writes nothing.",
-    promptSnippet: "Report the game paths, the supported version, the layout, and the mirror state",
+      "Reports the recorded game environment facts for Europa Universalis V in one call: the game directory, the mod install directory, the Workshop directory, the supported game version, the script layout, whether the vanilla scripts are present, and where the entry points are. It takes no arguments, it reads the runtime state only, and it writes nothing.",
+    promptSnippet: "Report the game paths, the supported version, the layout, and whether the vanilla scripts are present",
     promptGuidelines: [
-      "Use get_game_info when you need the game paths, the script layout, the mirror state, or the version value for the mod metadata. It answers all of them in one call.",
+      "Use get_game_info when you need the game paths, the script layout, whether the vanilla scripts are present, or the version value for the mod metadata. It answers all of them in one call.",
       "Use get_game_info instead of gathering the game version yourself. Write the returned `supportedGameVersion` into `supported_game_version`. Do not read `eu5.exe`, and do not use its `VersionInfo`.",
       "get_game_info takes no arguments, and it writes nothing. If it returns FAIL, run try_set_game_dir first, which locates the game and records the paths.",
     ],
@@ -86,9 +86,9 @@ export default function (pi: ExtensionAPI) {
       const build = typeof state.gameBuild === "string" ? state.gameBuild : null;
       const version = supportedGameVersion(build);
 
-      // The mirror holds the vanilla scripts, and `game-scripts` is a symlink, so the agent counts
+      // The vanilla copy holds the scripts, and `game-scripts` is a symlink, so the agent counts
       // it with `find -L`. This check reads one directory entry only.
-      const mirrorPresent = existsSync(join(cwd, "game-scripts", "game", "game"));
+      const vanillaPresent = existsSync(join(cwd, "game-scripts", "game", "game"));
 
       const lines = [
         "PASS: game info",
@@ -102,11 +102,11 @@ export default function (pi: ExtensionAPI) {
             : "(none - no build tag is recorded, so the version cannot be derived)",
         ),
         row("layout", `install: ${gameDir}/game/...`),
-        row("", "mirror:  game-scripts/game/game/...   (the mirror has one more game/ layer)"),
+        row("", "vanilla:  game-scripts/game/game/...   (the vanilla copy has one more game/ layer)"),
         row(
-          "mirror",
-          mirrorPresent
-            ? "present, vanilla only, count with `find -L`"
+          "vanilla",
+          vanillaPresent
+            ? "present, no workshop mirrored, count with `find -L`"
             : "missing - run sync_game_scripts, then count with `find -L`",
         ),
         row("entry points", "call locate_entry <mechanism>"),

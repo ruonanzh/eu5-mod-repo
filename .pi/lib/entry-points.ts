@@ -2,7 +2,7 @@
  * The static index of the EU5 entry mechanisms. It is a data module, and it is not a tool.
  *
  * It is read-only. The module imports nothing, it opens no file, it runs no command, and it walks
- * no directory. Every path in the table was checked by hand against the script mirror, and the
+ * no directory. Every path in the table was checked by hand against the vanilla scripts, and the
  * `locate_entry` tool checks the paths again at call time, because a game patch can move them.
  *
  * It lives in `.pi/lib/` for the same reason as `game-paths.ts`: pi loads `.pi/extensions/*.ts`,
@@ -12,14 +12,14 @@
  * hit before their first write, ranked by how often they searched for the mechanism name.
  *
  * Field meanings:
- *   - `dir`        The registration target, relative to the mirror root. It is a directory for most
+ *   - `dir`        The registration target, relative to the vanilla script root. It is a directory for most
  *                  mechanisms, and a single file for the per-file mechanisms (`topbar`, `shortcut`,
  *                  `context_menu`).
  *   - `infoFile`   The readme the game ships for the mechanism. The empty string means that the
  *                  game ships none. The game readmes are the answers a session cannot find by
  *                  reading the conventions page.
- *   - `examples`   Real paths in the mirror, at most 3. An empty list means that the vanilla mirror
- *                  holds no example. `scripted_widgets` is that case: the folder holds the readme
+ *   - `examples`   Real paths in the vanilla scripts, at most 3. An empty list means that those
+ *                  scripts hold no example. `scripted_widgets` is that case: the folder holds the readme
  *                  only.
  *   - `skeleton`   The smallest copyable frame. The weak-evidence mechanisms have no skeleton, and
  *                  the field is then the empty string.
@@ -30,9 +30,10 @@
  *                  to 49, and `weak` is under 20.
  *   - `liveEnum`   A volatile enum that the mechanism accepts, as a snapshot of this game build.
  *                  The empty list means that the mechanism has no such enum. The `locate_entry`
- *                  tool rescans the mirror when the list is not empty, because the values drift.
+ *                  tool rescans the vanilla scripts when the list is not empty, because the values
+ *                  drift.
  *
- * The index does not hold workshop-only paths, because a mirror made with `.no-workshop` has no
+ * The index does not hold workshop-only paths, because a copy made with `.no-workshop` has no
  * workshop directory. The words `window` and `panel` are generic, so they are not entries.
  */
 
@@ -61,7 +62,7 @@ export interface EntryPoint {
   liveEnum: string[];
 }
 
-/** The mirror root. Every path in the table is relative to it, and `game-scripts` is a symlink. */
+/** The vanilla script root. Every path in the table is relative to it, and `game-scripts` is a symlink. */
 export const ENTRY_POINT_ROOT_REL = "game-scripts/game/game";
 
 export const ENTRY_POINTS: EntryPoint[] = [
@@ -84,7 +85,7 @@ lateralview = {
 	blockoverride "panel_content" { }
 }`,
     wiring:
-      "The lateralview_left_setup and the lateralview_right_setup template in in_game/gui/ingame_topbar.gui place the panel on layer = lateralview. A button opens the panel with OpenLateralViewWithFilter('automation', 'automation_filter_advances'), and that first argument is the lateral view id. The id is the block name without the trailing _lateralview: the block name = \"automation_lateralview\" takes the id 'automation'. Some ids open a view that no lateralview block in the mirror defines, for example 'missions'.",
+      "The lateralview_left_setup and the lateralview_right_setup template in in_game/gui/ingame_topbar.gui place the panel on layer = lateralview. A button opens the panel with OpenLateralViewWithFilter('automation', 'automation_filter_advances'), and that first argument is the lateral view id. The id is the block name without the trailing _lateralview: the block name = \"automation_lateralview\" takes the id 'automation'. Some ids open a view that no lateralview block in the vanilla scripts defines, for example 'missions'.",
     locateCmd: "ls game-scripts/game/game/in_game/gui/ | grep lateralview",
     evidence: "strong",
     liveEnum: [],
@@ -137,7 +138,7 @@ lateralview = {
 	effect = { <effect> }
 }`,
     wiring:
-      "A .gui element calls the SGUI by name, for example on_action = \"[GetScriptedGui('my_scripted_gui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\". The mirror uses on_action for its SGUI calls. on_finish also calls an SGUI, but only inside a state = { } block. The definition alone does nothing.",
+      "A .gui element calls the SGUI by name, for example on_action = \"[GetScriptedGui('my_scripted_gui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\". The vanilla scripts use on_action for their SGUI calls. on_finish also calls an SGUI, but only inside a state = { } block. The definition alone does nothing.",
     locateCmd: "ls game-scripts/game/game/in_game/common/scripted_guis/",
     evidence: "strong",
     liveEnum: [],
@@ -259,7 +260,7 @@ my_mod.1 = {
     family: "ui-container",
     dir: "main_menu/gui/scripted_widgets/",
     infoFile: "main_menu/gui/scripted_widgets/_scripted_widgets.info",
-    // The vanilla folder holds the readme only, so the mirror has no example to show.
+    // The vanilla folder holds the readme only, so the copy has no example to show.
     examples: [],
     // The evidence is weak, so the index holds no skeleton. The readme has the format.
     skeleton: "",

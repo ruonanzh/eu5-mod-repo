@@ -2,31 +2,32 @@
  * locate_entry - it returns the location facts for one EU5 entry mechanism in one call.
  *
  * The mechanism name is an `id` of the static index in ../lib/entry-points. The tool answers the
- * question that the conventions page does not answer: where the mechanism lives in the script
- * mirror, which readme the game ships for it, a real example, the smallest copyable frame, and who
+ * question that the conventions page does not answer: where the mechanism lives in the vanilla
+ * scripts, which readme the game ships for it, a real example, the smallest copyable frame, and who
  * renders it.
  *
  * Order of work, and the reason for it:
- *   1. The mirror is checked first, because every path is relative to it, so a missing mirror makes
- *      every answer wrong. The FAIL points at `sync_game_scripts`.
+ *   1. The vanilla scripts are checked first, because every path is relative to them, so a missing
+ *      script tree makes every answer wrong. The FAIL points at `sync_game_scripts`.
  *   2. The id is matched against the index. A miss is not an error of the agent: the index holds the
  *      common mechanisms only, so the FAIL lists its ids and points at section 7 of the conventions
  *      page, which is the general method for the unlisted mechanisms.
  *   3. Every indexed path is checked with `existsSync`, and only the paths that exist are printed.
  *      The index is a snapshot of one game build, and a game patch can move a path.
- *   4. A `liveEnum` value is rescanned from the mirror, because those values drift between builds.
+ *   4. A `liveEnum` value is rescanned from the vanilla scripts, because those values drift between
+ *      builds.
  *
  * The content body holds the fixed five sections, in this order:
  *   1. REGISTER  the registration target, plus the rescan of the live enum when the mechanism has it
  *   2. README    the readme the game ships, plus the smallest copyable frame when the index holds one
- *   3. EXAMPLE   the real example paths that this mirror holds
+ *   3. EXAMPLE   the real example paths that the vanilla scripts hold
  *   4. WIRING    who renders the mechanism, or how script calls it
  *   5. LOCATE    the shortest locate command, run from the repository root
  * The readme section prints the path only. The readme text carries template paths such as
  * `gui/scripted_widget_file_name.gui`, which are not real paths. The tool labels an indexed path
- * that this mirror does not hold as `(indexed, but not in this mirror: <path>)`.
+ * that the vanilla scripts do not hold as `(indexed, but not in the vanilla scripts: <path>)`.
  *
- * The tool is read-only. It reads the mirror and the index, it writes nothing, it spawns nothing,
+ * The tool is read-only. It reads the vanilla scripts and the index, it writes nothing, it spawns nothing,
  * and it never touches `.gamer-agent.local.json`.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -43,7 +44,7 @@ const section = (n: number, label: string, value: string): string =>
 /** A continuation line of a section, aligned under the value column. */
 const cont = (text: string): string => `${VALUE_PAD}${text}`;
 
-/** The path of the index entry, relative to the mirror root, when it exists. Otherwise null. */
+/** The path of the index entry, relative to the vanilla script root, when it exists. Otherwise null. */
 const existing = (root: string, rel: string): string | null =>
   rel && existsSync(join(root, rel)) ? rel : null;
 
@@ -101,7 +102,8 @@ function firstLevelTypes(text: string): string[] {
 }
 
 /**
- * Rescans the `type =` values from the mirror for one mechanism, ranked by how often they occur.
+ * Rescans the `type =` values from the vanilla scripts for one mechanism, ranked by how often they
+ * occur.
  * It returns null when the directory cannot be read, which means that the scan is not possible.
  */
 function rescanLiveEnum(root: string, dir: string): string[] | null {
@@ -132,12 +134,12 @@ export default function (pi: ExtensionAPI) {
     name: "locate_entry",
     label: "Locate Entry",
     description:
-      `Locates one EU5 entry mechanism in the script mirror in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The mechanism argument is an id of the static index, which holds ${ENTRY_POINTS.length} common mechanisms. It is read-only, and it writes nothing.`,
+      `Locates one EU5 entry mechanism in the vanilla scripts in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The mechanism argument is an id of the static index, which holds ${ENTRY_POINTS.length} common mechanisms. It is read-only, and it writes nothing.`,
     promptSnippet: "Locate one entry mechanism: registration path, readme, example, frame, wiring",
     promptGuidelines: [
-      "Call locate_entry once, before you search the mirror, when your task adds content of an indexed kind. Pick the single mechanism that your task needs, and do not try several mechanisms in one turn.",
+      "Call locate_entry once, before you search the vanilla scripts, when your task adds content of an indexed kind. Pick the single mechanism that your task needs, and do not try several mechanisms in one turn.",
       `Pick the mechanism id from section 7 of the conventions page, or from the ids that a miss lists. The index holds ${ENTRY_POINTS.length} common mechanisms only, so an unlisted mechanism still needs section 7 and a grep of the registration directory.`,
-      "locate_entry is read-only. It prints the paths that this mirror holds, and it labels an indexed path that this mirror does not hold.",
+      "locate_entry is read-only. It prints the paths that the vanilla scripts hold, and it labels an indexed path that they do not hold.",
       "locate_entry answers where one mechanism lives and what a real one looks like. It does not answer which enum values exist, or where to mount something inside an existing screen. Those need the general method in section 7 of the conventions page.",
     ],
     parameters: Type.Object({
@@ -149,14 +151,14 @@ export default function (pi: ExtensionAPI) {
       const root = join(ctx.cwd, ENTRY_POINT_ROOT_REL);
       const mechanism = typeof params.mechanism === "string" ? params.mechanism.trim() : "";
 
-      // Step 1: the mirror. Every path below is relative to it, so a missing mirror is a FAIL.
+      // Step 1: the vanilla scripts. Every path below is relative to them, so a missing tree is a FAIL.
       if (!existsSync(root)) {
         return {
           content: [
             {
               type: "text",
               text:
-                `FAIL: script mirror missing - ${ENTRY_POINT_ROOT_REL} is not present in this workspace.\n` +
+                `FAIL: the vanilla scripts are missing - ${ENTRY_POINT_ROOT_REL} is not present in this workspace.\n` +
                 `NEXT: run sync_game_scripts, then call locate_entry again.`,
             },
           ],
@@ -189,8 +191,8 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      // Step 3: the paths. A path that this mirror holds is printed as a usable path. A path that the
-      // index holds but the mirror does not is printed with an inline label. The NOTE at the end
+      // Step 3: the paths. A path that the vanilla scripts hold is printed as a usable path. A path
+      // that the index holds but the scripts do not is printed with an inline label. The NOTE ends
       // reports the count of the labeled ones.
       let omitted = 0;
       const lines = [`PASS: ${entry.id}`];
@@ -201,18 +203,18 @@ export default function (pi: ExtensionAPI) {
         section(
           1,
           "REGISTER",
-          dir ?? "(not in this mirror - the index is a snapshot, and a game patch can move a path)",
+          dir ?? "(not in the vanilla scripts - the index is a snapshot, and a game patch can move a path)",
         ),
       );
 
-      // Step 4: the live enum, rescanned from this mirror.
+      // Step 4: the live enum, rescanned from the vanilla scripts.
       let liveEnum: string[] | null = null;
       if (entry.liveEnum.length > 0) {
         liveEnum = rescanLiveEnum(root, entry.dir);
         if (liveEnum && liveEnum.length > 0) {
-          lines.push(cont(`live enum 'type =' (rescan of this mirror, first-level only): ${liveEnum.join(", ")}`));
+          lines.push(cont(`live enum 'type =' (rescan of these scripts, first-level only): ${liveEnum.join(", ")}`));
         } else if (liveEnum) {
-          lines.push(cont("live enum 'type =' (rescan of this mirror, first-level only): (none found)"));
+          lines.push(cont("live enum 'type =' (rescan of these scripts, first-level only): (none found)"));
         }
       }
 
@@ -224,7 +226,7 @@ export default function (pi: ExtensionAPI) {
           "README",
           infoFile ??
             (entry.infoFile
-              ? `(indexed, but not in this mirror: ${entry.infoFile})`
+              ? `(indexed, but not in the vanilla scripts: ${entry.infoFile})`
               : "(none - the game ships no readme for this mechanism)"),
         ),
       );
@@ -241,8 +243,8 @@ export default function (pi: ExtensionAPI) {
             3,
             "EXAMPLE",
             entry.examples.length > 0
-              ? `(indexed, but not in this mirror: ${entry.examples.join(", ")})`
-              : "(none - the vanilla mirror holds no example for this mechanism)",
+              ? `(indexed, but not in the vanilla scripts: ${entry.examples.join(", ")})`
+              : "(none - the vanilla scripts hold no example for this mechanism)",
           ),
         );
       } else {
@@ -254,7 +256,7 @@ export default function (pi: ExtensionAPI) {
       lines.push(section(5, "LOCATE", entry.locateCmd));
       if (omitted > 0) {
         lines.push(
-          `NOTE: ${omitted} indexed path(s) are not in this mirror, so they are omitted. The index is a snapshot of one game build.`,
+          `NOTE: ${omitted} indexed path(s) are not in the vanilla scripts, so they are omitted. The index is a snapshot of one game build.`,
         );
       }
 

@@ -416,7 +416,7 @@ function checkMetadata(modRoot: string): Finding[] {
     findings.push({
       severity: "warn",
       rel,
-      message: `supported_game_version '${obj.supported_game_version}' is too loose; prefer a concrete version such as 1.0.4`,
+      message: `supported_game_version '${obj.supported_game_version}' is too loose. Prefer a concrete version such as 1.0.4.`,
     });
   }
   if (
@@ -605,7 +605,7 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
         findings.push({
           severity: "warn",
           rel: "",
-          message: `line ${line}: '${m.groups.kw}' override keyword is nested (depth ${depth}); it must sit directly before a *database entry* - that is the file's top level in most common/ folders, but in container folders (e.g. genes/accessory_genes) the entry is one level in, and vanilla does that too. Confirm before treating as an error.`,
+          message: `line ${line}: '${m.groups.kw}' override keyword is nested (depth ${depth}). It must sit directly before a *database entry* - that is the file's top level in most common/ folders, but in container folders (e.g. genes/accessory_genes) the entry is one level in, and vanilla does that too. Confirm before treating as an error.`,
         });
       }
       // Skip the whole `[KEYWORD:]key = {` up to the `{`, so the next round counts that brace.

@@ -45,10 +45,10 @@ export function modNameError(raw: string): string | null {
     return "it must start with a lowercase letter (a-z), not a digit or underscore.";
   }
   if (/[^a-z0-9_]/.test(raw)) {
-    return "only lowercase letters, digits and underscores are allowed - replace spaces, dashes, dots, slashes and any non-ASCII characters (e.g. fire_sword_pack); put the human-readable title, including Chinese, in the mod metadata instead.";
+    return "only lowercase letters, digits and underscores are allowed - replace spaces, dashes, dots, slashes and any non-ASCII characters (e.g. fire_sword_pack). Put the human-readable title, including Chinese, in the mod metadata instead.";
   }
   if (raw.length > 40) {
-    return `it is too long (${raw.length} characters, limit 40) - shorten it; the installed copy appends suffixes such as _pimod2.`;
+    return `it is too long (${raw.length} characters, limit 40) - shorten it. The installed copy appends suffixes such as _pimod2.`;
   }
   if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/.test(raw)) {
     return `"${raw}" is a reserved device name on Windows - choose another name.`;
@@ -116,7 +116,7 @@ export default function (pi: ExtensionAPI) {
     name: "create_mod_folder",
     label: "Create Mod Folder",
     description:
-      "Create a directory under the current workspace's your_mods/ and bind it to this mod-development session. Use only when implementation requires writing and no directory is bound. If the name is taken, fails without binding; choose a different name and retry create_mod_folder in the same session. Returns the existing binding on repeat calls after successful creation; does not create mod source files. Not available in Game Helper sessions.",
+      "Create a directory under the current workspace's your_mods/ and bind it to this mod-development session. Use only when implementation requires writing and no directory is bound. If the name is taken, fails without binding. Choose a different name and retry create_mod_folder in the same session. Returns the existing binding on repeat calls after successful creation. It does not create mod source files. Not available in Game Helper sessions.",
     promptSnippet: "Create and register this mod session's directory when implementation requires writing",
     promptGuidelines: [
       "In a mod-development session, use create_mod_folder before the first write only if no mod directory is bound. Consultation and planning do not require it. Game Helper must not call create_mod_folder.",
@@ -124,7 +124,7 @@ export default function (pi: ExtensionAPI) {
     parameters: Type.Object({
       name: Type.String({
         description:
-          "mod folder name: lowercase snake_case (a-z, 0-9, _), must start with a letter, max 40; e.g. fire_sword_pack",
+          "mod folder name: lowercase snake_case (a-z, 0-9, _), must start with a letter, max 40 (for example fire_sword_pack).",
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
@@ -139,14 +139,14 @@ export default function (pi: ExtensionAPI) {
         const state = directoryState(existing);
         if (state !== "ready") {
           throw new Error(
-            `MOD_DIRECTORY_${state.toUpperCase()}: The session is already bound to ${existing}, but that directory is not accessible. Ask the player to restore it or start a separate mod session; do not create a second binding.`,
+            `MOD_DIRECTORY_${state.toUpperCase()}: The session is already bound to ${existing}, but that directory is not accessible. Ask the player to restore it or start a separate mod session. Do not create a second binding.`,
           );
         }
         return {
           content: [
             {
               type: "text",
-              text: `EXISTING: This session is already bound to ${existing}. Continue there; no new directory was created.`,
+              text: `EXISTING: This session is already bound to ${existing}. Continue there. No new directory was created.`,
             },
           ],
           details: { ok: true, modPath: existing },
@@ -200,7 +200,7 @@ export default function (pi: ExtensionAPI) {
     if (!isInside(resolve(ctx.cwd, target), modPath)) {
       return {
         block: true,
-        reason: `MOD_WRITE_DENIED: This session may write only inside ${modPath}. Rejected path: ${target}. Use the bound directory; do not modify another mod or bypass the restriction with another tool.`,
+        reason: `MOD_WRITE_DENIED: This session may write only inside ${modPath}. Rejected path: ${target}. Use the bound directory. Do not modify another mod or bypass the restriction with another tool.`,
       };
     }
     return undefined;

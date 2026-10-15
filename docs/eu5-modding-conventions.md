@@ -151,7 +151,7 @@ depends on whether other image files **are** versioned.
 - Do not leave scratch files or backup files under `your_mods/<name>/`. Examples: `temp_*`,
   `_tmp_*`, and editor backups.
 
-## 7. Choosing an entry mechanism (five entry points, four families, and other indexed mechanisms)
+## 7. Choosing an entry mechanism (five entry points, four families, and the other mechanisms)
 
 EU5 hooks new content into the game through a small number of **entry points**. They are not
 interchangeable: a feature that reports a one-off choice is an event, a feature that keeps running

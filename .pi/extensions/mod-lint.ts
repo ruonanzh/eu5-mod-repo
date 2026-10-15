@@ -416,7 +416,7 @@ function checkMetadata(modRoot: string): Finding[] {
     findings.push({
       severity: "warn",
       rel,
-      message: `supported_game_version '${obj.supported_game_version}' is too loose. Prefer a concrete version such as 1.0.4.`,
+      message: `supported_game_version '${obj.supported_game_version}' is too loose. Write a patch-level wildcard such as 1.3.*, not an exact version.`,
     });
   }
   if (

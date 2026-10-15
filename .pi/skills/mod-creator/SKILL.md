@@ -26,11 +26,15 @@ and its bound directory gate those actions.
      framework. Run `sync_game_scripts` to load the modding context into `game-scripts/`. Then grep
      that directory carefully to pin down the real vanilla values and their connections: which
      goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
-     names alone. Two hard ordering rules:
+     names alone. Three hard ordering rules:
      1. For a player-worded feature request, grep vanilla first, within calls 2 to 4:
         `grep -rln <keyword> game-scripts/`, to check "does vanilla already have it?".
      2. Read in this fixed order: `docs/eu5-modding-conventions.md` (the single source of truth),
         then locate 1 or 2 reference mods of the same kind, then write.
+     3. Decide the screen first, then research how to mount on that one screen. Where a mechanism
+        lives and where to attach something inside an existing screen are two different questions.
+        Section 7 answers the first. For the second, read that screen's own `.gui` file and find the
+        block to override.
   2. **Agree with the player before you write.** Give a short description of the mod content: what it
      modifies, its scope, and the shape of the mod. Then wait for the player's confirmation. Do this
      **even when the request looks specific**. Skip it only when the player explicitly says to start,

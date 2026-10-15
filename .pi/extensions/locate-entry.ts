@@ -174,8 +174,8 @@ export default function (pi: ExtensionAPI) {
               text:
                 `FAIL: unknown mechanism '${mechanism}' - the index holds ${ENTRY_POINTS.length} common mechanisms, and it is not the complete set.\n` +
                 `index ids (${ENTRY_POINTS.length}): ${ids}\n` +
-                `NEXT: choose the entry point in docs/eu5-modding-conventions.md section 7, then locate it in the mirror with a grep for the key that you plan to use, for example ` +
-                `\`grep -rln "black_death" ${ENTRY_POINT_ROOT_REL}/\`.`,
+                `NEXT: choose the entry point in docs/eu5-modding-conventions.md section 7, then grep ` +
+                `${ENTRY_POINT_ROOT_REL}/ for the key that you plan to use.`,
             },
           ],
           details: {

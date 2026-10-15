@@ -284,7 +284,8 @@ my_mod.1 = {
     evidence: "weak",
     liveEnum: [],
   },
-  // ---- 数据种类（2026-10-15 按 r6 实测频率扩充；形状与上面的入口机制相同）----
+  // ---- Data kinds (added 2026-10-15 from the r6 measured frequency, same shape as the entry
+  // mechanisms above) ----
   {
     id: "scripted_effects",
     family: "data-entry",

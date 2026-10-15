@@ -135,9 +135,10 @@ export default function (pi: ExtensionAPI) {
       `Locates one EU5 entry mechanism in the script mirror in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The mechanism argument is an id of the static index, which holds ${ENTRY_POINTS.length} common mechanisms. It is read-only, and it writes nothing.`,
     promptSnippet: "Locate one entry mechanism: registration path, readme, example, frame, wiring",
     promptGuidelines: [
-      "Use locate_entry with an entry mechanism id before you write a new entry, in place of searching the mirror yourself.",
-      `Call locate_entry before you read docs/eu5-modding-conventions.md section 7. The index holds ${ENTRY_POINTS.length} common mechanisms only, so an unlisted mechanism still needs section 7 and a grep of the registration directory.`,
+      "Call locate_entry once, before you search the mirror, when your task adds content of an indexed kind. Pick the single mechanism that your task needs, and do not try several mechanisms in one turn.",
+      `Pick the mechanism id from section 7 of the conventions page, or from the ids that a miss lists. The index holds ${ENTRY_POINTS.length} common mechanisms only, so an unlisted mechanism still needs section 7 and a grep of the registration directory.`,
       "locate_entry is read-only. It prints the paths that this mirror holds, and it labels an indexed path that this mirror does not hold.",
+      "locate_entry answers where one mechanism lives and what a real one looks like. It does not answer which enum values exist, or where to mount something inside an existing screen. Those need the general method in section 7 of the conventions page.",
     ],
     parameters: Type.Object({
       mechanism: Type.String({

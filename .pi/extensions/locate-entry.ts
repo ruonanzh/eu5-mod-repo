@@ -137,7 +137,7 @@ export default function (pi: ExtensionAPI) {
     promptGuidelines: [
       "Use locate_entry with an entry mechanism id before you write a new entry, in place of searching the mirror yourself.",
       `Call locate_entry before you read docs/eu5-modding-conventions.md section 7. The index holds ${ENTRY_POINTS.length} common mechanisms only, so an unlisted mechanism still needs section 7 and a grep of the registration directory.`,
-      "locate_entry is read-only. It prints the paths that this mirror holds, and it omits an indexed path that the mirror no longer has.",
+      "locate_entry is read-only. It prints the paths that this mirror holds, and it labels an indexed path that this mirror does not hold.",
     ],
     parameters: Type.Object({
       mechanism: Type.String({
@@ -188,8 +188,9 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      // Step 3: the paths. Only the paths that this mirror holds are printed, and the count of the
-      // omitted ones is reported without their names.
+      // Step 3: the paths. A path that this mirror holds is printed as a usable path. A path that the
+      // index holds but the mirror does not is printed with an inline label. The NOTE at the end
+      // reports the count of the labeled ones.
       let omitted = 0;
       const lines = [`PASS: ${entry.id} (family: ${entry.family}, evidence: ${entry.evidence})`];
 

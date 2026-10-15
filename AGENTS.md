@@ -95,13 +95,3 @@ The tool checks syntax, conventions, and **name-level semantics**: that effect, 
 names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
 keys. It is not a scope or type validator.
 
-## mod-guard（mod 会话工具，本 worktree 新增）
-
-`.pi/extensions/mod-guard.ts` 复制自 `pi-desktop/extensions/mod-guard.ts`（产品侧模拟「玩家 mod 会话」的那份）。
-
-- `create_mod_folder`：建 `your_mods/<name>/` 并绑定到本 session（唯一的写豁免通道）。
-- **写隔离（fail-closed）**：本 workspace 里**未绑定** mod 目录的 session，`write`/`edit` 一律被拒；绑定后只能写该 mod 目录。
-- `before_agent_start`：为本 workspace 的 session 追加 `## Mod development session` 提示。
-
-> 以 `pi-desktop/extensions/mod-guard.ts` 为准；改动请同步回产品。
-

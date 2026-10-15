@@ -102,8 +102,8 @@ The files are `**/localization/**/*.yml`, under `in_game/` and `main_menu/`.
 
 - **Write the file as UTF-8 with BOM** (`EF BB BF`) in the call that creates it: start the content
   with the BOM character. A later rewrite of the file drops the BOM, and the game then ignores the
-  file in silence. That failure is fatal, not cosmetic. To repair a file that already exists without
-  a BOM, use: `printf '\xEF\xBB\xBF' | cat - <file> > tmp && mv tmp <file>`.
+  file in silence. That failure is fatal, not cosmetic. To add the BOM to a file that already
+  exists, use: `printf '\xEF\xBB\xBF' | cat - <file> > tmp && mv tmp <file>`.
 - The filename must end with `_l_<language>`, which matches the language directory.
 - The first content line is `l_<lang>:`, and it must match the directory.
 - An entry is `  key: "value"` or `  key:0 "value"` with an explicit version. The value starts

@@ -13396,42 +13396,6 @@ Return type: [unregistered]
 
 -----------------------
 
-cmf_core_banner_background
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-cmf_core_banner_background_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-cmf_core_banner_background_with_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-cmf_core_banner_logo
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-cmf_core_banner_logo_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-cmf_core_banner_logo_with_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
 coalition
 Definition type: Global function
 Return type: [unregistered]
@@ -19811,42 +19775,6 @@ Return type: [unregistered]
 -----------------------
 
 geography_with_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-glorpui_banner_background
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-glorpui_banner_background_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-glorpui_banner_background_with_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-glorpui_banner_logo
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-glorpui_banner_logo_icon
-Definition type: Global function
-Return type: [unregistered]
-
------------------------
-
-glorpui_banner_logo_with_icon
 Definition type: Global function
 Return type: [unregistered]
 
@@ -34420,90 +34348,6 @@ Return type: [unregistered]
 
 -----------------------
 
-CMFLogAction( Index )
-Macro replacement: Localize(GetVariableFromGlobalVariableMap('cmf_log_action', CMFLogKey(Index)).GetFlagName)
-Description: Localized action text for a log entry by datamodel index
-Definition type: Global macro
-
------------------------
-
-CMFLogActorCountry( Index )
-Macro replacement: GetVariableFromGlobalVariableMap('cmf_log_actor', CMFLogKey(Index)).GetCountry
-Description: Actor country for a log entry by datamodel index
-Definition type: Global macro
-
------------------------
-
-CMFLogArg1Name( Index )
-Macro replacement: Select_CString(CMFLogIsScopeArgs(Index), GetVariableFromGlobalVariableMap('cmf_log_arg1', CMFLogKey(Index)).GetCountry.GetName, Localize(GetVariableFromGlobalVariableMap('cmf_log_arg1', CMFLogKey(Index)).GetFlagName))
-Description: Resolved arg1 text for a log entry (flag localization or country name)
-Definition type: Global macro
-
------------------------
-
-CMFLogArg2Name( Index )
-Macro replacement: Select_CString(CMFLogIsScopeArgs(Index), GetVariableFromGlobalVariableMap('cmf_log_arg2', CMFLogKey(Index)).GetCountry.GetName, Localize(GetVariableFromGlobalVariableMap('cmf_log_arg2', CMFLogKey(Index)).GetFlagName))
-Description: Resolved arg2 text for a log entry (flag localization or country name)
-Definition type: Global macro
-
------------------------
-
-CMFLogCount
-Macro replacement: FixedPointToInt(GetGlobalVariable('cmf_log_count').GetValue)
-Description: Number of log entries for DataModelRepeatedItem
-Definition type: Global macro
-
------------------------
-
-CMFLogEntryText( Index )
-Macro replacement: Concatenate(AddTextIf(CMFLogHasArg1(Index), Concatenate(CMFLogArg1Name(Index), ' ')), Concatenate(CMFLogAction(Index), AddTextIf(CMFLogHasArg2(Index), Concatenate(' ', CMFLogArg2Name(Index)))))
-Description: Full formatted log entry text: [arg1?] action [arg2?]
-Definition type: Global macro
-
------------------------
-
-CMFLogHasArg1( Index )
-Macro replacement: Not(EqualTo_string(GetVariableFromGlobalVariableMap('cmf_log_arg1', CMFLogKey(Index)).GetFlagName, '_cmf_log_no_arg'))
-Description: True when arg1 is present on a log entry
-Definition type: Global macro
-
------------------------
-
-CMFLogHasArg2( Index )
-Macro replacement: Not(EqualTo_string(GetVariableFromGlobalVariableMap('cmf_log_arg2', CMFLogKey(Index)).GetFlagName, '_cmf_log_no_arg'))
-Description: True when arg2 is present on a log entry
-Definition type: Global macro
-
------------------------
-
-CMFLogHasEntries
-Macro replacement: GreaterThan_CFixedPoint(GetGlobalVariable('cmf_log_count').GetValue, '(CFixedPoint)0')
-Description: True when at least one log entry exists
-Definition type: Global macro
-
------------------------
-
-CMFLogIsScopeArgs( Index )
-Macro replacement: EqualTo_CFixedPoint(GetVariableFromGlobalVariableMap('cmf_log_arg_mode', CMFLogKey(Index)).GetValue, '(CFixedPoint)1')
-Description: True when arg mode is scope-based (1) for a log entry
-Definition type: Global macro
-
------------------------
-
-CMFLogKey( Index )
-Macro replacement: MakeScopeFlag(Concatenate('cmf_log_', ToString_int32(Index)))
-Description: Construct a flag scope key for a log entry index
-Definition type: Global macro
-
------------------------
-
-CMMCachedCanEditSetting( SettingKey )
-Macro replacement: And(Or(Not(GetVariableSystem.HasValue(Concatenate(SettingKey, '_srisg'), 'yes')), Or(Not(GameIsMultiplayer), IsHost)), Or(Not(GetVariableSystem.HasValue(Concatenate(SettingKey, '_srrut'), 'yes')), Or(EqualTo_string(SettingKey, 'cmf_core__enable_unrestricted_tools'), And(CMMSettingIsRegistered('cmf_core__enable_unrestricted_tools'), CMMValueEqualsOne(CMMSettingValue('cmf_core__enable_unrestricted_tools'))))))
-Description: Cached edit-permission rule for one setting row; the unrestricted-tools-enabled state stays live
-Definition type: Global macro
-
------------------------
-
 CMMCachedDropdownIsMultiselector( SettingKey )
 Macro replacement: GetVariableSystem.HasValue(Concatenate(SettingKey, '_srmulti'), 'yes')
 Description: Cached: true when a dropdown setting renders with the multiselector layout
@@ -34556,13 +34400,6 @@ Definition type: Global macro
 CMMCachedModHasDesc( ModId )
 Macro replacement: GetVariableSystem.HasValue(Concatenate(ModId, '_mrhd'), 'yes')
 Description: Cached: true when one mod row has a description
-Definition type: Global macro
-
------------------------
-
-CMMCachedModMatchesSearch( ModId )
-Macro replacement: Or4(Not(CMMSelectedValueExists('cmm_mod_search_text')), StringIsEmpty(GetVariableSystem.Get('cmm_mod_search_text')), StringContains(CMMCachedModName(ModId), GetVariableSystem.Get('cmm_mod_search_text')), StringContains(ModId, GetVariableSystem.Get('cmm_mod_search_text')))
-Description: Cached filter match for one mod row against current search text
 Definition type: Global macro
 
 -----------------------
@@ -34658,13 +34495,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMCanEditSetting( SettingKey )
-Macro replacement: And(Or(Not(CMMSettingIsGlobal(SettingKey)), Or(Not(GameIsMultiplayer), IsHost)), Or(Not(CMMSettingRequiresUnrestrictedToolsEnabled(SettingKey)), Or(EqualTo_string(SettingKey, 'cmf_core__enable_unrestricted_tools'), And(CMMSettingIsRegistered('cmf_core__enable_unrestricted_tools'), CMMValueEqualsOne(CMMSettingValue('cmf_core__enable_unrestricted_tools'))))))
-Description: True when local player can edit this setting
-Definition type: Global macro
-
------------------------
-
 CMMCanEditTextSetting
 Macro replacement: Not(GameIsMultiplayer)
 Description: True when text settings may be edited in the current session
@@ -34675,20 +34505,6 @@ Definition type: Global macro
 CMMDisplayValue( SettingKey )
 Macro replacement: Localize(Concatenate(SettingKey, '_format'))
 Description: Formatted setting value if _format localization exists, raw value otherwise
-Definition type: Global macro
-
------------------------
-
-CMMDropdownIsMultiselector( SettingKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_dropdown_multiselector', SettingKey))
-Description: True when a dropdown setting is flagged to render with the multiselector layout
-Definition type: Global macro
-
------------------------
-
-CMMDropdownOptionCount( SettingKey )
-Macro replacement: CMMMapInt('cmm_dropdown_count', SettingKey)
-Description: Dropdown option count for one setting
 Definition type: Global macro
 
 -----------------------
@@ -34728,13 +34544,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMExecuteGuiWithSelectedMod( Name )
-Macro replacement: GetScriptedGui(Name).Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('mod', MakeScopeFlag(GetVariableSystem.Get('cmm_selected_mod'))).End)
-Description: Execute one scripted GUI callback with the selected mod as mod scope
-Definition type: Global macro
-
------------------------
-
 CMMExecuteListItemSettingChanged( ItemKey )
 Macro replacement: CMMExecuteSettingChanged(CMMListItemOwnerSettingKey(ItemKey))
 Description: Execute the owner setting callback for one list item
@@ -34752,20 +34561,6 @@ Definition type: Global macro
 CMMGlobalVar( Name )
 Macro replacement: GetGlobalVariable(Name)
 Description: Country variable accessor
-Definition type: Global macro
-
------------------------
-
-CMMGroupNonEmpty( GroupKey )
-Macro replacement: Player.MakeScope.GetVariableFromVariableMap('cmm_group_nonempty', MakeScopeFlag(GroupKey)).IsSet
-Description: True when one group has at least one currently-visible setting
-Definition type: Global macro
-
------------------------
-
-CMMGroupRowVisible( GroupKey )
-Macro replacement: CMMMatchesSelectedModAndTab(CMMMetadataFlag('cmm_group_owner_mod_id_', GroupKey), CMMMetadataFlag('cmm_group_owner_tab_key_', GroupKey))
-Description: Visibility rule for one group row
 Definition type: Global macro
 
 -----------------------
@@ -34812,20 +34607,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMHasRegisteredMods
-Macro replacement: Not(IsDataModelEmpty(Player.MakeScope.GetList('cmm_registered_mod_ids')))
-Description: True when at least one mod is registered
-Definition type: Global macro
-
------------------------
-
-CMMHasScriptedGui( SettingKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_has_sgui', SettingKey))
-Description: True when a setting has a registered scripted GUI
-Definition type: Global macro
-
------------------------
-
 CMMIsSettingEnabled( SettingKey )
 Macro replacement: CMMValueEqualsOne(CMMSettingValue(SettingKey))
 Description: Checkbox checked state for bool settings (1 = on)
@@ -34843,13 +34624,6 @@ Definition type: Global macro
 CMMListFieldConditionalPrefix( SettingKey, ItemKey, SlotKey )
 Macro replacement: Select_CString(GreaterThan_CFixedPoint(CMMListItemFieldValue(ItemKey, SlotKey), '(CFixedPoint)0'), CMMListFieldPrefixHigh(SettingKey, SlotKey), Select_CString(LessThan_CFixedPoint(CMMListItemFieldValue(ItemKey, SlotKey), '(CFixedPoint)0'), CMMListFieldPrefixLow(SettingKey, SlotKey), AddTextIf(CMMListFieldHasPrefix(SettingKey, SlotKey), CMMListFieldPrefix(SettingKey, SlotKey))))
 Description: Sign-conditional prefix: selects _prefix_high (>0), _prefix_low (<0), or _prefix (==0) without existence checks
-Definition type: Global macro
-
------------------------
-
-CMMListFieldCount( SettingKey )
-Macro replacement: CMMMetadataInt('cmm_list_field_count_', SettingKey)
-Description: List field count for one setting
 Definition type: Global macro
 
 -----------------------
@@ -34973,13 +34747,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMListFieldMetadataVar( SettingKey, SlotKey, Suffix )
-Macro replacement: CMMVar(Concatenate(Concatenate('cmm_list_field_', SlotKey), Concatenate(Suffix, SettingKey)))
-Description: List field metadata variable accessor
-Definition type: Global macro
-
------------------------
-
 CMMListFieldPostfix( SettingKey, SlotKey )
 Macro replacement: Localize(Concatenate(CMMListFieldLocKey(SettingKey, SlotKey), '_postfix'))
 Description: Resolved _postfix localization text for one list field
@@ -35064,13 +34831,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMListItemFieldIsDisabled( ItemKey, SlotKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_list_field_disabled', Concatenate(ItemKey, Concatenate('_f', SlotKey))))
-Description: True when one list item field is disabled for its slot
-Definition type: Global macro
-
------------------------
-
 CMMListItemFieldIsEnabled( ItemKey, SlotKey )
 Macro replacement: Not(CMMListItemFieldIsDisabled(ItemKey, SlotKey))
 Description: True when one list item field is enabled for its slot
@@ -35099,13 +34859,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMListItemIsHidden( ItemKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_list_item_hidden', ItemKey))
-Description: True when one list item row is hidden
-Definition type: Global macro
-
------------------------
-
 CMMListItemIsVisible( ItemKey )
 Macro replacement: Not(CMMListItemIsHidden(ItemKey))
 Description: True when one list item row is visible
@@ -35113,23 +34866,9 @@ Definition type: Global macro
 
 -----------------------
 
-CMMListItemOwnerSettingKey( ItemKey )
-Macro replacement: CMMMetadataFlag('cmm_list_item_owner_setting_', ItemKey)
-Description: Owner setting key for one list item key
-Definition type: Global macro
-
------------------------
-
 CMMListItemSettingIsOrdered( ItemKey )
 Macro replacement: CMMListSettingIsOrdered(CMMListItemOwnerSettingKey(ItemKey))
 Description: True when one list item belongs to a reorderable list setting
-Definition type: Global macro
-
------------------------
-
-CMMListSettingIsOrdered( SettingKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_list_is_ordered', SettingKey))
-Description: True when one list setting shows row move controls
 Definition type: Global macro
 
 -----------------------
@@ -35183,13 +34922,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMMatchesSelectedModAndTab( ModId, TabKey )
-Macro replacement: And(CMMSelectedHasValue('cmm_selected_mod', ModId), CMMSelectedHasValue('cmm_selected_tab', TabKey))
-Description: True when one mod id and tab key match the current selection
-Definition type: Global macro
-
------------------------
-
 CMMMetadataEqualsOne( Prefix, Key )
 Macro replacement: CMMValueEqualsOne(CMMMetadataValue(Prefix, Key))
 Description: True when one metadata value equals 1
@@ -35221,27 +34953,6 @@ Definition type: Global macro
 CMMMetadataVar( Prefix, Key )
 Macro replacement: CMMVar(Concatenate(Prefix, Key))
 Description: Metadata variable accessor
-Definition type: Global macro
-
------------------------
-
-CMMModMatchesSearch( ModId )
-Macro replacement: Or4(Not(CMMSelectedValueExists('cmm_mod_search_text')), StringIsEmpty(GetVariableSystem.Get('cmm_mod_search_text')), StringContains(CMMLocalizedSuffix(ModId, '_name'), GetVariableSystem.Get('cmm_mod_search_text')), StringContains(ModId, GetVariableSystem.Get('cmm_mod_search_text')))
-Description: Filter match for one mod row against current search text
-Definition type: Global macro
-
------------------------
-
-CMMModNonEmpty( ModId )
-Macro replacement: Player.MakeScope.GetVariableFromVariableMap('cmm_mod_nonempty', MakeScopeFlag(ModId)).IsSet
-Description: True when one mod has at least one currently-visible setting
-Definition type: Global macro
-
------------------------
-
-CMMNoModsRegistered
-Macro replacement: IsDataModelEmpty(Player.MakeScope.GetList('cmm_registered_mod_ids'))
-Description: True when no mods are registered yet
 Definition type: Global macro
 
 -----------------------
@@ -35295,114 +35006,9 @@ Definition type: Global macro
 
 -----------------------
 
-CMMSelectedModExists
-Macro replacement: CMMSelectedValueExists('cmm_selected_mod')
-Description: True when selected mod variable-system key exists
-Definition type: Global macro
-
------------------------
-
-CMMSelectedTabExists
-Macro replacement: CMMSelectedValueExists('cmm_selected_tab')
-Description: True when selected tab variable-system key exists
-Definition type: Global macro
-
------------------------
-
 CMMSelectedValueExists( Name )
 Macro replacement: GetVariableSystem.Exists(Name)
 Description: True when one variable-system key exists
-Definition type: Global macro
-
------------------------
-
-CMMSettingConsoleCommand( SettingKey )
-Macro replacement: Select_CString(EqualTo_string(SettingKey, 'cmf_core__enable_debug_mode'), 'debug_mode', '')
-Description: Console command string for a setting with an associated console command
-Definition type: Global macro
-
------------------------
-
-CMMSettingHasConsoleCommand( SettingKey )
-Macro replacement: EqualTo_string(SettingKey, 'cmf_core__enable_debug_mode')
-Description: True when a setting has an associated console command to fire on toggle
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsBool( SettingKey )
-Macro replacement: EqualTo_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)1')
-Description: True when a setting key is registered as bool type
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsButton( SettingKey )
-Macro replacement: EqualTo_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)6')
-Description: True when a setting key is registered as button type
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsDropdown( SettingKey )
-Macro replacement: EqualTo_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)2')
-Description: True when a setting key is registered as dropdown type
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsGlobal( SettingKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_is_global', SettingKey))
-Description: True when a setting key is registered as global
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsList( SettingKey )
-Macro replacement: EqualTo_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)7')
-Description: True when a setting key is registered as list type
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsNumeric( SettingKey )
-Macro replacement: EqualTo_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)3')
-Description: True when a setting key is registered as numeric type
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsRegistered( SettingKey )
-Macro replacement: GreaterThan_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)0')
-Description: True when a setting key has been registered (type > 0)
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsSlider( SettingKey )
-Macro replacement: EqualTo_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)4')
-Description: True when a setting key is registered as slider type
-Definition type: Global macro
-
------------------------
-
-CMMSettingIsText( SettingKey )
-Macro replacement: EqualTo_CFixedPoint(CMMMapValue('cmm_type', SettingKey), '(CFixedPoint)5')
-Description: True when a setting key is registered as text type
-Definition type: Global macro
-
------------------------
-
-CMMSettingRequiresUnrestrictedToolsEnabled( SettingKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_requires_unrestricted_tools_enabled', SettingKey))
-Description: True when a setting key requires the Unrestricted Tools setting to be enabled
-Definition type: Global macro
-
------------------------
-
-CMMSettingRowVisible( SettingKey )
-Macro replacement: And(CMMMatchesSelectedModAndTab(CMMMetadataFlag('cmm_setting_owner_mod_id_', SettingKey), CMMMetadataFlag('cmm_setting_owner_tab_key_', SettingKey)), And(CMMSettingIsRegistered(SettingKey), Or(Not(CMMHasScriptedGui(SettingKey)), CMMGuiIsShown(Concatenate(SettingKey, '_on_changed')))))
-Description: Visibility rule for one setting row
 Definition type: Global macro
 
 -----------------------
@@ -35414,41 +35020,6 @@ Definition type: Global macro
 
 -----------------------
 
-CMMShowNoSettingsForSelectedTab
-Macro replacement: And(CMMSelectedModExists, Or(Not(CMMSelectedTabExists), Not(CMMTabNonEmpty(GetVariableSystem.Get('cmm_selected_tab')))))
-Description: Show empty-state text when selected tab has zero visible settings
-Definition type: Global macro
-
------------------------
-
-CMMSliderHoverMatch( ThumbIndex, Offset )
-Macro replacement: GetVariableSystem.HasValue('cmm_slider_hover_idx', ToString_int32(Add_int32(ThumbIndex, Offset)))
-Description: True when hovered slider index equals thumb index plus offset
-Definition type: Global macro
-
------------------------
-
-CMMSliderNormalizedMax( SettingKey )
-Macro replacement: Subtract_CFixedPoint(CMMMapValue('cmm_max', SettingKey), CMMMapValue('cmm_min', SettingKey))
-Description: Scrollbar-normalized max (max - min, always >= 0)
-Definition type: Global macro
-
------------------------
-
-CMMSliderNormalizedValue( SettingKey )
-Macro replacement: Subtract_CFixedPoint(CMMSettingValue(SettingKey), CMMMapValue('cmm_min', SettingKey))
-Description: Scrollbar-normalized value (value - min, always >= 0)
-Definition type: Global macro
-
------------------------
-
-CMMSliderThumbHover( ThumbIndex, ScopeKey )
-Macro replacement: And(GetVariableSystem.HasValue('cmm_slider_hover_key', ScopeKey), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)-5'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)-4'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)-3'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)-2'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)-1'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)0'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)1'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)2'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)3'), Or(CMMSliderHoverMatch(ThumbIndex, '(int32)4'), CMMSliderHoverMatch(ThumbIndex, '(int32)5'))))))))))))
-Description: True when the hovered overlay index is within 5 of the thumb and the scope key matches
-Definition type: Global macro
-
------------------------
-
 CMMSliderThumbIndex( SettingKey )
 Macro replacement: FixedPointToInt(Add_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(CMMSliderNormalizedValue(SettingKey), CMMSliderNormalizedMax(SettingKey)), '(CFixedPoint)100'), '(CFixedPoint)0.500'))
 Description: Slider thumb visual index on 0-100 scale for one setting
@@ -35456,44 +35027,9 @@ Definition type: Global macro
 
 -----------------------
 
-CMMTabNonEmpty( TabKey )
-Macro replacement: Player.MakeScope.GetVariableFromVariableMap('cmm_tab_nonempty', MakeScopeFlag(TabKey)).IsSet
-Description: True when one tab has at least one currently-visible setting
-Definition type: Global macro
-
------------------------
-
 CMMTextSettingCallbackKey( SettingKey )
 Macro replacement: Concatenate(SettingKey, '_on_changed')
 Description: Scripted effect callback key for one text setting
-Definition type: Global macro
-
------------------------
-
-CMMTextSettingCharacterLimit( SettingKey )
-Macro replacement: CMMMapInt('cmm_text_char_limit', SettingKey)
-Description: Text setting editbox character limit
-Definition type: Global macro
-
------------------------
-
-CMMTextSettingInputCacheKey( SettingKey )
-Macro replacement: Concatenate('cmm_text_input_', SettingKey)
-Description: Variable-system cache key for one text setting input field
-Definition type: Global macro
-
------------------------
-
-CMMTextSettingQuoteText( SettingKey )
-Macro replacement: CMMValueEqualsOne(CMMMapValue('cmm_text_quote', SettingKey))
-Description: True when submitted text should be wrapped in double quotes
-Definition type: Global macro
-
------------------------
-
-CMMV( SettingKey )
-Macro replacement: Select_CFixedPoint(EqualTo_CFixedPoint(Player.MakeScope.GetVariableFromVariableMap('cmm_is_global', MakeScopeFlag(SettingKey)).GetValue, '(CFixedPoint)1'), GetVariableFromGlobalVariableMap('cmm', MakeScopeFlag(SettingKey)).GetValue, Player.MakeScope.GetVariableFromVariableMap('cmm', MakeScopeFlag(SettingKey)).GetValue)
-Description: Setting value by key (works in localization [expr] context; uses Player.MakeScope because Scope is unavailable)
 Definition type: Global macro
 
 -----------------------

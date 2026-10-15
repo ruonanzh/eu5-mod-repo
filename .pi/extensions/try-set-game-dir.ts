@@ -4,11 +4,13 @@
  * The check and the search live in `.pi/lib/game-paths.ts`. This tool is only the entry point.
  *
  *   1. The remembered gameDir is still valid, and the derived mod install directory and Workshop
- *      directory match the recorded ones. The tool writes nothing, and returns
- *      `PASS: gameDir already correct`.
+ *      directory match the recorded ones. The tool records no path, and it returns
+ *      `PASS: gameDir already correct`. It returns the cached gameBuild. It reads the executable
+ *      again only when no tag is cached (`null`) and no read has happened yet for this gameDir, and
+ *      it writes that tag back with the `gameBuildTried` sentinel then.
  *   2. The path is invalid, stale, or never recorded. The tool locates the game, checks every
- *      candidate, and records gameDir with the two derived paths. It returns
- *      `PASS: gameDir located and recorded`.
+ *      candidate, reads the build tag one time, and records gameDir, gameBuild, and the two derived
+ *      paths. It returns `PASS: gameDir located and recorded`.
  *   3. It finds nothing. The tool returns FAIL, and it writes no state.
  *
  * Why no arguments: the agent does not have to know the path first. The tool ensures the state is
@@ -45,7 +47,7 @@ export default function (pi: ExtensionAPI) {
           "INVALID_WORKSPACE_CONFIG: Cannot read mod-repo.json. Reopen or update the game workspace. Do not edit its maintainer configuration.",
         );
       }
-      const r = ensureGameDir(cwd, cfg);
+      const r = await ensureGameDir(cwd, cfg);
       if (r.status === "missing") {
         return {
           content: [
@@ -78,7 +80,7 @@ export default function (pi: ExtensionAPI) {
           ...readState(cwd),
           ok: true,
           status: r.status,
-          wroteState: r.status === "recorded",
+          wroteState: r.wroteState,
         },
       };
     },

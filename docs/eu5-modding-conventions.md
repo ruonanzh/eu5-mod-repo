@@ -28,7 +28,7 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
 `Mod_files_load_order`, sections "Overview" and "Inject and replace".
 
 - **Direct file overwrite:** a mod file with the *same path and filename* as a base-game/DLC/other-mod
-  file takes precedence; the lower-in-playlist mod wins, and the losing files are treated "as if they
+  file takes precedence. The lower-in-playlist mod wins, and the losing files are treated "as if they
   did not exist." Whole-file, so anything you omit is lost - brittle across patches.
 - **Implicit replace:** in folders that do **not** use the keyword system, if two files define the
   same top-level object, the **later-loaded definition wins** (the object is redefined). This works
@@ -57,10 +57,10 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
   }
   ```
 
-**Rule of thumb:** prefer additive new objects; use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
-variants) for surgical changes in keyword folders; reserve full-file overwrite for when you must
+**Rule of thumb:** prefer additive new objects. Use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
+variants) for surgical changes in keyword folders. Reserve full-file overwrite for when you must
 change most of a file. `validate_mod` flags a keyword nested below the entry level as a **WARN** (not a
-hard error — container folders legitimately nest entries one level in, and vanilla does so); whether a
+hard error — container folders legitimately nest entries one level in, and vanilla does so). Whether a
 top-level object redefines a vanilla name **without** a keyword is a soft rule the agent checks with
 `grep`/`read` against the local game directory (the exact list of keyword folders is not yet fully
 documented on the wiki - marked "TBA").
@@ -133,12 +133,14 @@ with `name`, `id`, `version` (`x.x` or `x.x.x`), `supported_game_version` (for e
 field is `short_description`, not `description`. The wiki does not document an individual missing
 field as load-fatal, so the linter treats a missing file or invalid JSON as an ERROR, and a missing
 standard field as a WARN.
+Read `supported_game_version` from the `supportedGameVersion` value of `get_game_info`. Do not do
+binary forensics.
 
 The `.metadata` directory should also hold a `thumbnail.png`: the launcher and Workshop image. It
 must be smaller than 1 MB, and the recommended size is 512x512. Reference it with a
 `"picture": "thumbnail.png"` entry, placed after `tags`. The image can live only in the Paradox mod
 directory, and you do not have to version it in the repository. The linter still warns when the
-`picture` value names no existing file in the mod root or `.metadata/`; only the warning wording
+`picture` value names no existing file in the mod root or `.metadata/`. Only the warning wording
 depends on whether other image files **are** versioned.
 
 ## 6. Housekeeping
@@ -149,44 +151,49 @@ depends on whether other image files **are** versioned.
 - Do not leave scratch files or backup files under `your_mods/<name>/`. Examples: `temp_*`,
   `_tmp_*`, and editor backups.
 
-## 7. Choosing an entry mechanism (five entry points, four families)
+## 7. Choosing an entry mechanism (five entry points, four families, and the other mechanisms)
 
 EU5 hooks new content into the game through a small number of **entry points**. They are not
 interchangeable: a feature that reports a one-off choice is an event, a feature that keeps running
 is a situation, and a feature that puts a button on an existing screen is a scripted GUI. Most mods
 need one of them at most, and many need none.
 
-Pick the entry **before** you write script, and then read only that entry's material:
+Pick the entry **before** you write script. Read the row that matches your feature, then open the
+folder it names and read one of the examples in it.
 
 | Entry point | Use it when | Defined in / read this example |
 | --- | --- | --- |
 | `character_interactions` | The action becomes available **after the player selects a character** (the interaction fires on that character). | `in_game/common/character_interactions/`, for example `dismiss_artist.txt` |
 | `scripted_gui` | The feature needs a **custom panel** (its own buttons or widgets on the interface). | the definition in `in_game/common/scripted_guis/` and the layout under `in_game/gui/`, for example `in_game/common/scripted_guis/economy_satisfaction_target.txt` |
-| `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers; the action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` |
+| `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers. The action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` |
 | `events` | The feature surfaces as an **event popup** (a one-off window with a choice or a notification). | `in_game/events/`, for example `ages.txt` |
 | `situations` | The feature is a **persistent state** (it stays active, is visible to a subset of countries, and runs until its end condition is met). | `in_game/common/situations/`, for example `black_death.txt` |
+| Other mechanisms for existing screens and hooks | These hook into an existing screen or hook, and the five entry points above do not cover them. | Read the folder each one lives in: `in_game/gui/` (`lateralview`, `topbar`, `context_menu`), `in_game/common/on_action/` (`on_action`), `loading_screen/gui/shortcuts.shortcuts` (`shortcut`), `main_menu/gui/scripted_widgets/` (`scripted_widgets`). |
+
+A mod can also add its own content to one of the game's own data folders, such as scripted effects,
+script values, laws, or traits. The `mod-creator` skill lists the common ones.
 
 The four families are a **target interaction** (`character_interactions`), a **panel**
 (`scripted_gui`), an **action** (`generic_actions`), and **event-driven content** (`events` for the
 one-off popup, `situations` for the persistent state).
 
 **Decide this before you write any script: does this version need its own panel, or any new entry
-point at all?** If it does, read this document and one existing example end to end in one pass, then
-write. If it does not, skip this whole page.
+point at all?** If it does, open the folder that the row names, read one of the examples there or the
+readme the game ships for that folder, then write. If it does not, skip this whole page.
 
 ---
 
 ## Going deeper (semantics the linter does not check)
 
 The linter checks syntax, conventions, and **name-level semantics** (do the effect, trigger, and
-modifier names exist; does an `INJECT:`/`REPLACE:` target exist; does a new object have its
+modifier names exist. Does an `INJECT:`/`REPLACE:` target exist. Does a new object have its
 localization keys). For **scope and type** correctness, and for exact vanilla values, follow the
 lookup hierarchy in [`INDEX.md`](INDEX.md).
 
 - **Game-generated dumps:** `docs/script_docs/` and `docs/data_types/` list the valid effects,
   triggers, scopes, modifiers, and data types for the current game version. They are the
   **authoritative** reference for semantics. Prefer them over a guess.
-- **Script mirror:** `game-scripts/`, generated by `sync_game_scripts`, holds the vanilla `game/`
+- **Vanilla scripts:** `game-scripts/`, generated by `sync_game_scripts`, holds the vanilla `game/`
   scripts and the `workshop/` scripts. Grep it for exact object definitions, field values, INJECT
   targets, and loc keys.
 - **The official wiki:** eu5.paradoxwikis.com. It has the concepts and worked examples, and can lag

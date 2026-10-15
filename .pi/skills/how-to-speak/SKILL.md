@@ -54,7 +54,7 @@ Write so that your reply has exactly one reading, and the answer is visible in t
    decreasing order of importance. The player must be able to stop reading after line one and still
    know the state of things.
 3. **Give an action, not a log.** End with what the player can do next — a place to click, a value
-   to confirm, a decision to make. Never end with raw tool output, a stack of paths, or a wall of
+   to check, a decision to make. Never end with raw tool output, a stack of paths, or a wall of
    line numbers. The player cannot act on those. When the action is the player's to take, say first
    what you already tried, then the steps in order, then what happens next.
 

@@ -2,7 +2,7 @@
     "name": "Production & Trade Match Map Mode Market",
     "id": "sync_market_ui_focus",
     "version": "1.0.1",
-    "supported_game_version": "1.*",
+    "supported_game_version": "1.3.*",
     "short_description": "Production and Trade market selectors follow the market you open or select in market map mode (also when switching markets in the market side panel).",
     "tags": ["Fixes", "Interface"],
     "picture": "thumbnail.png",

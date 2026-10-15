@@ -1,6 +1,6 @@
 ---
 name: mod-creator
-description: Write and modify EU5 (pdx-script) mods. Covers the mod structure, the `metadata.json` fields, localization YAML, PDXScript and GUI syntax, `INJECT:` and `REPLACE:` overrides, load order and naming, `validate_mod` errors, and the semantic lookup path. Read it when a task touches one of these. Q&A is read-only. Writing depends on the session role and binding.
+description: The guide for writing and modifying EU5 (pdx-script) mods. Always read it first, before you search the vanilla scripts, before you read the reference mods, and before your first write. Covers the order of work, the mod structure, the `metadata.json` fields, localization YAML, PDXScript and GUI syntax, `INJECT:` and `REPLACE:` overrides, load order and naming, the entry mechanisms, `validate_mod` errors, and the semantic lookup path.
 ---
 
 # Writing EU5 mods (pdx-script)
@@ -28,7 +28,7 @@ and its bound directory gate those actions.
      goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
      names alone. Two hard ordering rules:
      1. For a player-worded feature request, grep vanilla first, within calls 2 to 4:
-        `grep -rln <keyword> game-scripts/`, to confirm "does vanilla already have it?".
+        `grep -rln <keyword> game-scripts/`, to check "does vanilla already have it?".
      2. Read in this fixed order: `docs/eu5-modding-conventions.md` (the single source of truth),
         then locate 1 or 2 reference mods of the same kind, then write.
   2. **Agree with the player before you write.** Give a short description of the mod content: what it
@@ -37,9 +37,8 @@ and its bound directory gate those actions.
      for example "start now, no confirmation".
   3. **Then write.** Produce or modify a mod under `your_mods/<ModName>/`. Reuse
      `reference/example_mod/`. You may write only inside the bound mod directory. With no binding,
-     call `create_mod_folder` with a `lower_snake_case` name, with **no hyphens**
-     (`fix-trade-companies` ❌ → `fix_trade_companies` ✓). Do not create a second binding when one
-     already exists.
+     call `create_mod_folder` with a `lower_snake_case` name, as the **Directory name** rule below
+     defines it. Do not create a second binding when one already exists.
   4. **Then check the UI side.** A mod here is mostly PDXScript code, but an in-game check often
      fails without the UI part. Before you finish, ask: does this modification need an icon, a UI
      label (localization), a menu entry, a column, a filter, or a panel? Add what is missing. Reuse
@@ -47,8 +46,8 @@ and its bound directory gate those actions.
      not wait for the player to ask about the icon.
 - **Directory name** (this repository's rule, enforced by `create_mod_folder`). The name is
   `lower_snake_case`: it starts with a lowercase letter, then holds only lowercase letters, digits,
-  and underscores, at most 40 characters. Do **not** use hyphens: `fix-trade-companies` ❌ →
-  `fix_trade_companies` ✓. It must not be a Windows reserved device name: `con`, `prn`, `aux`,
+  and underscores, at most 40 characters. Do **not** use hyphens: `fix_trade_companies`, not
+  `fix-trade-companies`. It must not be a Windows reserved device name: `con`, `prn`, `aux`,
   `nul`, `com1` to `com9`, and `lpt1` to `lpt9`.
 
 ## Mod structure
@@ -185,6 +184,30 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
   on the same line.
 - `FAIL: unbalanced { }` or `unbalanced "`: fix the brace balance or add the missing closing quote.
 - `FAIL: INJECT:/REPLACE: must be in a top-level block`: move the keyword to the top level.
+
+## Entry mechanisms and data kinds (what to add, and where it lives)
+
+Pick the entry mechanism from the table in `docs/eu5-modding-conventions.md` section 7, then open the
+folder it names and read one of the examples there.
+
+A mod can also add its own content to one of the game's own data folders. The common ones are:
+
+| Kind | Folder | One real example |
+| --- | --- | --- |
+| scripted effects | `in_game/common/scripted_effects/` | `country_effects.txt` |
+| scripted triggers | `in_game/common/scripted_triggers/` | `00_clothing_triggers.txt` |
+| script values | `in_game/common/script_values/` | `albanian_migrations.txt` |
+| laws | `in_game/common/laws/` | `00_monarchy.txt` |
+| traits | `in_game/common/traits/` | `04_explorer.txt` |
+| estates | `in_game/common/estates/` | `00_default.txt` |
+| prices | `in_game/common/prices/` | `D008_lutheran_prices.txt` |
+| child educations | `in_game/common/child_educations/` | `00_default.txt` |
+| attribute columns | `in_game/common/attribute_columns/` | `130_bureaucracy_type.txt` |
+| modifier type definitions | `main_menu/common/modifier_type_definitions/` | `02_generic_bureaucracies.txt` |
+
+Most of these folders ship a `readme.txt` or a `.info` file that lists the fields. Read that file
+before you write the block. When a task only changes values inside an existing block, there is no new
+definition to place.
 
 ## Semantic lookup path
 

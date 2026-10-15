@@ -178,7 +178,7 @@ one-off popup, `situations` for the persistent state).
 
 **Decide this before you write any script: does this version need its own panel, or any new entry
 point at all?** If it does, call `locate_entry` for that mechanism, read one of the examples it
-prints, then write. If it does not, skip this whole page.
+prints (or the readme it prints), then write. If it does not, skip this whole page.
 
 ---
 

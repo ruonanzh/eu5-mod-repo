@@ -598,10 +598,12 @@ function checkOverrideKeywords(cleaned: string): Finding[] {
     if (m && m.index === 0 && m.groups?.key) {
       const hasKw = !!m.groups.kw;
       if (hasKw && depth > 0) {
-        // 降级为 warn（原为 error）：规则应是“紧邻一个 database entry”，而**条目层**因目录而异
-        // （多数 common/ 目录 = 文件顶层；容器型目录如 genes/ 在 `accessory_genes = { <entry> = {} }`
-        //  一层里）。vanilla 自己就这么写：dlc/D008_fate_of_the_phoenix/in_game/common/genes/
-        //  D008_genes_accessories.txt 共 6 处 `INJECT_OR_CREATE:` 都在 accessory_genes 内。
+        // Downgraded from error to warn. The rule is "directly before a database entry", and the
+        // entry level depends on the folder. Most common/ folders put entries at the file top level,
+        // and a container folder nests them one level in, for example genes/ nests inside
+        // `accessory_genes = { <entry> = { } }`. Vanilla writes it that way itself: all 6
+        // `INJECT_OR_CREATE:` sites in dlc/D008_fate_of_the_phoenix/in_game/common/genes/
+        // D008_genes_accessories.txt sit inside accessory_genes.
         findings.push({
           severity: "warn",
           rel: "",
@@ -655,7 +657,7 @@ function checkPdxScript(modRoot: string): Finding[] {
     if (!bal.ok && bal.message)
       findings.push({ severity: "error", rel, message: bal.message });
     for (const f of checkOverrideKeywords(cleaned)) {
-      // 保留 checkOverrideKeywords 自己给出的 severity（嵌套关键字是 warn，不是 error）
+      // Keep the severity that checkOverrideKeywords reports. A nested keyword is a warn, not an error.
       findings.push({ severity: f.severity ?? "error", rel, message: f.message });
     }
   }
@@ -704,8 +706,8 @@ export default function (pi: ExtensionAPI) {
       const warnings = findings.filter((f) => f.severity === "warn");
       const semantic = analyzeSemantics(modDir);
 
-      // 语义行作为独立一段追加进 content（agent 只看 content，details 不进其视野）。
-      // w.message 已以 `semantic: ` 开头，这里不再重复加前缀。
+      // The semantic lines go into content as their own block. The agent reads content only, and
+      // details never reaches it. w.message already starts with `semantic: `, so no prefix here.
       const semanticLines = semantic.warnings
         .slice(0, MAX_CONTENT_LINES)
         .map((w) => `${w.level === "note" ? "NOTE" : "WARN"}: ${w.message}`);

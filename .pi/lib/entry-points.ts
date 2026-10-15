@@ -284,4 +284,186 @@ my_mod.1 = {
     evidence: "weak",
     liveEnum: [],
   },
+  // ---- 数据种类（2026-10-15 按 r6 实测频率扩充；形状与上面的入口机制相同）----
+  {
+    id: "scripted_effects",
+    family: "data-entry",
+    dir: "in_game/common/scripted_effects/",
+    infoFile: "in_game/common/scripted_effects/readme.txt",
+    examples: ["in_game/common/scripted_effects/country_effects.txt", "in_game/common/scripted_effects/character_effects.txt"],
+    skeleton: `my_simple_effect = {
+\t<list of effects>
+}`,
+    wiring:
+      "Another script calls it in an effects position: my_simple_effect = yes. With arguments it is my_simple_effect = { value = 12 }, and the effect runs in the calling scope.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/scripted_effects/",
+    evidence: "strong",
+    liveEnum: [],
+  },
+  {
+    id: "scripted_triggers",
+    family: "data-entry",
+    dir: "in_game/common/scripted_triggers/",
+    infoFile: "in_game/common/scripted_triggers/readme.txt",
+    examples: ["in_game/common/scripted_triggers/00_clothing_triggers.txt"],
+    skeleton: `my_simple_trigger = {
+\t<list of triggers>
+}`,
+    wiring:
+      "Another script calls it in a trigger position: my_simple_trigger = yes. With arguments it is my_simple_trigger = { value = 12 }, and it evaluates in the calling scope.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/scripted_triggers/",
+    evidence: "strong",
+    liveEnum: [],
+  },
+  {
+    id: "script_values",
+    family: "data-entry",
+    dir: "in_game/common/script_values/",
+    infoFile: "in_game/common/script_values/_script_values.info",
+    examples: ["in_game/common/script_values/albanian_migrations.txt"],
+    skeleton: `my_static_value = 10
+
+my_formula_value = {
+\tadd = <number or scripted value>
+\tmultiply = <number or scripted value>
+}`,
+    wiring:
+      "Script reads it by name wherever a number is expected, for example add_stress = minor_stress_gain. A formula is recalculated on every evaluation, so keep the expensive ones out of hot paths.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/script_values/",
+    evidence: "medium",
+    liveEnum: [],
+  },
+  {
+    id: "laws",
+    family: "data-entry",
+    dir: "in_game/common/laws/",
+    infoFile: "in_game/common/laws/readme.txt",
+    examples: ["in_game/common/laws/00_monarchy.txt", "in_game/common/laws/colonial_laws.txt"],
+    skeleton: `my_law = {
+\tlaw_category = <category>
+\tpotential = { <trigger> }
+\tmy_law_no = {
+\t\tcountry_modifier = { <modifiers> }
+\t\tyears = 2
+\t}
+\tmy_law_yes = {
+\t\tcountry_modifier = { <modifiers> }
+\t\tprice = <price id>
+\t}
+}`,
+    wiring:
+      "The Laws panel lists the law, and a country holds exactly one policy of it. A policy with a price pays that price when it activates. The readme in the folder lists the law attributes and the policy attributes.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/laws/",
+    evidence: "strong",
+    liveEnum: [],
+  },
+  {
+    id: "traits",
+    family: "data-entry",
+    dir: "in_game/common/traits/",
+    infoFile: "in_game/common/traits/_traits.info",
+    examples: ["in_game/common/traits/04_explorer.txt"],
+    skeleton: `my_trait = {
+\tcategory = <ruler / cabinet / general / admiral / artist / health / explorer>
+\tallow = { <trigger> }
+\tmodifier = { <modifiers> }
+}`,
+    wiring:
+      "category fixes which character role can hold the trait, and modifier applies while the character's role matches that category. Triggers and effects use has_trait and add_trait, and the bare name is the form: vanilla has 708 sites with has_trait = <name> and none with a trait: prefix.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/traits/",
+    evidence: "medium",
+    liveEnum: [],
+  },
+  {
+    id: "estates",
+    family: "data-entry",
+    dir: "in_game/common/estates/",
+    infoFile: "",
+    examples: ["in_game/common/estates/00_default.txt"],
+    skeleton: `my_estate = {
+\tcolor = estate_<name>
+\tpower_per_pop = 0
+\ttax_per_pop = 0
+\tcan_spawn_random_characters = no
+}`,
+    wiring:
+      "Estate privileges, estate actions, and the estate UI target the estate by its name. The vanilla file defines the estates the game ships with, so a new estate is a new block in it.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/estates/",
+    evidence: "weak",
+    liveEnum: [],
+  },
+  {
+    id: "prices",
+    family: "data-entry",
+    dir: "in_game/common/prices/",
+    infoFile: "in_game/common/prices/readme.txt",
+    examples: ["in_game/common/prices/D008_lutheran_prices.txt"],
+    skeleton: `my_price = {
+\tgold = 10
+\treligious_influence = 25
+}`,
+    wiring:
+      "Other content charges it by name, for example price_to_select in a child education. The readme in the folder lists every currency the block accepts.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/prices/",
+    evidence: "weak",
+    liveEnum: [],
+  },
+  {
+    id: "child_educations",
+    family: "data-entry",
+    dir: "in_game/common/child_educations/",
+    infoFile: "in_game/common/child_educations/readme.txt",
+    examples: ["in_game/common/child_educations/00_default.txt"],
+    skeleton: `my_child_education = {
+\tmodifier = { <character modifiers> }
+\tcountry_modifier = { <country modifiers> }
+\tprice_to_select = <price id>
+\tprice_to_deselect = <price id>
+\tpotential = { <character triggers> }
+\tallow = { <character triggers> }
+\ton_education_start_effect = { <character effects> }
+}`,
+    wiring:
+      "The education panel offers it for a child. Choosing it pays price_to_select and runs on_education_start_effect. The readme in the folder is the field list.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/child_educations/",
+    evidence: "weak",
+    liveEnum: [],
+  },
+  {
+    id: "attribute_columns",
+    family: "ui-container",
+    dir: "in_game/common/attribute_columns/",
+    infoFile: "in_game/common/attribute_columns/readme.txt",
+    examples: ["in_game/common/attribute_columns/130_bureaucracy_type.txt"],
+    skeleton: `my_column = {
+\tname = {
+\t\twidget = <widget type from the .gui files>
+\t\twidth = 150
+\t\tis_constant_width = no
+\t}
+}`,
+    wiring:
+      "A select_trigger in a generic action or a country or character interaction shows these columns for the object being selected. The widget gets an InteractionTarget, so it reads that object.",
+    locateCmd: "ls game-scripts/game/game/in_game/common/attribute_columns/",
+    evidence: "medium",
+    liveEnum: [],
+  },
+  {
+    id: "modifier_type_definitions",
+    family: "data-entry",
+    dir: "main_menu/common/modifier_type_definitions/",
+    infoFile: "",
+    examples: ["main_menu/common/modifier_type_definitions/02_generic_bureaucracies.txt"],
+    skeleton: `my_bureaucracy_impact_modifier = {
+\tpercent = yes
+\tgame_data = {
+\t\tcategory = country
+\t}
+}`,
+    wiring:
+      "It registers the impact modifier tag that script and the bureaucracy UI use for that modifier type. The tag name must match the type it belongs to.",
+    locateCmd: "ls game-scripts/game/game/main_menu/common/modifier_type_definitions/",
+    evidence: "weak",
+    liveEnum: [],
+  },
 ];

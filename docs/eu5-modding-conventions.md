@@ -158,11 +158,13 @@ interchangeable: a feature that reports a one-off choice is an event, a feature 
 is a situation, and a feature that puts a button on an existing screen is a scripted GUI. Most mods
 need one of them at most, and many need none.
 
-Pick the entry **before** you write script. Then call `locate_entry` with the `mechanism` value in
+Pick the entry **before** you write script. Then call `locate_entry` with the `kind` value in
 the last column of this table. The tool returns, for example, the registration path, the game
 readme, the examples, the skeleton, and the wiring. It omits a path that the vanilla scripts do not
 hold.
-The last row of this table lists the other mechanisms in the index.
+The last row of this table lists the other mechanisms in the index. The index also holds the data
+kinds that a mod adds to the game's own folders, such as scripted effects, laws, and traits. Call
+`locate_entry` with one of those ids the same way. This table lists the entry mechanisms only.
 
 | Entry point | Use it when | Defined in / read this example | locate_entry |
 | --- | --- | --- | --- |

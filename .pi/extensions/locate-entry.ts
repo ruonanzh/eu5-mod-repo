@@ -1,27 +1,27 @@
 /**
  * locate_entry - it returns the location facts for one EU5 entry mechanism in one call.
  *
- * The mechanism name is an `id` of the static index in ../lib/entry-points. The tool answers the
- * question that the conventions page does not answer: where the mechanism lives in the vanilla
- * scripts, which readme the game ships for it, a real example, the smallest copyable frame, and who
- * renders it.
+ * The kind name is an `id` of the static index in ../lib/entry-points. The tool answers the question
+ * that the conventions page does not answer: where that kind lives in the vanilla scripts, which
+ * readme the game ships for it, a real example, the smallest copyable frame, and who renders or
+ * consumes it.
  *
  * Order of work, and the reason for it:
  *   1. The vanilla scripts are checked first, because every path is relative to them, so a missing
  *      script tree makes every answer wrong. The FAIL points at `sync_game_scripts`.
  *   2. The id is matched against the index. A miss is not an error of the agent: the index holds the
- *      common mechanisms only, so the FAIL lists its ids and points at section 7 of the conventions
- *      page, which is the general method for the unlisted mechanisms.
+ *      common kinds only, so the FAIL lists its ids and points at section 7 of the conventions
+ *      page, which is the general method for the unlisted kinds.
  *   3. Every indexed path is checked with `existsSync`, and only the paths that exist are printed.
  *      The index is a snapshot of one game build, and a game patch can move a path.
  *   4. A `liveEnum` value is rescanned from the vanilla scripts, because those values drift between
  *      builds.
  *
  * The content body holds the fixed five sections, in this order:
- *   1. REGISTER  the registration target, plus the rescan of the live enum when the mechanism has it
+ *   1. REGISTER  the registration target, plus the rescan of the live enum when the kind has one
  *   2. README    the readme the game ships, plus the smallest copyable frame when the index holds one
  *   3. EXAMPLE   the real example paths that the vanilla scripts hold
- *   4. WIRING    who renders the mechanism, or how script calls it
+ *   4. WIRING    who renders or consumes the kind, or how script calls it
  *   5. LOCATE    the shortest locate command, run from the repository root
  * The readme section prints the path only. The readme text carries template paths such as
  * `gui/scripted_widget_file_name.gui`, which are not real paths. The tool labels an indexed path
@@ -134,22 +134,23 @@ export default function (pi: ExtensionAPI) {
     name: "locate_entry",
     label: "Locate Entry",
     description:
-      `Locates one EU5 entry mechanism in the vanilla scripts in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The mechanism argument is an id of the static index, which holds ${ENTRY_POINTS.length} common mechanisms. It is read-only, and it writes nothing.`,
-    promptSnippet: "Locate one entry mechanism: registration path, readme, example, frame, wiring",
+      `Locates one EU5 content kind in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The contentKind argument is an id of the static index, which holds ${ENTRY_POINTS.length} common kinds: the entry mechanisms that hook new content into the game, and the data kinds that a mod adds to the game's own folders. It is read-only, and it writes nothing.`,
+    promptSnippet: "Locate one kind: registration path, readme, example, frame, wiring",
     promptGuidelines: [
-      "Call locate_entry once, before you search the vanilla scripts, when your task adds content of an indexed kind. Pick the single mechanism that your task needs, and do not try several mechanisms in one turn.",
-      `Pick the mechanism id from section 7 of the conventions page, or from the ids that a miss lists. The index holds ${ENTRY_POINTS.length} common mechanisms only, so an unlisted mechanism still needs section 7 and a grep of the registration directory.`,
+      "Call locate_entry once, before you search the vanilla scripts, when your task adds content of an indexed kind. Pick the single kind that your task needs, and do not try several kinds in one turn.",
+      `Pick the kind id from section 7 of the conventions page, or from the ids that a miss lists. The index holds ${ENTRY_POINTS.length} common kinds only, so an unlisted kind still needs section 7 and a grep of its folder.`,
       "locate_entry is read-only. It prints the paths that the vanilla scripts hold, and it labels an indexed path that they do not hold.",
-      "locate_entry answers where one mechanism lives and what a real one looks like. It does not answer which enum values exist, or where to mount something inside an existing screen. Those need the general method in section 7 of the conventions page.",
+      "locate_entry answers where one kind lives and what a real one looks like. It does not answer which enum values exist, or where to mount something inside an existing screen. Those need the general method in section 7 of the conventions page.",
     ],
     parameters: Type.Object({
-      mechanism: Type.String({
-        description: "Entry mechanism id from the static index. Pass the mechanism your task needs.",
+      contentKind: Type.String({
+        description:
+          "Kind id from the static index: an entry mechanism id, or a data-kind id. Pass the one your task needs.",
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const root = join(ctx.cwd, ENTRY_POINT_ROOT_REL);
-      const mechanism = typeof params.mechanism === "string" ? params.mechanism.trim() : "";
+      const contentKind = typeof params.contentKind === "string" ? params.contentKind.trim() : "";
 
       // Step 1: the vanilla scripts. Every path below is relative to them, so a missing tree is a FAIL.
       if (!existsSync(root)) {
@@ -162,12 +163,12 @@ export default function (pi: ExtensionAPI) {
                 `NEXT: run sync_game_scripts, then call locate_entry again.`,
             },
           ],
-          details: { ok: false, code: "MIRROR_MISSING", id: mechanism, wroteState: false },
+          details: { ok: false, code: "MIRROR_MISSING", id: contentKind, wroteState: false },
         };
       }
 
       // Step 2: the id. A miss lists the indexed ids and the general method.
-      const entry: EntryPoint | undefined = ENTRY_POINTS.find((e) => e.id === mechanism);
+      const entry: EntryPoint | undefined = ENTRY_POINTS.find((e) => e.id === contentKind);
       if (!entry) {
         const ids = ENTRY_POINTS.map((e) => e.id).sort().join(", ");
         return {
@@ -175,7 +176,7 @@ export default function (pi: ExtensionAPI) {
             {
               type: "text",
               text:
-                `FAIL: unknown mechanism '${mechanism}' - the index holds ${ENTRY_POINTS.length} common mechanisms, and it is not the complete set.\n` +
+                `FAIL: unknown kind '${contentKind}' - the index holds ${ENTRY_POINTS.length} common kinds, and it is not the complete set.\n` +
                 `index ids (${ENTRY_POINTS.length}): ${ids}\n` +
                 `NEXT: choose the entry point in docs/eu5-modding-conventions.md section 7, then grep ` +
                 `${ENTRY_POINT_ROOT_REL}/ for the key that you plan to use.`,
@@ -184,7 +185,7 @@ export default function (pi: ExtensionAPI) {
           details: {
             ok: false,
             code: "UNKNOWN_MECHANISM",
-            id: mechanism,
+            id: contentKind,
             indexIds: ENTRY_POINTS.map((e) => e.id),
             wroteState: false,
           },

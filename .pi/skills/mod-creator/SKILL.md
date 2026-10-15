@@ -186,17 +186,20 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
 - `FAIL: unbalanced { }` or `unbalanced "`: fix the brace balance or add the missing closing quote.
 - `FAIL: INJECT:/REPLACE: must be in a top-level block`: move the keyword to the top level.
 
-## Entry mechanisms (where a feature hooks into the game)
+## Entry mechanisms and data kinds (what the index holds)
 
-The index holds a small set of common mechanisms: a panel, a persistent state, an event, an action,
-an interaction, or a screen widget. Pick the one mechanism that your feature is about.
+The index holds a small set of common kinds. The **entry mechanisms** are how a feature hooks into
+the game: a panel, a persistent state, an event, an action, an interaction, or a screen widget. The
+**data kinds** are the folders a mod adds its own content to. Pick the one kind that your feature is
+about.
 
-1. Read the entry table in `docs/eu5-modding-conventions.md` section 7, and choose the single row
-   that matches your feature.
-2. Call `locate_entry` once with that mechanism id. It returns the registration path, the game
-   readme, a real example, the smallest frame, and who renders it. Do not probe several mechanisms
+1. Read the entry table in `docs/eu5-modding-conventions.md` section 7 for the entry mechanisms, and
+   use a data-kind id for the folder you add to. Then choose the single kind that matches your
+   feature.
+2. Call `locate_entry` once with that kind id. It returns the registration path, the game
+   readme, a real example, the smallest frame, and who renders it. Do not probe several kinds
    in one turn.
-3. `locate_entry` answers which mechanism you need, and where it lives. It does not answer where to
+3. `locate_entry` answers which kind you need, and where it lives. It does not answer where to
    attach something inside an existing screen, and it does not answer which enum values exist.
    Those need section 7's general method and the lookup path below.
 

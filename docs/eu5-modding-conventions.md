@@ -158,30 +158,28 @@ interchangeable: a feature that reports a one-off choice is an event, a feature 
 is a situation, and a feature that puts a button on an existing screen is a scripted GUI. Most mods
 need one of them at most, and many need none.
 
-Pick the entry **before** you write script. Then call `locate_entry` with the `kind` value in
-the last column of this table. The tool returns, for example, the registration path, the game
-readme, the examples, the skeleton, and the wiring. It omits a path that the vanilla scripts do not
-hold.
-The last row of this table lists the other mechanisms in the index. The index also holds the data
-kinds that a mod adds to the game's own folders, such as scripted effects, laws, and traits. Call
-`locate_entry` with one of those ids the same way. This table lists the entry mechanisms only.
+Pick the entry **before** you write script. Read the row that matches your feature, then open the
+folder it names and read one of the examples in it.
 
-| Entry point | Use it when | Defined in / read this example | locate_entry |
-| --- | --- | --- | --- |
-| `character_interactions` | The action becomes available **after the player selects a character** (the interaction fires on that character). | `in_game/common/character_interactions/`, for example `dismiss_artist.txt` | `character_interactions` |
-| `scripted_gui` | The feature needs a **custom panel** (its own buttons or widgets on the interface). | the definition in `in_game/common/scripted_guis/` and the layout under `in_game/gui/`, for example `in_game/common/scripted_guis/economy_satisfaction_target.txt` | `scripted_gui` |
-| `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers. The action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` | `generic_actions` |
-| `events` | The feature surfaces as an **event popup** (a one-off window with a choice or a notification). | `in_game/events/`, for example `ages.txt` | `events` |
-| `situations` | The feature is a **persistent state** (it stays active, is visible to a subset of countries, and runs until its end condition is met). | `in_game/common/situations/`, for example `black_death.txt` | `situations` |
-| Other indexed mechanisms | The index also holds these mechanisms for existing screens and hooks, and the five entry points above do not cover them. | `locate_entry` returns the folder, the readme, and the examples and skeleton that the index holds for each one. | `lateralview`, `topbar`, `on_action`, `shortcut`, `scripted_widgets`, `context_menu` |
+| Entry point | Use it when | Defined in / read this example |
+| --- | --- | --- |
+| `character_interactions` | The action becomes available **after the player selects a character** (the interaction fires on that character). | `in_game/common/character_interactions/`, for example `dismiss_artist.txt` |
+| `scripted_gui` | The feature needs a **custom panel** (its own buttons or widgets on the interface). | the definition in `in_game/common/scripted_guis/` and the layout under `in_game/gui/`, for example `in_game/common/scripted_guis/economy_satisfaction_target.txt` |
+| `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers. The action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` |
+| `events` | The feature surfaces as an **event popup** (a one-off window with a choice or a notification). | `in_game/events/`, for example `ages.txt` |
+| `situations` | The feature is a **persistent state** (it stays active, is visible to a subset of countries, and runs until its end condition is met). | `in_game/common/situations/`, for example `black_death.txt` |
+| Other mechanisms for existing screens and hooks | These hook into an existing screen or hook, and the five entry points above do not cover them. | Read the folder each one lives in: `in_game/gui/` (`lateralview`, `topbar`, `context_menu`), `in_game/common/on_action/` (`on_action`), `loading_screen/gui/shortcuts.shortcuts` (`shortcut`), `main_menu/gui/scripted_widgets/` (`scripted_widgets`). |
+
+A mod can also add its own content to one of the game's own data folders, such as scripted effects,
+script values, laws, or traits. The `mod-creator` skill lists the common ones.
 
 The four families are a **target interaction** (`character_interactions`), a **panel**
 (`scripted_gui`), an **action** (`generic_actions`), and **event-driven content** (`events` for the
 one-off popup, `situations` for the persistent state).
 
 **Decide this before you write any script: does this version need its own panel, or any new entry
-point at all?** If it does, call `locate_entry` for that mechanism, read one of the examples it
-prints (or the readme it prints), then write. If it does not, skip this whole page.
+point at all?** If it does, open the folder that the row names, read one of the examples there or the
+readme the game ships for that folder, then write. If it does not, skip this whole page.
 
 ---
 

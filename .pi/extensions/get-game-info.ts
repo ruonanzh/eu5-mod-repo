@@ -109,7 +109,7 @@ export default function (pi: ExtensionAPI) {
             ? "present, no workshop mirrored, count with `find -L`"
             : "missing - run sync_game_scripts, then count with `find -L`",
         ),
-        row("entry points", "call locate_entry <mechanism>"),
+        row("entry points", "see docs/eu5-modding-conventions.md section 7"),
       ];
       if (!version) {
         lines.push(

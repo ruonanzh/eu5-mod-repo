@@ -185,25 +185,29 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
 - `FAIL: unbalanced { }` or `unbalanced "`: fix the brace balance or add the missing closing quote.
 - `FAIL: INJECT:/REPLACE: must be in a top-level block`: move the keyword to the top level.
 
-## Entry mechanisms and data kinds (what the index holds)
+## Entry mechanisms and data kinds (what to add, and where it lives)
 
-The index holds a small set of common kinds. The **entry mechanisms** are how a feature hooks into
-the game: a panel, a persistent state, an event, an action, an interaction, or a screen widget. The
-**data kinds** are the folders a mod adds its own content to. Pick the one kind that your feature is
-about.
+Pick the entry mechanism from the table in `docs/eu5-modding-conventions.md` section 7, then open the
+folder it names and read one of the examples there.
 
-1. Read the entry table in `docs/eu5-modding-conventions.md` section 7 for the entry mechanisms, and
-   use a data-kind id for the folder you add to. Then choose the single kind that matches your
-   feature.
-2. Call `locate_entry` once with that kind id. It returns the registration path, the game
-   readme, a real example, the smallest frame, and who renders it. Do not probe several kinds
-   in one turn.
-3. `locate_entry` answers which kind you need, and where it lives. It does not answer where to
-   attach something inside an existing screen, and it does not answer which enum values exist.
-   Those need section 7's general method and the lookup path below.
+A mod can also add its own content to one of the game's own data folders. The common ones are:
 
-When your task changes existing content instead of adding a new entry point, `locate_entry` does not
-apply.
+| Kind | Folder | One real example |
+| --- | --- | --- |
+| scripted effects | `in_game/common/scripted_effects/` | `country_effects.txt` |
+| scripted triggers | `in_game/common/scripted_triggers/` | `00_clothing_triggers.txt` |
+| script values | `in_game/common/script_values/` | `albanian_migrations.txt` |
+| laws | `in_game/common/laws/` | `00_monarchy.txt` |
+| traits | `in_game/common/traits/` | `04_explorer.txt` |
+| estates | `in_game/common/estates/` | `00_default.txt` |
+| prices | `in_game/common/prices/` | `D008_lutheran_prices.txt` |
+| child educations | `in_game/common/child_educations/` | `00_default.txt` |
+| attribute columns | `in_game/common/attribute_columns/` | `130_bureaucracy_type.txt` |
+| modifier type definitions | `main_menu/common/modifier_type_definitions/` | `02_generic_bureaucracies.txt` |
+
+Most of these folders ship a `readme.txt` or a `.info` file that lists the fields. Read that file
+before you write the block. When a task only changes values inside an existing block, there is no new
+definition to place.
 
 ## Semantic lookup path
 

@@ -721,7 +721,7 @@ export default function (pi: ExtensionAPI) {
       const lines: string[] = [];
       if (errors.length === 0) {
         lines.push(
-          `PASS: ${name} is valid${warnings.length > 0 ? ` (${warnings.length} warning(s))` : ""}`,
+          `PASS: ${name} is valid - names only. Scope, type, and values are not checked.${warnings.length > 0 ? ` (${warnings.length} warning(s))` : ""}`,
         );
         for (const w of warnings.slice(0, MAX_CONTENT_LINES)) {
           lines.push(`WARN: ${w.rel}: ${w.message}`);

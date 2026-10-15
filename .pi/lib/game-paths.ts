@@ -49,10 +49,19 @@ export interface RuntimeState {
    * The build tag of the recorded game, for example `1.3.11`. It is a cache of the tag that
    * `<gameDir>/binaries/eu5.exe` holds, so it belongs to the recorded gameDir: try_set_game_dir
    * clears the field when a different gameDir replaces the recorded one. A missing field and `null`
-   * both mean that no tag is known, and try_set_game_dir then reads the executable and writes the
-   * tag back. The field is the version source for supportedGameVersion, and the tools never print it.
+   * both mean that no tag is known, and `gameBuildTried` then says whether the tool already read the
+   * executable for this gameDir. The field is the version source for supportedGameVersion, and the
+   * tools never print it.
    */
   gameBuild?: string | null;
+  /**
+   * Whether try_set_game_dir already read `<gameDir>/binaries/eu5.exe` for the recorded gameDir.
+   * It is the sentinel for a game whose executable holds no build tag. Without it, every call would
+   * read the whole executable again (237 ms on the test machine, and the limit is 30 s). A missing
+   * field and `false` both mean that no read has happened yet. A new gameDir clears the field, so
+   * the next call reads the new executable.
+   */
+  gameBuildTried?: boolean;
   workshopDir?: string | null;
   modInstallDir?: string | null;
   [key: string]: unknown;
@@ -385,15 +394,23 @@ function samePath(recorded: unknown, path: string): boolean {
  *   - `undefined` leaves the cached field alone, because set_game_dir records only its given path;
  *   - `null` is a real cached value, and it means that the tool read the executable and found no tag.
  * The cached tag belongs to the recorded gameDir, so a new gameDir invalidates it: the field becomes
- * `null`, and the next try_set_game_dir reads the new executable. A repeat of the same path keeps
- * the tag, so set_game_dir stays idempotent.
+ * `null`, and `gameBuildTried` becomes `false`, so the next try_set_game_dir reads the new
+ * executable. A repeat of the same path keeps the tag, so set_game_dir stays idempotent.
  */
 function record(cwd: string, cfg: ModRepoConfig, kind: PathKind, path: string, gameBuild?: string | null): void {
   if (kind === "gameDir") {
     const d = pathsFor(path, cfg);
     const patch: RuntimeState = { gameDir: path, modInstallDir: d.modInstallDir, workshopDir: d.workshopDir ?? null };
-    if (gameBuild !== undefined) patch.gameBuild = gameBuild;
-    else if (!samePath(readState(cwd).gameDir, path)) patch.gameBuild = null;
+    if (gameBuild !== undefined) {
+      // The caller read the executable, so the sentinel marks that read.
+      patch.gameBuild = gameBuild;
+      patch.gameBuildTried = true;
+    } else if (!samePath(readState(cwd).gameDir, path)) {
+      // A new gameDir replaces the recorded one, so the cached tag is stale and no read has
+      // happened for the new executable yet.
+      patch.gameBuild = null;
+      patch.gameBuildTried = false;
+    }
     writeState(cwd, patch);
     return;
   }
@@ -458,18 +475,19 @@ export function formatPathOutcome(o: PathOutcome): { text: string; ok: boolean; 
 // Semantics, with no arguments and idempotent:
 //   1. The remembered gameDir is still valid, and the two derived paths match the recorded ones.
 //      The tool returns already, with the cached gameBuild from the state. It reads the executable
-//      again only when that cached tag is `null` (no tag is known then), and it writes it back.
+//      only when the cached tag is `null` and no read has happened yet for this gameDir, and it
+//      writes the tag and the `gameBuildTried` sentinel back then.
 //   2. The path is invalid, stale, or never recorded. The tool searches, and every candidate must
-//      pass the sentinel. It reads the build tag once, records gameDir, gameBuild, and the two
-//      derived paths, and returns recorded.
+//      pass the sentinel. It reads the build tag once, records gameDir, gameBuild, `gameBuildTried`,
+//      and the two derived paths, and returns recorded.
 //   3. It finds nothing, writes no state, and returns missing.
 // EU5 facts: Windows only. modInstallDir is the Paradox launcher directory, which is independent of
 // gameDir and always computed from modInstall.path in mod-repo.json. The tool derives workshopDir
 // from gameDir, and the tools treat it as a read-only reference.
 
 export type EnsureOutcome =
-  | { status: "already"; gameDir: string; gameBuild: string | null; modInstallDir: string | null; workshopDir: string | null; warnings: string[] }
-  | { status: "recorded"; gameDir: string; gameBuild: string | null; modInstallDir: string | null; workshopDir: string | null; warnings: string[] }
+  | { status: "already"; gameDir: string; gameBuild: string | null; modInstallDir: string | null; workshopDir: string | null; warnings: string[]; wroteState: boolean }
+  | { status: "recorded"; gameDir: string; gameBuild: string | null; modInstallDir: string | null; workshopDir: string | null; warnings: string[]; wroteState: boolean }
   | { status: "missing"; reason: string };
 
 /** The cached build tag. A missing field and a non-string value both mean that no tag is known. */
@@ -493,7 +511,9 @@ function derivedWarnings(modInstallDir: string | null, workshopDir: string | nul
 /**
  * Ensures that the game directory is recorded and valid. The tool reads the build tag at the first
  * record, and it returns the cached value afterwards. One exception: a cached `null` tag is no tag,
- * so the tool reads the executable once more, and it writes the tag back.
+ * so the tool reads the executable once when no read has happened yet for this gameDir. It writes
+ * the result and the `gameBuildTried` sentinel back, so it reads the executable one time in total,
+ * even for a game whose executable holds no tag.
  */
 export async function ensureGameDir(cwd: string, cfg: ModRepoConfig): Promise<EnsureOutcome> {
   const state = readState(cwd);
@@ -506,11 +526,16 @@ export async function ensureGameDir(cwd: string, cfg: ModRepoConfig): Promise<En
     if (same) {
       // The cached value comes from the state. A `null` tag means unknown, because an earlier
       // record found no tag or a new gameDir cleared it. Read the executable once then, and write
-      // the tag back, so get_game_info reports a version instead of "unknown" for ever.
+      // the tag back with the sentinel, so get_game_info reports a version instead of "unknown" for
+      // ever. The sentinel also stops a second read, because a game whose executable holds no tag
+      // would otherwise pay a full read on every call (237 ms on the test machine, and the limit is
+      // 30 s).
       let gameBuild = cachedGameBuild(state);
-      if (gameBuild === null) {
+      let wroteState = false;
+      if (gameBuild === null && state.gameBuildTried !== true) {
         gameBuild = await readGameBuildTag(remembered.path as string);
-        if (gameBuild !== null) writeState(cwd, { gameBuild });
+        writeState(cwd, { gameBuild, gameBuildTried: true });
+        wroteState = true;
       }
       return {
         status: "already",
@@ -519,6 +544,7 @@ export async function ensureGameDir(cwd: string, cfg: ModRepoConfig): Promise<En
         modInstallDir: d.modInstallDir,
         workshopDir: d.workshopDir,
         warnings: derivedWarnings(d.modInstallDir, d.workshopDir),
+        wroteState,
       };
     }
   }
@@ -532,7 +558,8 @@ export async function ensureGameDir(cwd: string, cfg: ModRepoConfig): Promise<En
     };
   }
   // The first record: read the build tag once and cache it. An already recorded gameDir returned
-  // above, so this is the only place that reads the executable. A `null` result is stored as null.
+  // above, so this is the only place that reads the executable. A `null` result is stored as null,
+  // and `record` sets the `gameBuildTried` sentinel with it.
   const gameBuild = await readGameBuildTag(gameDir);
   record(cwd, cfg, "gameDir", gameDir, gameBuild);
   const d = pathsFor(gameDir, cfg);
@@ -543,5 +570,6 @@ export async function ensureGameDir(cwd: string, cfg: ModRepoConfig): Promise<En
     modInstallDir: d.modInstallDir,
     workshopDir: d.workshopDir,
     warnings: derivedWarnings(d.modInstallDir, d.workshopDir),
+    wroteState: true,
   };
 }

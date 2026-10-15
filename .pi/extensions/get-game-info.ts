@@ -98,7 +98,7 @@ export default function (pi: ExtensionAPI) {
         row(
           "supportedGameVersion",
           version
-            ? `${version}    (write this value into the mod metadata; do not gather the version yourself)`
+            ? `${version}    (write this value into the mod metadata. Do not gather the version yourself)`
             : "(none - no build tag is recorded, so the version cannot be derived)",
         ),
         row("layout", `install: ${gameDir}/game/...`),

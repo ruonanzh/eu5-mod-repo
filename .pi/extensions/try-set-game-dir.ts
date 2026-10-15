@@ -5,8 +5,9 @@
  *
  *   1. The remembered gameDir is still valid, and the derived mod install directory and Workshop
  *      directory match the recorded ones. The tool records no path, and it returns
- *      `PASS: gameDir already correct`. It returns the cached gameBuild, and it reads the
- *      executable again only when no tag is cached (`null`), and it writes that tag back then.
+ *      `PASS: gameDir already correct`. It returns the cached gameBuild. It reads the executable
+ *      again only when no tag is cached (`null`) and no read has happened yet for this gameDir, and
+ *      it writes that tag back with the `gameBuildTried` sentinel then.
  *   2. The path is invalid, stale, or never recorded. The tool locates the game, checks every
  *      candidate, reads the build tag one time, and records gameDir, gameBuild, and the two derived
  *      paths. It returns `PASS: gameDir located and recorded`.
@@ -79,7 +80,7 @@ export default function (pi: ExtensionAPI) {
           ...readState(cwd),
           ok: true,
           status: r.status,
-          wroteState: r.status === "recorded",
+          wroteState: r.wroteState,
         },
       };
     },

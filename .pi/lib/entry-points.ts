@@ -137,7 +137,7 @@ lateralview = {
 	effect = { <effect> }
 }`,
     wiring:
-      "A .gui element calls the SGUI by name, for example on_action = \"[GetScriptedGui('my_scripted_gui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\". The mirror uses on_action for its SGUI calls; on_finish also calls an SGUI, but only inside a state = { } block. The definition alone does nothing.",
+      "A .gui element calls the SGUI by name, for example on_action = \"[GetScriptedGui('my_scripted_gui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\". The mirror uses on_action for its SGUI calls. on_finish also calls an SGUI, but only inside a state = { } block. The definition alone does nothing.",
     locateCmd: "ls game-scripts/game/game/in_game/common/scripted_guis/",
     evidence: "strong",
     liveEnum: [],
@@ -160,7 +160,7 @@ lateralview = {
 	ai_will_do = { add = 10 }
 }`,
     wiring:
-      "The action name is global, and the type value decides where the game shows the action. The value is the first-level type = of the entry block; a nested type = and a scope: prefixed expression do not count. The entry needs no .gui wiring.",
+      "The action name is global, and the type value decides where the game shows the action. The value is the first-level type = of the entry block. A nested type = and a scope: prefixed expression do not count. The entry needs no .gui wiring.",
     locateCmd: "ls game-scripts/game/game/in_game/common/generic_actions/",
     evidence: "strong",
     // A snapshot of the first-level type = values in this build, ranked by how often they occur.

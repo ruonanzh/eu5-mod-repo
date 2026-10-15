@@ -23,8 +23,8 @@
  *   4. WIRING    who renders the mechanism, or how script calls it
  *   5. LOCATE    the shortest locate command, run from the repository root
  * The readme section prints the path only. The readme text carries template paths such as
- * `gui/scripted_widget_file_name.gui`, which are not real paths, and every path in this body must
- * be a real path.
+ * `gui/scripted_widget_file_name.gui`, which are not real paths. The tool labels an indexed path
+ * that this mirror does not hold as `(indexed, but not in this mirror: <path>)`.
  *
  * The tool is read-only. It reads the mirror and the index, it writes nothing, it spawns nothing,
  * and it never touches `.gamer-agent.local.json`.
@@ -141,7 +141,7 @@ export default function (pi: ExtensionAPI) {
     ],
     parameters: Type.Object({
       mechanism: Type.String({
-        description: "Entry mechanism id from the static index, for example scripted_widgets",
+        description: "Entry mechanism id from the static index. Pass the mechanism your task needs.",
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
@@ -220,7 +220,10 @@ export default function (pi: ExtensionAPI) {
         section(
           2,
           "README",
-          infoFile ?? "(none - the game ships no readme for this mechanism)",
+          infoFile ??
+            (entry.infoFile
+              ? `(indexed, but not in this mirror: ${entry.infoFile})`
+              : "(none - the game ships no readme for this mechanism)"),
         ),
       );
       if (entry.skeleton) {
@@ -231,7 +234,15 @@ export default function (pi: ExtensionAPI) {
       const examples = entry.examples.filter((p) => existing(root, p) !== null);
       omitted += entry.examples.length - examples.length;
       if (examples.length === 0) {
-        lines.push(section(3, "EXAMPLE", "(none - the vanilla mirror holds no example for this mechanism)"));
+        lines.push(
+          section(
+            3,
+            "EXAMPLE",
+            entry.examples.length > 0
+              ? `(indexed, but not in this mirror: ${entry.examples.join(", ")})`
+              : "(none - the vanilla mirror holds no example for this mechanism)",
+          ),
+        );
       } else {
         lines.push(section(3, "EXAMPLE", examples[0]));
         for (const p of examples.slice(1)) lines.push(cont(p));

@@ -192,7 +192,7 @@ export default function (pi: ExtensionAPI) {
       // index holds but the mirror does not is printed with an inline label. The NOTE at the end
       // reports the count of the labeled ones.
       let omitted = 0;
-      const lines = [`PASS: ${entry.id} (family: ${entry.family}, evidence: ${entry.evidence})`];
+      const lines = [`PASS: ${entry.id}`];
 
       const dir = existing(root, entry.dir);
       if (!dir) omitted++;
@@ -262,8 +262,6 @@ export default function (pi: ExtensionAPI) {
         details: {
           ok: true,
           id: entry.id,
-          family: entry.family,
-          evidence: entry.evidence,
           liveEnum: liveEnum ?? entry.liveEnum,
           pathsOmitted: omitted,
           wroteState: false,

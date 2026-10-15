@@ -97,13 +97,3 @@ The tool checks syntax, conventions, and **name-level semantics**: that effect, 
 names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
 keys. It is not a scope or type validator.
 
-## mod-guard (mod session tools, added in this worktree)
-
-`.pi/extensions/mod-guard.ts` is a copy of `pi-desktop/extensions/mod-guard.ts`. The product copy simulates the player mod session.
-
-- `create_mod_folder`: creates `your_mods/<name>/` and binds it to this session. This tool is the only sanctioned write path.
-- **Write isolation (fail-closed):** the mod-guard extension refuses every `write` and `edit` call from a session that has no bound mod directory in this workspace. After the session binds a directory, it can write only inside that mod directory.
-- `before_agent_start`: appends the `## Mod development session` prompt to a session in this workspace.
-
-> `pi-desktop/extensions/mod-guard.ts` is authoritative. Sync your change back to the product.
-

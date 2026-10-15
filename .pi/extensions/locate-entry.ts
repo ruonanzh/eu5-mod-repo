@@ -134,7 +134,7 @@ export default function (pi: ExtensionAPI) {
     name: "locate_entry",
     label: "Locate Entry",
     description:
-      `Locates one EU5 content kind in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The contentKind argument is an id of the static index, which holds ${ENTRY_POINTS.length} common kinds: the entry mechanisms that hook new content into the game, and the data kinds that a mod adds to the game's own folders. It is read-only, and it writes nothing.`,
+      `Locates one EU5 content kind in a single call: the registration path, the readme the game ships, a real example, the smallest copyable frame, the wiring, and the locate command. The kind argument is an id of the static index, which holds ${ENTRY_POINTS.length} common kinds: the entry mechanisms that hook new content into the game, and the data kinds that a mod adds to the game's own folders. It is read-only, and it writes nothing.`,
     promptSnippet: "Locate one kind: registration path, readme, example, frame, wiring",
     promptGuidelines: [
       "Call locate_entry once, before you search the vanilla scripts, when your task adds content of an indexed kind. Pick the single kind that your task needs, and do not try several kinds in one turn.",
@@ -143,14 +143,14 @@ export default function (pi: ExtensionAPI) {
       "locate_entry answers where one kind lives and what a real one looks like. It does not answer which enum values exist, or where to mount something inside an existing screen. Those need the general method in section 7 of the conventions page.",
     ],
     parameters: Type.Object({
-      contentKind: Type.String({
+      kind: Type.String({
         description:
           "Kind id from the static index: an entry mechanism id, or a data-kind id. Pass the one your task needs.",
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const root = join(ctx.cwd, ENTRY_POINT_ROOT_REL);
-      const contentKind = typeof params.contentKind === "string" ? params.contentKind.trim() : "";
+      const kind = typeof params.kind === "string" ? params.kind.trim() : "";
 
       // Step 1: the vanilla scripts. Every path below is relative to them, so a missing tree is a FAIL.
       if (!existsSync(root)) {
@@ -163,12 +163,12 @@ export default function (pi: ExtensionAPI) {
                 `NEXT: run sync_game_scripts, then call locate_entry again.`,
             },
           ],
-          details: { ok: false, code: "MIRROR_MISSING", id: contentKind, wroteState: false },
+          details: { ok: false, code: "MIRROR_MISSING", id: kind, wroteState: false },
         };
       }
 
       // Step 2: the id. A miss lists the indexed ids and the general method.
-      const entry: EntryPoint | undefined = ENTRY_POINTS.find((e) => e.id === contentKind);
+      const entry: EntryPoint | undefined = ENTRY_POINTS.find((e) => e.id === kind);
       if (!entry) {
         const ids = ENTRY_POINTS.map((e) => e.id).sort().join(", ");
         return {
@@ -176,7 +176,7 @@ export default function (pi: ExtensionAPI) {
             {
               type: "text",
               text:
-                `FAIL: unknown kind '${contentKind}' - the index holds ${ENTRY_POINTS.length} common kinds, and it is not the complete set.\n` +
+                `FAIL: unknown kind '${kind}' - the index holds ${ENTRY_POINTS.length} common kinds, and it is not the complete set.\n` +
                 `index ids (${ENTRY_POINTS.length}): ${ids}\n` +
                 `NEXT: choose the entry point in docs/eu5-modding-conventions.md section 7, then grep ` +
                 `${ENTRY_POINT_ROOT_REL}/ for the key that you plan to use.`,
@@ -185,7 +185,7 @@ export default function (pi: ExtensionAPI) {
           details: {
             ok: false,
             code: "UNKNOWN_MECHANISM",
-            id: contentKind,
+            id: kind,
             indexIds: ENTRY_POINTS.map((e) => e.id),
             wroteState: false,
           },

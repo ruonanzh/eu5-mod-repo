@@ -32,9 +32,7 @@ creates it.
 ## Review before the install
 
 Run `validate_mod` first, and clear every ERROR. Then dispatch `mod-reviewer` with the planned files
-and the `validate_mod` receipt. It reports the semantics that `validate_mod` does not check. A
-dispatch can return a receipt instead of the review. Wait for the result with `bg_wait` before you
-install.
+and the `validate_mod` receipt. It reports the semantics that `validate_mod` does not check.
 
 - `PASS`: install.
 - `WARN`: tell the player the risk, then install.

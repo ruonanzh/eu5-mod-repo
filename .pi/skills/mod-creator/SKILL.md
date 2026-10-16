@@ -71,10 +71,8 @@ When the `subagent` tool is not available, run the survey yourself along the loo
 Run a lookup yourself. When you know the name, `grep -rln <keyword> game-scripts/` finds it within a
 few calls.
 
-When the change has two or three independent parts, send one survey per part in a single parallel
-call. A parallel call returns a receipt, not the answer. Wait for the result in the same turn: call
-`bg_wait` with `all: true`, or call `subagent` with `action: "status"` and the run id. This wait is
-deliberate. The receipt text tells you not to poll. For this survey, that text is wrong.
+When the change has two or three independent parts, send one survey per part, one after another.
+Each dispatch returns its answer before the next one starts.
 
 Skip this step when the task only changes values inside an existing block.
 

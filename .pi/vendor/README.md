@@ -18,12 +18,16 @@ maps, the upstream documentation, the upstream agent profiles, and the upstream 
 templates.
 
 **Measure the same way, or the numbers lie.** This file reports file bytes in MB. A `du` number
-counts whole blocks and reads about 15% higher. The published package shows 17 MB under `du`, and
-the trimmed copy shows 15 MB.
+counts whole blocks and reads higher: the installed tree on this machine reads 17 MB under `du`, and
+this copy reads 15 MB.
 
-Baseline, in file bytes: the published package owns 1545 files of 13.86 MB, and the six runtime
-dependencies add 521 files of 8.47 MB. The same content set is 2066 files of 22.33 MB. This copy is
+Baseline, in file bytes: the published package holds 1331 files of 11.95 MB, and the six runtime
+dependencies add 521 files of 8.47 MB. The same content set is 1852 files of 20.42 MB. This copy is
 **848 files of 13.51 MB**.
+
+Do not measure the installed tree. An install tree also holds the nested `node_modules/undici` that
+npm places inside the package, and that is 214 files of 1.90 MB. The installed tree therefore reads
+1545 files of 13.85 MB, and a sum that adds the dependencies to it counts those 214 files twice.
 
 The real gain is the file count, because most of what leaves is many small files.
 
@@ -32,7 +36,7 @@ The real gain is the file count, because most of what leaves is many small files
 | Part | Size | Reason |
 | --- | --- | --- |
 | `index.js` and the four worker scripts | 10 KB / 5 files | The package entry and the workers it loads. The workers are `async-retention-discovery-worker.mjs`, `inspector-runner.mjs`, `runner-peer-loader.mjs`, and `runner-peer-preload.mjs`. |
-| `src/**/*.js` | 5.04 MB / 320 files | The extension code. `index.js` re-exports it, so it is runtime code, not source. |
+| `src/**/*.js` | 5.02 MB / 320 files | The extension code. `index.js` re-exports it, so it is runtime code, not source. |
 | `package.json` and `LICENSE` | 4.6 KB / 2 files | Module resolution and the MIT notice. |
 | `node_modules/` | 8.47 MB / 521 files | The runtime dependencies: `@js-temporal/polyfill` 0.5.1, `jsbi` 4.3.2, `acorn` 8.18.0, `jiti` 2.7.0, `undici` 8.10.2, and `yaml` 2.8.3. `jsbi` is a dependency of the polyfill. The version of `undici` matches the exact pin in `package.json`. |
 
@@ -65,8 +69,8 @@ must pass a load plus one dispatch, and the remaining gain does not pay for that
 
 ## References to parts that this copy removes
 
-Two places in the copy still name a part that this copy does not carry. This file records both of
-them, and patches neither.
+Four places in the copy still name a part that this copy does not carry. This file records all of
+them, and patches none.
 
 - `src/extension/subagent-guide.js:24-26` lists the files of the `council` guide topic. They live
   under `skills/council-mode/` and `skills/pi-subagents/`, which this copy removes. The guide topic
@@ -74,8 +78,14 @@ them, and patches neither.
 - `src/runs/shared/model-resolution.js:32` is an error message that points at
   `docs/configuration.md#modelresponsealiases`. This copy leaves the docs out, so the pointer is dead
   text.
-
-No other file under `src/` or in the worker scripts names a removed path.
+- `src/extension/upgrade-notice.js:11` takes `CHANGELOG.md` as a default argument. That file sits in
+  the removal table. `src/extension/index.js:82` imports the function, and `:1083` calls it on every
+  `session_start`. The consequence is small: the function returns early without a UI (`:12`), it
+  returns early when the version did not change (`:18`), and it writes its state file before it reads
+  the changelog (`:20`), so it tries once. A missing file prints one `console.error` from
+  `index.js:1083`, and the upgrade notice never appears.
+- `package.json` points `bin` at `install.mjs` (`:17`) and `types` at `./index.d.ts` (`:60` and
+  `:63`). Both files are gone. Nothing loads them at runtime.
 
 ## Local patches
 

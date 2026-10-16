@@ -71,6 +71,9 @@ When the `subagent` tool is not available, run the survey yourself along the loo
 Run a lookup yourself. When you know the name, `grep -rln <keyword> game-scripts/` finds it within a
 few calls.
 
+When the change has two or three independent parts, send one survey per part in a single parallel
+call.
+
 Skip this step when the task only changes values inside an existing block.
 
 ## Mod structure

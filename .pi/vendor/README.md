@@ -126,3 +126,19 @@ carry a value that the calling prompt does not contain, so an echo cannot pass a
 **In the product.** Open a session in this repository, and check three things: the `subagent` tool
 appears, `entry-scout` and `mod-reviewer` both appear as spawnable profiles, and one dispatch
 succeeds.
+
+## The host package root
+
+The background code of this copy reads `PI_SUBAGENTS_PI_CODING_AGENT_PACKAGE_ROOT` at import time
+(`src/runs/background/async-execution.js:65`). The value is the directory of the host package
+`@earendil-works/pi-coding-agent`. The code tries three sources in order: the script path in `argv`,
+then this key, then the npm install directory (`src/runs/background/async-execution.js:79`).
+
+A background child needs this root to resolve its peer aliases
+(`src/runs/background/runner-aliases.js:138`). When the code finds no root, the dispatch fails with
+the message `Background children require a supported standalone Pi host or the installed npm package
+(@earendil-works/pi-coding-agent); neither is available.` A foreground dispatch still works.
+
+The pi-desktop main process sets the key before it forks the agent host
+(`src/main/host-manager.ts:280`). The value is the host package directory
+`node_modules/@earendil-works/pi-coding-agent`.

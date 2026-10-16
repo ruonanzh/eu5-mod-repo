@@ -448,7 +448,9 @@ function sendCompletion(pi, items, unstartedWakes, unansweredCompletions, update
     const formatted = details.length === 1 ? formatSingleCompletion(details[0]) : formatGroupedCompletion(details);
     const held = pi.isHeld();
     const content = triggerTurn ? `${formatted}\n\nParent action: ${held ? HELD_COMPLETION_ACTION : COMPLETION_ACTION}` : formatted;
-    const display = details.some((detail) => detail.source === "foreground" || detail.status !== "completed" || detail.scheduleOrigin !== undefined);
+    // Vendored patch 15: a notice for a turn the user stopped stays hidden. The model still receives
+    // the notice, but the host no longer prints a message that the stop did not ask for.
+    const display = !held && details.some((detail) => detail.source === "foreground" || detail.status !== "completed" || detail.scheduleOrigin !== undefined);
     // A held notice starts no wake, so the silent-wake reminder must not later tell the model to resume the stopped task.
     const tracked = triggerTurn && !held;
     // Pi can queue an accepted wake behind the current turn or past agent_settled.

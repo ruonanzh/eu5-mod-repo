@@ -15,6 +15,8 @@ import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { readStatus } from "../shared/utils.js";
+import { deliverAsyncRunStop } from "../runs/foreground/async-stop-action.js";
 import { Box, Container, Spacer, Text } from "@earendil-works/pi-tui";
 import { clearAgentDiscoveryCache, discoverAgentSnapshot, discoverAgents, discoverAgentsAll } from "../agents/agents.js";
 import { resolveGlobalNpmRoot } from "../agents/global-npm-root.js";
@@ -650,15 +652,60 @@ export default function registerSubagentExtension(pi) {
     // Vendored patch 5: this copy dispatches in the foreground only, so bg_wait has nothing to wait for
     // and the tool is not registered at all (passing enabled=false would still register it).
     void registerWaitTool;
+    // Vendored patch 13: a user stop (Esc) must stop the runs it started. Upstream only reports that
+    // they keep running; in this copy nothing waits for them after an abort, so their result is never
+    // read. The run directories are the reliable route: a fan-out run works in its own process and is
+    // not always registered in this one, so the session's live runs are read from disk.
+    const stopLiveRunsForSession = () => {
+        const stopped = [];
+        let entries;
+        try {
+            entries = fs.readdirSync(DIRS.async);
+        }
+        catch {
+            entries = [];
+        }
+        for (const entry of entries) {
+            const asyncDir = path.join(DIRS.async, entry);
+            const status = readStatus(asyncDir);
+            if (!status || !state.currentSessionId || status.sessionId !== state.currentSessionId)
+                continue;
+            if (status.state !== "running" && status.state !== "queued" && status.state !== "paused")
+                continue;
+            try {
+                deliverAsyncRunStop({ asyncDir, status, pid: typeof status.pid === "number" ? status.pid : undefined, source: "stop-action" });
+                stopped.push(status.runId ?? entry);
+            }
+            catch (error) {
+                console.error(`Failed to stop async run ${entry} after a user stop:`, error);
+            }
+        }
+        for (const controller of state.workflowControllers?.values() ?? []) {
+            try {
+                controller.abort(new Error("Workflow stopped."));
+            }
+            catch (error) {
+                console.error("Failed to abort a live workflow after a user stop:", error);
+            }
+        }
+        state.workflowControllers?.clear();
+        state.workflowChildStops?.clear();
+        return stopped;
+    };
     pi.on("agent_end", async (_event, ctx) => {
         try {
             // The run is still active here, so its signal tells a user stop (Esc) apart from a finished or failed run.
             // Pi skips agent_before_settle after an abort. Background runs keep going, but they must not restart the parent.
             if (ctx.hasUI && ctx.signal?.aborted) {
                 parentWake.userAborted();
+                const stopped = stopLiveRunsForSession();
                 const active = activeAsyncJobCount();
-                if (active > 0)
+                if (active > 0) {
                     ctx.ui.notify(`${active} background subagent run${active === 1 ? " is" : "s are"} still active · /subagents-stop`, "info");
+                }
+                else if (stopped.length > 0) {
+                    ctx.ui.notify(`${stopped.length} subagent run${stopped.length === 1 ? "" : "s"} stopped with the turn.`, "info");
+                }
             }
             // A headless host may dispose the session as soon as this turn settles, so hand
             // finished results to Pi now; Pi runs the queued completion turn after agent_end.

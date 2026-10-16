@@ -62,7 +62,7 @@ parses the profile frontmatter. A load test that removes either one fails.
 | `skills/` | 0.14 MB / 9 files | The upstream `council-mode` and `pi-subagents` skills. |
 | `agents/` | 0.02 MB / 13 files | The upstream profiles, which include profiles for the Claude Code, Codex, and Cursor CLIs. This repository keeps its own profiles in `.pi/agents/`. |
 | `prompts/` | 0.02 MB / 6 files | The upstream workflow prompt templates. |
-| `install.mjs`, `index.d.ts`, `index.d.ts.map`, `index.js.map` | 4 KB / 4 files | The npm installer, the type declarations, and the entry source map. |
+| `install.mjs`, `index.d.ts`, `index.d.ts.map`, `index.js.map` | 4 KB / 4 files | The npm installer, the type declarations, and the entry source map. Patch 12 removes the `bin` and `types` fields that point at them. |
 | `node_modules/undici` | 1.90 MB / 214 files | One dynamic `require` in the background HTTP dispatcher uses it (`src/runs/background/runner-http-dispatcher.js:102`). This copy never starts a background run, so the path is unreachable. |
 | `node_modules/jiti` | 1.75 MB / 16 files | The background runner looks for a `jiti` CLI to load the host entry (`src/runs/background/async-execution.js:89-108`). Background runs do not start here. |
 | `node_modules/@js-temporal/polyfill` | 2.98 MB / 38 files | The calendar schedule implementation imports it lazily (`src/runs/background/calendar-schedule.js:5`). Patch 9 turns scheduled runs off, so nothing reaches it. |
@@ -89,7 +89,7 @@ dispatch.
 
 ## References to parts that this copy removes
 
-Four places in the copy still name a part that this copy does not carry. This file records all of
+Three places in the copy still name a part that this copy does not carry. This file records all of
 them, and patches none.
 
 - `src/extension/subagent-guide.js:24-26` lists the files of the `council` guide topic. They live
@@ -104,8 +104,6 @@ them, and patches none.
   returns early when the version did not change (`:18`), and it writes its state file before it reads
   the changelog (`:20`), so it tries once. A missing file prints one `console.error` from
   `index.js:1083`, and the upgrade notice never appears.
-- `package.json` points `bin` at `install.mjs` (`:17`) and `types` at `./index.d.ts` (`:60` and
-  `:63`). Both files are gone. Nothing loads them at runtime.
 
 ## Local patches
 
@@ -138,6 +136,8 @@ The copy carries nine local patches. Every patch names its file and line in the 
 11. `src/runs/background/calendar-schedule.js:3` and `package.json` — a calendar call that needs the
     missing `@js-temporal/polyfill` fails with a message that names the cause, and the declared
     dependency list holds only `acorn` and `yaml`.
+12. `package.json` — no `bin` field and no `types` field, and no `types` condition inside `exports`.
+    Every one of them pointed at a file this copy removes.
 
 ## How to refresh
 
@@ -145,8 +145,8 @@ The copy carries nine local patches. Every patch names its file and line in the 
 2. Unpack the tarball into this directory.
 3. Remove the parts in the table **What this copy removes**, including the four dependencies.
 4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
-5. Apply local patches 1 to 11 again. Every patch carries a `Vendored patch` comment in the code, so
-   `grep -rn "Vendored patch" src/` finds them all. Patch 11 also edits `package.json`.
+5. Apply local patches 1 to 12 again. Every patch carries a `Vendored patch` comment in the code, so
+   `grep -rn "Vendored patch" src/` finds them all. Patches 11 and 12 also edit `package.json`.
 6. Run the load check below, then run `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
    install's node_modules>` and record the new number in this file.
 

@@ -4,6 +4,7 @@ description: Review one mod change for the semantics that validate_mod does not 
 tools: read, grep
 acceptanceRole: read-only
 thinking: high
+async: false
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

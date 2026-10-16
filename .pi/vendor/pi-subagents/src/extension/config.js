@@ -259,10 +259,21 @@ export function updateConfig(updater) {
 export function resolveAsyncByDefault(config) {
     return config.asyncByDefault !== false;
 }
+/** Vendored patch 9: scheduled runs are off unless the agent-dir config turns them on. The calendar
+ * implementation is the only user of @js-temporal/polyfill, so this also keeps that dependency out of
+ * the reachable code (the dependency is not shipped in this copy). */
+const VENDORED_CONFIG_DEFAULTS = { scheduledRuns: { enabled: false } };
+function withVendoredDefaults(config) {
+    return {
+        ...VENDORED_CONFIG_DEFAULTS,
+        ...config,
+        scheduledRuns: { ...VENDORED_CONFIG_DEFAULTS.scheduledRuns, ...(config.scheduledRuns ?? {}) },
+    };
+}
 export function loadConfig() {
     const configPath = getConfigPath();
     try {
-        return readConfigForUpdate(configPath);
+        return withVendoredDefaults(readConfigForUpdate(configPath));
     }
     catch (error) {
         if (error instanceof PrunedForkConfigError)
@@ -278,5 +289,5 @@ export function loadConfig() {
         }
         console.error(`Failed to load subagent config from '${configPath}':`, error);
     }
-    return {};
+    return withVendoredDefaults({});
 }

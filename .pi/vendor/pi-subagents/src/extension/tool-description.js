@@ -10,15 +10,15 @@ function featureText(disabled) {
 // Part of every built-in description and appended to custom ones, so it is sent on every request.
 export const SUBAGENT_SAFETY_GUIDANCE = `SAFETY-CRITICAL SUBAGENT GUIDANCE:
 - Delegate only when the operator asked, directly or through applicable user/project instructions; size, complexity or risk alone is not authorization.
-- Native async completion wakes this session: return control; do not sleep, poll or call bg_wait for it.
+- This copy runs every child in the foreground: the result arrives in the tool receipt. Do not wait or poll.
 - One writer per cwd/worktree; isolate concurrent writers.
 - After a launch or runtime failure, stop and report it; never silently switch to interactive_shell, pi -ne or another CLI.`;
-const scriptCalls = "One child: {agent,task}. Independent parallel children: {workflow:\"parallel\",args:{tasks:[{agent,task},...]}}. Dependent multi-step work: exactly one top-level subagent workflow call with async:true; write one ```js workflow block in this reply, then call subagent({workflow:true}); children launch only inside it.";
-const structuredCalls = "One child: {agent,task}. Parallel: tasks:[{agent,task},...]. In order: chain:[{agent,task?,as?} or {parallel:[{agent,task},...]}]; step tasks can use {task}, {previous} and {outputs.name}. Use exactly one top-level subagent chain or tasks call with async:true.";
+const scriptCalls = "One child: {agent,task}. Independent parallel children: {workflow:\"parallel\",args:{tasks:[{agent,task},...]}}. Dependent multi-step work: exactly one top-level subagent workflow call; write one ```js workflow block in this reply, then call subagent({workflow:true}); children launch only inside it.";
+const structuredCalls = "One child: {agent,task}. Parallel: tasks:[{agent,task},...]. In order: chain:[{agent,task?,as?} or {parallel:[{agent,task},...]}]; step tasks can use {task}, {previous} and {outputs.name}. Use exactly one top-level subagent chain or tasks call.";
 const essentials = (on) => `${on("workflow-scripts", scriptCalls, structuredCalls)}
 Management: {action,id?,options:{...}}; fields not in this schema go in options.
 Launch agents by name and pass models as exact provider/id; an unknown agent or model returns the valid choices.
-Details: guide workflows/recommended-orchestration-pattern (async, review, failure recovery), ${on("workflow-scripts", "guide workflows/scripted-workflows, ")}guide tool-reference/retained-children, guide tool-reference/external-cli-agent-profiles.
+Details: guide workflows/recommended-orchestration-pattern (review, failure recovery), ${on("workflow-scripts", "guide workflows/scripted-workflows, ")}guide tool-reference/retained-children, guide tool-reference/external-cli-agent-profiles.
 
 ${SUBAGENT_SAFETY_GUIDANCE}`;
 const managementDiscovery = (on) => [
@@ -35,7 +35,7 @@ const scriptDetails = `• Scripts: JavaScript statement bodies with explicit re
 // Opt-in through toolDescriptionMode "full": the rarer rules the default leaves to guide sections.
 const fullDetails = (on) => `DETAILS:
 ${on("workflow-scripts", scriptDetails)}• ${on("workflow-scripts", "Workflow child controls default onto runs.run/runs.all items; child fields override them.", "Top-level child controls apply to every chain/tasks child.")} worktree:true requires clean source, isolates each child and returns handoff artifacts; options.baseRef defaults to HEAD at allocation or a supported named ref, never full 40/64-character commit IDs or revision expressions.${on("usage-budgets", " usageBudget is shared across the workflow; already-running children are not stopped.")}
-• Async follows asyncByDefault (normally true); async:false only to block the parent, not for final reviews/gates. Consume results at dependency barriers. bg_wait is for provider/detached work without native notification that needs a same-turn result.
+• Every call runs in the foreground and returns the result in the receipt. There is no background run to wait for.
 • Bind durable output ${on("workflow-scripts", "on runs.run/runs.all", "with output")}, not task filename prose; return actual outputReference/outputPathMapping/artifactPaths, evidence and residual risks.
 • Ordinary child subagents are not orchestrators; only configured fanout within depth/session limits. Use fresh-context read-only reviewers when independent review was requested. Oracle/advisor unknowns use supervisor dialogue; one-shot only when requested.
 • children.list is workflow-only, not an exhaustive list of direct native children: resume only resumable rows. When an intended child's exact run id is known, inspect it with {action:"status",id}; if status identifies the candidate, attempt {action:"resume",id,message}. Resume authoritatively checks eligibility and may reject it. Use a labeled same-role fallback only when no known candidate exists or resume rejects eligibility.${on("workflow-scripts", " Scripts await runs.run(newKey,{resume:runId,task}); continue from the latest returned runId. Each distinct resume pass needs a new stable key; same-key reuse requires identical launch parameters.")}

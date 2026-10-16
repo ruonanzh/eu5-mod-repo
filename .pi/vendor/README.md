@@ -18,12 +18,12 @@ maps, the upstream documentation, the upstream agent profiles, and the upstream 
 templates.
 
 **Measure the same way, or the numbers lie.** This file reports file bytes in MB. A `du` number
-counts whole blocks and reads higher: the installed tree on this machine reads 17 MB under `du`, and
-this copy reads 15 MB.
+counts whole blocks and reads higher: the installed tree on this machine reads 16.4 MB under `du`, and
+this copy reads 7.8 MB.
 
 Baseline, in file bytes: the published package holds 1331 files of 11.95 MB, and the six runtime
 dependencies add 521 files of 8.47 MB. The same content set is 1852 files of 20.42 MB. This copy is
-**848 files of 13.51 MB**.
+**580 files of 6.66 MB**, because it also drops four of those six dependencies.
 
 Do not measure the installed tree. An install tree also holds the nested `node_modules/undici` that
 npm places inside the package, and that is 214 files of 1.90 MB. The installed tree therefore reads
@@ -38,14 +38,14 @@ The real gain is the file count, because most of what leaves is many small files
 | `index.js` and the four worker scripts | 10 KB / 5 files | The package entry and the workers it loads. The workers are `async-retention-discovery-worker.mjs`, `inspector-runner.mjs`, `runner-peer-loader.mjs`, and `runner-peer-preload.mjs`. |
 | `src/**/*.js` | 5.02 MB / 320 files | The extension code. `index.js` re-exports it, so it is runtime code, not source. |
 | `package.json` and `LICENSE` | 4.6 KB / 2 files | Module resolution and the MIT notice. |
-| `node_modules/` | 8.47 MB / 521 files | The runtime dependencies: `@js-temporal/polyfill` 0.5.1, `jsbi` 4.3.2, `acorn` 8.18.0, `jiti` 2.7.0, `undici` 8.10.2, and `yaml` 2.8.3. `jsbi` is a dependency of the polyfill. The version of `undici` matches the exact pin in `package.json`. |
+| `node_modules/` | 1.25 MB / 243 files | The two dependencies this copy needs: `acorn` 8.18.0, which parses the workflow scripts, and `yaml` 2.8.3, which parses the profile frontmatter. The other four are in the removal table below. |
 
 The five Pi packages in `peerDependencies` (`@earendil-works/pi-ai`, `@earendil-works/pi-agent-core`,
 `@earendil-works/pi-coding-agent`, `@earendil-works/pi-tui`, and `typebox`) come from the host. This
 copy does not carry them.
 
-`@js-temporal/polyfill` and `acorn` are candidates for a later trim. One file imports each of them.
-Both imports sit on paths this repository does not use today.
+Both remaining dependencies sit on a path this copy uses: `acorn` parses a workflow script, and `yaml`
+parses the profile frontmatter. A load test that removes either one fails.
 
 ## What this copy removes
 
@@ -58,14 +58,26 @@ Both imports sit on paths this repository does not use today.
 | `agents/` | 0.02 MB / 13 files | The upstream profiles, which include profiles for the Claude Code, Codex, and Cursor CLIs. This repository keeps its own profiles in `.pi/agents/`. |
 | `prompts/` | 0.02 MB / 6 files | The upstream workflow prompt templates. |
 | `install.mjs`, `index.d.ts`, `index.d.ts.map`, `index.js.map` | 4 KB / 4 files | The npm installer, the type declarations, and the entry source map. |
+| `node_modules/undici` | 1.90 MB / 214 files | One dynamic `require` in the background HTTP dispatcher uses it (`src/runs/background/runner-http-dispatcher.js:102`). This copy never starts a background run, so the path is unreachable. |
+| `node_modules/jiti` | 1.75 MB / 16 files | The background runner looks for a `jiti` CLI to load the host entry (`src/runs/background/async-execution.js:89-108`). Background runs do not start here. |
+| `node_modules/@js-temporal/polyfill` | 2.98 MB / 38 files | The calendar schedule implementation imports it lazily (`src/runs/background/calendar-schedule.js:5`). Patch 9 turns scheduled runs off, so nothing reaches it. |
+| `node_modules/jsbi` | 0.58 MB / 10 files | A dependency of the polyfill. |
 
-The list covers the files the package owns. It does not touch the dependency trees, which travel as
-published. Those trees keep their own sources and maps: 156 `.ts` files and 6 `.map` files stay
-inside `node_modules/`.
+The list covers the files the package owns and the four dependencies it does not need. The remaining
+dependency trees travel as published, and keep their own sources and maps: 156 `.ts` files and 6
+`.map` files stay inside `node_modules/acorn` and `node_modules/yaml`.
 
-**The deep trim is not done.** The functional subsystems under `src/` (`tui`, `missions`, `watchdog`,
-`inspectors`, `intercom`, `slash`) are all still there. The rule for a deep cut is that the deletion
-must pass a load plus one dispatch, and the remaining gain does not pay for that risk yet.
+**A deep trim does not pay.** This repository measured one and rejected it. The functional subsystems
+under `src/` (`tui`, `missions`,
+`watchdog`, `inspectors`, `intercom`, `slash`, and the async machinery in `src/runs/background/`) all
+stay. A reachability scan of `src/**` (`325` files, roots the package entry and the Herdr bridge)
+reports 302 reachable files and 24 unreachable ones of 0.40 MB, and 58 of the reachable files import
+`src/runs/background/` — including the core `src/runs/foreground/subagent-executor.js`, the config
+loader, the TUI renderers, and the workflow runner. The 24 "unreachable" files are still spawned by
+computed paths (`async-retention-discovery-worker.mjs`, `inspector-runner.mjs`, and
+`runner-peer-preload.mjs` are all named by path strings). Removing a subsystem would therefore mean
+rewriting the package, and the rule for any deletion stays: the deletion must pass a load plus one
+dispatch.
 
 ## References to parts that this copy removes
 
@@ -89,19 +101,38 @@ them, and patches none.
 
 ## Local patches
 
-1. The patch removes the `//# sourceMappingURL=` line from the package's own `.js` files, because the
-   matching maps are gone. The patch touches 325 files and changes no behaviour. The dependency trees
-   keep their own maps, so this patch does not touch them.
+The copy carries nine local patches. Every patch names its file and line in the code as well.
+
+1. Remove the `//# sourceMappingURL=` line from the package's own `.js` files, because the matching
+   maps are gone. 325 files, no behaviour change. The dependency trees keep their own maps, so this
+   patch does not touch them.
+2. `src/extension/schemas.js:267` — the `async` parameter is not offered to the model, because this
+   copy always dispatches in the foreground.
+3. `src/runs/foreground/subagent-executor.js:7525` and `:7064` — always dispatch in the foreground, and
+   never request a background run. `src/extension/tool-description.js:13,16,21,38` — the text the
+   model reads describes the foreground form only. It names no background run, no `bg_wait`, and no
+   `async: true`.
+4. `src/shared/disabled-features.js:66` — the management surface this copy hides from the model is a
+   fixed list, because the agent directory cannot set it.
+5. `src/extension/index.js:650` — `bg_wait` is not registered: a foreground dispatch returns the answer
+   in the receipt.
+6. `src/extension/index.js:1088` — the `subagents_enable` loader is not registered, so `subagent` is
+   active from the first request.
+7. `src/extension/index.js:631` and `src/intercom/native-supervisor-channel.js:14` — the supervisor
+   tools are not offered. A child answers in its own receipt.
+8. `src/runs/foreground/subagent-executor.js:2560` and `:4046` — every child and every single dispatch
+   runs in the foreground, whatever the profile or the caller asks for.
+9. `src/extension/config.js:262` — `scheduledRuns.enabled` is `false` unless the agent directory turns
+   it on. That is what makes the calendar dependency unreachable.
 
 ## How to refresh
 
 1. Run `npm pack pi-subagents@0.78.0`.
 2. Unpack the tarball into this directory.
-3. Remove the parts in the table **What this copy removes**.
-4. Copy the six runtime dependencies from the Pi npm directory into `node_modules/`. Take `undici`
-   from the copy that the Pi npm directory nests inside `pi-subagents`, so the version matches the
-   pin.
-5. Apply local patch 1 again.
+3. Remove the parts in the table **What this copy removes**, including the four dependencies.
+4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
+5. Apply local patches 1 to 9 again. Every patch carries a `Vendored patch` comment in the code, so
+   `grep -rn "Vendored patch" src/` finds them all.
 6. Run the load check below.
 
 To move to a newer version, change the version wherever it appears, then repeat these steps. Record

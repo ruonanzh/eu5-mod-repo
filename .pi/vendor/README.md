@@ -107,7 +107,7 @@ them, and patches none.
 
 ## Local patches
 
-The copy carries nine local patches. Every patch names its file and line in the code as well.
+The copy carries thirteen local patches. Every patch names its file and line in the code as well.
 
 1. Remove the `//# sourceMappingURL=` line from the package's own `.js` files, because the matching
    maps are gone. 325 files, no behaviour change. The dependency trees keep their own maps, so this
@@ -141,6 +141,10 @@ The copy carries nine local patches. Every patch names its file and line in the 
     dependency list holds only `acorn` and `yaml`.
 12. `package.json` — no `bin` field and no `types` field, and no `types` condition inside `exports`.
     Every one of them pointed at a file this copy removes.
+13. `src/extension/index.js:656` — a user stop stops the runs the turn started. It reads the session's
+    live runs from the run directory, calls `deliverAsyncRunStop`, and aborts the live workflow
+    controllers. Upstream only reports that the runs keep working, and this copy never reads their
+    result.
 
 ## How to refresh
 
@@ -148,7 +152,7 @@ The copy carries nine local patches. Every patch names its file and line in the 
 2. Unpack the tarball into this directory.
 3. Remove the parts in the table **What this copy removes**, including the four dependencies.
 4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
-5. Apply local patches 1 to 12 again. Every patch carries a `Vendored patch` comment in the code, so
+5. Apply local patches 1 to 13 again. Every patch carries a `Vendored patch` comment in the code, so
    `grep -rn "Vendored patch" src/` finds them all. Patches 11 and 12 also edit `package.json`.
 6. Run the load check below, then run `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
    install's node_modules>` and record the new number in this file.

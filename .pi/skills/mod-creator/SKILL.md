@@ -193,8 +193,9 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
 ## Entry mechanisms and data kinds (what to add, and where it lives)
 
 Pick the entry mechanism from the table in `docs/eu5-modding-conventions.md` section 7, then open the
-folder it names and read one of the examples there. When you are unsure which mechanism fits, send
-the intent to `entry-scout` first and read the candidate it returns.
+folder it names and read one of the examples there. Send the intent to `entry-scout` first and read
+the candidate it returns, in two cases: when you are unsure which mechanism fits, and when you must
+survey the mechanisms that the game already has for a theme.
 
 A mod can also add its own content to one of the game's own data folders. The common ones are:
 

@@ -48,6 +48,9 @@ one click, and it pays for itself as soon as there is a choice to make.
   be clicked, and the panel saves a named control's value with the comments.
 - **Room to write.** When the page asks the player to write a sentence or more, use a `<textarea>` with
   about four rows. A one-line field is for a value, not for a thought.
+- **No page script.** The panel reads the file and injects the markup, so a `<script>` in the page does
+  not run and is dead code. To show the effect of a selection, use CSS only, for example
+  `:checked + label` or `:has()`.
 
 ## The page styles
 

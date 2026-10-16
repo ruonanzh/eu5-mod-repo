@@ -35,7 +35,7 @@ export const SUBAGENT_FEATURES = {
     "control-overrides": { actions: [], params: ["control"] },
     "extension-bindings": { actions: [], params: ["extensionBindings"] },
     "external-machines": { actions: [], params: ["machine"] },
-    "workflow-scripts": { actions: ["validate"], params: ["workflow", "args", "preflight", "globalConcurrencyLimit", "maxSubagentSpawnsPerRun"] },
+    "workflow-scripts": { actions: ["validate"], params: ["preflight", "globalConcurrencyLimit", "maxSubagentSpawnsPerRun"] },
 };
 const SCHEDULE_SURFACE = {
     actions: ["schedule.create", "schedule.list", "schedule.show", "schedule.history", "schedule.pause", "schedule.resume", "schedule.run", "schedule.run-due", "schedule.delete"],

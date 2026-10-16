@@ -47,13 +47,12 @@ export function normalizePublicSubagentExecution(params, options = {}) {
     if (params.workflowScriptPath !== undefined) {
         return { ok: false, error: REMOVED_WORKFLOW_SCRIPT_PATH, mode: params.action === undefined ? "workflow" : "management" };
     }
-    // Some MCP clients send the boolean branch of the workflow union as the string "true" (#2600).
-    // Coerce it here so no path can resolve it as a named resource or script file called "true".
-    if (params.workflow === "true")
-        params = { ...params, workflow: true };
+    // Vendored patch 14: this copy provides the parallel workflow only. The script forms (true, or a
+    // path) stay closed, because a script dispatch is the one path that opens a background run and
+    // detaches the turn.
     const workflow = params.workflow;
-    if (workflow !== undefined && workflow !== true && (typeof workflow !== "string" || !workflow.trim())) {
-        return { ok: false, error: "workflow must be true (the ```js workflow block in this reply), a script path containing '/', or a named workflow resource.", mode: "workflow" };
+    if (workflow !== undefined && workflow !== "parallel") {
+        return { ok: false, error: 'workflow accepts only "parallel": {workflow:"parallel",args:{tasks:[{agent,task},...]}}. The script form is not available in this copy.', mode: "workflow" };
     }
     const hasNamedWorkflow = typeof workflow === "string" && !isWorkflowScriptPath(workflow);
     // workflowScript is the internal script carrier; model tool calls cannot set it.

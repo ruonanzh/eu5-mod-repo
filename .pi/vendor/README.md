@@ -107,7 +107,7 @@ them, and patches none.
 
 ## Local patches
 
-The copy carries thirteen local patches. Every patch names its file and line in the code as well.
+The copy carries fourteen local patches. Every patch names its file and line in the code as well.
 
 1. Remove the `//# sourceMappingURL=` line from the package's own `.js` files, because the matching
    maps are gone. 325 files, no behaviour change. The dependency trees keep their own maps, so this
@@ -118,11 +118,11 @@ The copy carries thirteen local patches. Every patch names its file and line in 
    never request a background run. `src/extension/tool-description.js:13,16,21,38` — the text the
    model reads describes the foreground form only. It names no background run, no `bg_wait`, and no
    `async: true`.
-4. `src/shared/disabled-features.js:66` — the management surface this copy hides from the model is a
-   fixed list, because the agent directory cannot set it. The list holds `workflow-scripts`, so the
-   tool offers no script form. That form is the one path that still opens a background run and detaches
-   the turn, which brings back the wake message and its visible bubble. Without it the model keeps the
-   structured `tasks` and `chain` forms, and the foreground path runs them.
+4. `src/shared/disabled-features.js:73` — the management surface this copy hides from the model is a
+   fixed list, because the agent directory cannot set it. The list keeps the script-only parameters
+   (`preflight` and the two capacity overrides) and the `validate` action off. The `workflow` parameter
+   stays, and patch 14 admits only the value `parallel`, so the one path that opens a background run
+   and detaches the turn stays closed.
 5. `src/extension/index.js:650` — `bg_wait` is not registered: a foreground dispatch returns the answer
    in the receipt.
 6. `src/extension/index.js:1088` — the `subagents_enable` loader is not registered, so `subagent` is
@@ -145,6 +145,8 @@ The copy carries thirteen local patches. Every patch names its file and line in 
     live runs from the run directory, calls `deliverAsyncRunStop`, and aborts the live workflow
     controllers. Upstream only reports that the runs keep working, and this copy never reads their
     result.
+14. `src/extension/public-execution.js:52` and `src/extension/schemas.js:203` — the `workflow` parameter
+    admits only `parallel`. This copy refuses the script forms (`true`, or a path) and names the cause.
 
 ## How to refresh
 
@@ -152,7 +154,7 @@ The copy carries thirteen local patches. Every patch names its file and line in 
 2. Unpack the tarball into this directory.
 3. Remove the parts in the table **What this copy removes**, including the four dependencies.
 4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
-5. Apply local patches 1 to 13 again. Every patch carries a `Vendored patch` comment in the code, so
+5. Apply local patches 1 to 14 again. Every patch carries a `Vendored patch` comment in the code, so
    `grep -rn "Vendored patch" src/` finds them all. Patches 11 and 12 also edit `package.json`.
 6. Run the load check below, then run `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
    install's node_modules>` and record the new number in this file.

@@ -35,7 +35,9 @@ Read `docs/eu5-modding-conventions.md`, and start with its last section,
 2. **Pairing and scope.** A name must match its host list, its category, and its scope. Example:
    `local_unrest`, a Location modifier, placed in a country static modifier.
 3. **Override form.** The choice between a full-file override, `INJECT:`, and `REPLACE:` must match
-   the intent. Example: a block-level change written as a full-file override, so keys are lost.
+   the intent. Example: a block-level change written as a full-file override, so keys are lost. When
+   the change overwrites a whole file, name the entries that the current vanilla file defines and
+   the copy does not repeat.
 4. **Encoding and file name.** The BOM, the extension, the override directory, and the load-order
    prefix, judged by their real effect. Example: `00_cmf_widgets.txt` has no UTF-8 BOM.
 5. **Value domain and units.** Enum values, comparison semantics, and units. Example: a modifier

@@ -49,6 +49,8 @@ accepts. Label it as weak, and prefer layer 1 or layer 2 whenever the two disagr
 
 ## How to answer
 
+Write the answer in English. The caller may write in another language.
+
 Return a short list of candidates, best first. Each candidate carries:
 
 - `file:line` — the exact place to look.

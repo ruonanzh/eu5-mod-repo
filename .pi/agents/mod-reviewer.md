@@ -47,6 +47,8 @@ Read `docs/eu5-modding-conventions.md`, and start with its last section,
 
 ## How to answer
 
+Write the answer in English. The caller may write in another language.
+
 Start with the verdict on its own line, and use one of these three words: `PASS`, `WARN`, `FAIL`.
 Do not use another verdict word, such as `BLOCK`, `OK`, or `do not install`. The caller parses this
 line.

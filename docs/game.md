@@ -7,9 +7,10 @@ The game is **Windows-only**.
 
 ## How the game loads mods
 
-- A mod is a directory under the Paradox user-documents directory:
-  `%USERPROFILE%\Documents\Paradox Interactive\Europa Universalis V\mod\<name>\`.
-  The Paradox launcher loads it.
+- A mod is a directory under the Paradox user-documents directory. The path is
+  `<the player's Documents directory>\Paradox Interactive\Europa Universalis V\mod\<name>\`.
+  The player can move the Documents directory, so the tools read it from Windows.
+  The Paradox launcher loads the mod from there.
 - The mod directory holds `.metadata/metadata.json` (required), `in_game/` (in-game content),
   `main_menu/` (main-menu content), and an optional `loading_screen/`.
 - At load time, the game layers the mod files on top of the vanilla files. A file with the same

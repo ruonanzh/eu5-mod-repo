@@ -5,6 +5,7 @@ Understanding of Europa Universalis V's mod structure is critical to modding the
 ## Mod folder location
 By default, the folder for local mods is located at:
 %USERPROFILE%/Documents/Paradox Interactive/Europa Universalis V/mod
+Note: the launcher reads the real Documents directory from Windows. The player can move it.
 Each local mod needs its own folder in there. It is also expected all of them have [Metadata](#Metadata), otherwise the game will error.
 Mods downloaded from the Steam workshop are located in Steam/steamapps/workshop/content/3450310 directory.
 ## Metadata

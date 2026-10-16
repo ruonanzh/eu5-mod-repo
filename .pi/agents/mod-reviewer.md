@@ -1,6 +1,6 @@
 ---
 name: mod-reviewer
-description: Review one mod change for the semantics that validate_mod does not check, before the caller installs it. Use it after validate_mod is clean and before install_mod runs.
+description: Review one mod change for the semantics that validate_mod does not check, before the caller installs it. Use it after validate_mod is clean and before install_mod runs. The caller dispatches this profile. The caller does not run the review itself.
 tools: read, grep
 acceptanceRole: read-only
 thinking: high
@@ -45,7 +45,9 @@ Read `docs/eu5-modding-conventions.md`, and start with its last section,
 
 ## How to answer
 
-Start with the verdict on its own line: `PASS`, `WARN`, or `FAIL`.
+Start with the verdict on its own line, and use one of these three words: `PASS`, `WARN`, `FAIL`.
+Do not use another verdict word, such as `BLOCK`, `OK`, or `do not install`. The caller parses this
+line.
 
 Then one block per finding:
 

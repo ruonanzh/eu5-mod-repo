@@ -63,10 +63,30 @@ function featureSurface(feature) {
         return { ...SCHEDULE_SURFACE, disabledBy: "scheduledRuns.enabled=false" };
     return { ...SUBAGENT_FEATURES[feature], disabledBy: `disabledFeatures "${feature}"` };
 }
+/** Vendored patch 4: management surfaces this copy hides from the model. The list is fixed here because
+ * the agent-dir config, which normally carries disabledFeatures, is not ours to write. */
+export const VENDORED_DISABLED_FEATURES = [
+    "agent-management",
+    "watchdog",
+    "panes",
+    "missions",
+    "lane-management",
+    "spawn-budget-grants",
+    "preflight",
+    "lane-metadata",
+    "gates",
+    "usage-budgets",
+    "tool-budgets",
+    "control-overrides",
+    "extension-bindings",
+    "external-machines",
+];
 export function resolveDisabledFeatureSurface(config) {
     const features = new Set(config.disabledFeatures);
     if (config.scheduledRuns?.enabled === false)
         features.add("schedules");
+    for (const feature of VENDORED_DISABLED_FEATURES)
+        features.add(feature);
     const params = new Map();
     const actions = new Map();
     for (const feature of features) {

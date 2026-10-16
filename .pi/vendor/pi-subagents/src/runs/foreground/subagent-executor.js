@@ -2557,7 +2557,9 @@ function applySingleAgentLaunchDefaults(params, agents) {
     const outputSchema = params.outputSchema === false ? false : resolveEffectiveOutputSchema(agent, params.outputSchema);
     return {
         ...params,
-        ...(params.async === undefined && agent.defaultAsync !== undefined ? { async: agent.defaultAsync } : {}),
+        // Vendored patch 8: every child and single dispatch runs in the foreground in this copy.
+        // The profile frontmatter `async` field is read but deliberately overridden.
+        async: false,
         ...(params.timeoutMs === undefined && params.maxRuntimeMs === undefined && agent.defaultTimeoutMs !== undefined
             ? { timeoutMs: agent.defaultTimeoutMs }
             : {}),
@@ -4041,7 +4043,8 @@ export async function runMissionWorkflowChild(binding, workflowRunId, key, phase
     }
 }
 export function bindMissionWorkflowChildAsyncLaunch(params, binding, asyncByDefault, asyncId = randomUUID(), nestedRootRunId) {
-    const requestedAsync = params.async ?? asyncByDefault;
+    // Vendored patch 8 (continued): a workflow child never starts its own background run here.
+    const requestedAsync = false;
     if (!binding || !requestedAsync || params.clarify === true)
         return params;
     const id = asyncId.trim();
@@ -7058,7 +7061,10 @@ export function createSubagentExecutor(deps) {
         // A launcher agent goes to the background whenever the caller omitted async, even if the agent file defaults to foreground.
         const externalAsyncRequired = effectiveParams.foregroundOnly !== true && ((Boolean(externalAgent) && effectiveParams.async === undefined && effectiveParams.clarify !== true)
             || (Boolean(launcherAgent) && normalizedParams.async === undefined && normalizedParams.clarify !== true));
-        const requestedAsync = externalAsyncRequired ? true : effectiveParams.async ?? deps.asyncByDefault;
+        // Vendored patch 3 (continued): never request a background run. External runners and launchers
+        // keep their own guards below, so such a profile still reports a clear error instead of
+        // starting a run that this copy cannot host.
+        const requestedAsync = false;
         const backgroundRequestedWhileClarifying = (hasChain || hasTasks) && requestedAsync && effectiveParams.clarify === true;
         const effectiveAsync = requestedAsync && effectiveParams.clarify !== true;
         if (externalAgent && (!effectiveAsync || effectiveParams.foregroundOnly === true)) {
@@ -7516,7 +7522,10 @@ export function createSubagentExecutor(deps) {
             return execute(id, requestParams, signal, onUpdate, ctx).then(withAggregatedToolUsage);
         const { depth } = checkSubagentDepth(deps.config.maxSubagentDepth, deps.childRuntime);
         const dispatchParams = applyForceTopLevelAsyncOverride(requestParams, depth, deps.config.forceTopLevelAsync === true);
-        const runsForeground = dispatchParams.clarify === true || (dispatchParams.async ?? deps.asyncByDefault) !== true;
+        // Vendored patch 3: always dispatch in the foreground in this copy, so the parent never yields
+        // its turn. The agent-dir asyncByDefault is ignored on purpose; `async` is no longer offered
+        // to the model (schemas.js), and bg_wait is not registered.
+        const runsForeground = true;
         if (!runsForeground)
             return execute(id, requestParams, signal, onUpdate, ctx).then(withAggregatedToolUsage);
         if (deps.state.subagentInProgress === true)

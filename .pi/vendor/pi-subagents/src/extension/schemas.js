@@ -264,8 +264,11 @@ const { agent, task, workflow, args, async, model, cwd, worktree, output, action
 export const SUBAGENT_OPTION_KEYS = Object.keys(SubagentOptionProperties);
 /** Values the model passes in `options`, checked with the same property schemas as flat callers. */
 export const SubagentOptionParams = Type.Object(SubagentOptionProperties, { additionalProperties: false });
+// Vendored patch 2: `async` is not offered to the model in this copy, because the copy always runs in
+// the foreground (see the subagent-executor patches). `async` stays in the destructuring above on
+// purpose: that kept it out of SubagentOptionProperties, so options.async is rejected too.
 const ModelTopLevelProperties = {
-    agent, task, workflow, args, async, model, cwd, worktree, output, action, id, message,
+    agent, task, workflow, args, model, cwd, worktree, output, action, id, message,
     options: Type.Optional(Type.Unsafe({ type: "object", additionalProperties: true, description: "Every field not listed here, such as acceptance, timeoutMs, context, view and index; guide tool-reference/parameter-reference." })),
 };
 export const SubagentParams = keepTopLevelParameterDescriptions(Type.Object(ModelTopLevelProperties));

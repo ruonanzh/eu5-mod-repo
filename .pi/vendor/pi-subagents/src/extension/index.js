@@ -628,8 +628,9 @@ export default function registerSubagentExtension(pi) {
         },
     };
     registerPinnedTool(pi, tool);
-    // Declared with the same definition children use, so a fork's tool list equals this session's.
-    registerPinnedTool(pi, topLevelSupervisorTool());
+    // Vendored patch 7 (continued): the top-level supervisor tool is not offered in this copy. A child
+    // answers inside its own output, so no child asks a question mid-run.
+    void topLevelSupervisorTool;
     pi.on("before_agent_start", async (event, ctx) => {
         await waitForAdvertisement();
         const sessionId = state.currentSessionId ?? resolveCurrentSessionId(ctx.sessionManager);
@@ -646,7 +647,9 @@ export default function registerSubagentExtension(pi) {
         if (catalog)
             event.systemPromptOptions.sections.advertised_subagents = catalog;
     });
-    registerWaitTool(pi, state, waitToolConfig.enabled, waitSubscriptionManager, waitToolConfig.defaultTimeoutMs, undefined, supervisorChannel.hasPendingRequests);
+    // Vendored patch 5: this copy dispatches in the foreground only, so bg_wait has nothing to wait for
+    // and the tool is not registered at all (passing enabled=false would still register it).
+    void registerWaitTool;
     pi.on("agent_end", async (_event, ctx) => {
         try {
             // The run is still active here, so its signal tells a user stop (Esc) apart from a finished or failed run.
@@ -1082,11 +1085,7 @@ export default function registerSubagentExtension(pi) {
     // Child processes and Herdr panes never load this module; in-process children have no UI.
     pi.on("session_start", (_event, ctx) => void showUpgradeNotice(ctx).catch((error) => console.error("Failed to show the pi-subagents upgrade notice:", error)));
     pi.on("session_start", (_event, ctx) => beginAdvertisement(ctx));
-    registerSubagentToolActivation(pi, {
-        mode: config.toolActivation,
-        advertisedPrompt: async () => {
-            await waitForAdvertisement();
-            return buildAdvertisedAgentPrompt(advertisedAgents, resolveCurrentSubagentCapabilityCeiling(state.currentSessionId ?? undefined));
-        },
-    });
+    // Vendored patch 6: without the loader tool, `subagent` stays active from the first request
+    // (the same effect as --exclude-tools subagents_enable), which is what this copy wants.
+    void registerSubagentToolActivation;
 }

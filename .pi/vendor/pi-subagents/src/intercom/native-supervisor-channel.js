@@ -11,6 +11,10 @@ const SUPERVISOR_CHANNEL_ROOT = path.join(TEMP_ROOT_DIR, "supervisor-channels");
 const REQUESTS_DIR = "requests";
 const REPLIES_DIR = "replies";
 export const NATIVE_SUPERVISOR_TOOL_NAME = "subagent_supervisor";
+/** Vendored patch 7: this copy does not offer the supervisor tools. A child answers inside its own
+ * output and the parent reads that output, so no child asks a question mid-run. Set this to false to
+ * restore both the child-side and the parent-side tool. */
+const VENDORED_HIDE_SUPERVISOR_TOOLS = true;
 const MAX_MESSAGE_BYTES = 64 * 1024;
 const DEFAULT_ASK_TIMEOUT_MS = 10 * 60 * 1000;
 const CHANNEL_POLL_MS = Math.min(POLL_INTERVAL_MS, 500);
@@ -200,6 +204,8 @@ export function topLevelSupervisorTool() {
  * channel metadata in the child runtime config.
  */
 export function registerNativeSupervisorClient(pi, metadata) {
+    if (VENDORED_HIDE_SUPERVISOR_TOOLS)
+        return;
     if (!metadata || hasTool(pi, CONTACT_SUPERVISOR_TOOL_NAME))
         return;
     const tool = {
@@ -670,6 +676,8 @@ export function createNativeSupervisorChannel(pi, state, deps = {}) {
         return false;
     };
     const registerParentTools = () => {
+        if (VENDORED_HIDE_SUPERVISOR_TOOLS)
+            return;
         if (!hasTool(pi, NATIVE_SUPERVISOR_TOOL_NAME))
             pi.registerTool(buildParentSupervisorTool(pi, pending, state, observeRequestLifecycle, () => poll(), runState));
     };

@@ -26,9 +26,10 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   `pi-subagents` package at `.pi/vendor/pi-subagents/`, so the `subagent` tool is available in a
   trusted project. Dispatch `entry-scout` before you survey the vanilla scripts, and read its first
   candidate yourself. `mod-reviewer` checks the semantics that `validate_mod` cannot see, before you
-  install. Neither writes, so you apply every change. When the `subagent` tool is not available, run
-  the search yourself, and work through the last section of `docs/eu5-modding-conventions.md` by
-  hand.
+  install. Neither writes, so you apply every change. When the `subagent` tool does not appear in
+  your tool list, run the search yourself, and work through the last section of
+  `docs/eu5-modding-conventions.md` by hand. When a dispatch fails, report the failure and do the
+  same.
 
 ## Directory map
 

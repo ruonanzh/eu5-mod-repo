@@ -65,8 +65,9 @@ name defined?". The two questions need different work.
 Dispatch `entry-scout` for a survey, before you grep the vanilla scripts. Give it the theme and the
 planned change. It returns candidate entry points as `file:line`, with the mechanism family. Its
 answer is a candidate list, not a decision: read its first candidate yourself before you write.
-When the `subagent` tool is not available, run the survey yourself along the lookup path in
-`docs/INDEX.md`.
+When the `subagent` tool does not appear in your tool list, run the survey yourself along the
+lookup path in `docs/INDEX.md`. When a dispatch fails, report the failure and run the survey
+yourself.
 
 Run a lookup yourself. When you know the name, `grep -rln <keyword> game-scripts/` finds it within a
 few calls.
@@ -253,7 +254,8 @@ For the question "does X exist, and what is the vanilla value?", follow the look
 For a survey, `entry-scout` runs this search and returns candidates as `file:line`.
 Give it the intent and the planned change list. Its answer is a candidate list, not a decision: read
 its first candidate yourself before you write.
-When the `subagent` tool is not available, run the search yourself along the same path.
+When the `subagent` tool does not appear in your tool list, run the search yourself along the
+same path. When a dispatch fails, report the failure and run the search yourself.
 
 ## Reference
 

@@ -139,6 +139,8 @@ A background child needs this root to resolve its peer aliases
 the message `Background children require a supported standalone Pi host or the installed npm package
 (@earendil-works/pi-coding-agent); neither is available.` A foreground dispatch still works.
 
-The pi-desktop main process sets the key before it forks the agent host
+The pi-desktop main process can set this key before it forks the agent host
 (`src/main/host-manager.ts:280`). The value is the host package directory
-`node_modules/@earendil-works/pi-coding-agent`.
+`node_modules/@earendil-works/pi-coding-agent`. The product does not set it today:
+this repository dispatches foreground children only, and the key matters only for
+the background form.

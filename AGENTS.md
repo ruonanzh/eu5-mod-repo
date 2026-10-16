@@ -22,6 +22,10 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   version such as `1.0.4` goes stale. This game updates its minor version often, and the game flags
   an exact version as outdated. Do not take the easy way out with a loose `1.*` — the linter WARNs on it.
   Read it from `get_game_info`, as section 5 of `docs/eu5-modding-conventions.md` explains.
+- **Two read-only subagents ship with this repository.** `.pi/settings.json` declares the vendored
+  `pi-subagents` package at `.pi/vendor/pi-subagents/`, so the `subagent` tool is available.
+  `entry-scout` finds entry points before you write. `mod-reviewer` checks the semantics that
+  `validate_mod` cannot see, before you install. Neither writes, so you apply every change.
 
 ## Directory map
 
@@ -70,6 +74,9 @@ The session sets one of two roles. The agent does not choose the role.
   scripts into `game-scripts/`.
 - **Mod development:** write only under `your_mods/<ModName>/`. The session role and binding decide
   whether writing is allowed and which mod directory is writable. This file does not decide that.
+- **The subagents never write.** `entry-scout` and `mod-reviewer` hold `read` and `grep` only.
+  Their results are advice. They are not session roles. Any session may
+  dispatch them.
 
 The repository owner maintains everything else (`docs/`, `.pi/`, `reference/`, `mod-repo.json`).
 Do not write there.
@@ -95,4 +102,8 @@ Clear every ERROR before you end the turn.
 The tool checks syntax, conventions, and **name-level semantics**: that effect, trigger, and modifier
 names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
 keys. It is not a scope or type validator.
+
+`mod-reviewer` covers the semantics that `validate_mod` cannot see. Dispatch it before `install_mod`
+and before you report a mod as finished. It reads the `validate_mod` receipt, so it does not repeat
+those checks.
 

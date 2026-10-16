@@ -29,6 +29,20 @@ creates it.
   deletes that copy only after the new copy lands. If the new copy fails, the old version is still
   there.
 
+## Review before the install
+
+Run `validate_mod` first, and clear every ERROR. Then dispatch `mod-reviewer` with the planned files
+and the `validate_mod` receipt. It reports the semantics that `validate_mod` does not check.
+
+- `PASS`: install.
+- `WARN`: tell the player the risk, then install.
+- `FAIL`: correct the mod and run `validate_mod` again. The verdict does not block the install, so
+  install only when the player agrees.
+
+Skip this step when you write no script file. Localization, images, and text alone need no review.
+When the `subagent` tool is not available, work through the last section of
+`docs/eu5-modding-conventions.md` by hand.
+
 ## After the install
 
 An `install_mod` success does not mean the game loaded or enabled the mod. Report the three states

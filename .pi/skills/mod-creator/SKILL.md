@@ -193,7 +193,8 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
 ## Entry mechanisms and data kinds (what to add, and where it lives)
 
 Pick the entry mechanism from the table in `docs/eu5-modding-conventions.md` section 7, then open the
-folder it names and read one of the examples there.
+folder it names and read one of the examples there. When you are unsure which mechanism fits, send
+the intent to `entry-scout` first and read the candidate it returns.
 
 A mod can also add its own content to one of the game's own data folders. The common ones are:
 
@@ -225,6 +226,11 @@ For the question "does X exist, and what is the vanilla value?", follow the look
   which `sync_game_scripts` generates, or the local game directory.
 - Mechanics concepts: `docs/mod-wiki/`. The modding conventions and the reason behind them:
   `docs/eu5-modding-conventions.md`.
+
+Before you write, `entry-scout` can run this search for you and return candidates as `file:line`.
+Give it the intent and the planned change list. Its answer is a candidate list, not a decision: read
+its first candidate yourself before you write.
+When the `subagent` tool is not available, run the search yourself along the same path.
 
 ## Reference
 

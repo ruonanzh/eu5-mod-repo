@@ -107,7 +107,7 @@ them, and patches none.
 
 ## Local patches
 
-The copy carries sixteen local patches. Every patch names its file and line in the code as well.
+The copy carries seventeen local patches. Every patch names its file and line in the code as well.
 
 1. Remove the `//# sourceMappingURL=` line from the package's own `.js` files, because the matching
    maps are gone. 325 files, no behaviour change. The dependency trees keep their own maps, so this
@@ -155,6 +155,10 @@ The copy carries sixteen local patches. Every patch names its file and line in t
     form and `{workflow:"parallel"}` both arrive here. The upstream default detached the turn, so the tool
     returned a receipt and the parent polled `status` instead of getting the answers. The inline mode is
     upstream's `async: false`, and this copy always takes it.
+17. `src/extension/schemas.js`, `src/runs/foreground/subagent-executor.js` and `src/extension/doctor.js` —
+    the four strings that still offered the script form now name the parallel form. Three of the four
+    were already unreachable, because the schema replaces the `action` description and removes
+    `preflight`, and patch 14 refuses a script before the hint is appended.
 
 ## How to refresh
 
@@ -162,7 +166,7 @@ The copy carries sixteen local patches. Every patch names its file and line in t
 2. Unpack the tarball into this directory.
 3. Remove the parts in the table **What this copy removes**, including the four dependencies.
 4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
-5. Apply local patches 1 to 16 again. Every patch carries a `Vendored patch` comment in the code, so
+5. Apply local patches 1 to 17 again. Every patch carries a `Vendored patch` comment in the code, so
    `grep -rn "Vendored patch" src/` finds them all. Patches 11 and 12 also edit `package.json`.
 6. Run the load check below, then run `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
    install's node_modules>` and record the new number in this file.

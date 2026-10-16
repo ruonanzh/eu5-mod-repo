@@ -109,7 +109,7 @@ const WorkflowPreflightOverride = Type.Object({
     version: Type.Integer({ minimum: 1, maximum: 1 }),
     coverage: Type.Optional(Type.String({ enum: ["complete", "partial"] })),
     lanes: Type.Array(WorkflowPreflightLane, { maxItems: 64 }),
-}, { additionalProperties: false, description: "workflow: true or a script path only; display-only hints; coverage warns." });
+}, { additionalProperties: false, description: "Display-only hints. Coverage warns." });
 // Runtime mission handlers validate these untrusted nested objects loudly. Keeping
 // their provider schema shallow avoids repeating a full durable-record schema in
 // every tool request.
@@ -140,7 +140,7 @@ const SubagentParamProperties = {
     extensionBindings: Type.Optional(Type.Unsafe({ type: "object", maxProperties: 16, additionalProperties: true, description: "Child-only plain JSON; package.name/1; depth 16, 256 props, 16 KiB." })),
     // Management action (when present, tool operates in management mode)
     action: Type.Optional(Type.String({ minLength: 1,
-        description: "Management/control only; omit for execution. validate accepts workflow: true or a script path. Discover actions with {action:\"guide\",options:{topic:\"tool-reference\"}}."
+        description: "Management action. Omit it for execution. Discover actions with {action:\"guide\",options:{topic:\"tool-reference\"}}."
     })),
     capabilities: Type.Optional(Type.Boolean({ description: "list: compact capability rows/details without system prompts." })),
     name: Type.Optional(Type.String({ description: "schedule.create name." })),

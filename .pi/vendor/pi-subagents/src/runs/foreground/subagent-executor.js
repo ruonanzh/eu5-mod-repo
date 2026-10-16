@@ -7554,7 +7554,7 @@ export function createSubagentExecutor(deps) {
         const workflow = publicParams.workflow;
         const errorResult = (text) => Promise.resolve({ content: [{ type: "text", text }], isError: true, details: { mode: publicParams.action ? "management" : "workflow", results: [] } });
         // Models tend to put script text in the workflow string; say how to pass it instead.
-        const scriptTextHint = " A workflow string is a named workflow resource or a script file path. To run script text, write it in one ```js workflow block in the same reply and call subagent({ workflow: true }).";
+        const scriptTextHint = " The only workflow value this copy accepts is \"parallel\": {workflow:\"parallel\",args:{tasks:[{agent,task},...]}}.";
         if (publicParams.tasks !== undefined || publicParams.chain !== undefined) {
             // Normalization admits chain/tasks only with workflow scripts disabled; the original input was checked above.
             const kind = publicParams.tasks !== undefined ? "tasks" : "chain";

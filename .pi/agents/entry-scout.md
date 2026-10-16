@@ -37,10 +37,11 @@ Use the layers in this order. Stop when the first layer answers the question.
    object, an INJECT target, a field value, or a localization key, because the engine already
    accepts these files. Remember the two `game/` levels.
 3. `reference/` and `docs/mod-wiki/` — the pattern mods and the derived notes.
-4. The session records of this workspace. They live under the agent data directory, in
-   `sessions/<encoded workspace path>/`, as `.jsonl` files. Two roots exist: the development root
-   `~/.pi/agent/sessions/` and the product root `~/.gamer-agent-pi/sessions/`. Search both. One line
-   is one message. Search them for the same kind of change.
+4. The session records of this workspace. They live in the product data directory, in
+   `~/.gamer-agent-pi/sessions/<encoded workspace path>/`, as `.jsonl` files. The directory name
+   encodes the workspace path: replace each `:` and each path separator with `-`, and wrap the whole
+   string in `--`. Match the name in the directory listing, and do not build the path yourself. One
+   line is one message. Search them for the same kind of change.
 5. Nothing else. Do not use `your_mods/`. The caller owns that directory.
 
 A hit in layer 4 is weak evidence. It records what an earlier session did, not what the engine
@@ -58,7 +59,8 @@ Return a short list of candidates, best first. Each candidate carries:
 
 After the list, add these three lines:
 
-- `Not checked:` — what you did not look at, and why.
+- `Not checked:` — what you did not look at, and why. When a path you tried cannot be read, name
+  that path here instead of reporting an empty search.
 - `Open:` — the questions the caller must settle, when any remain.
 - `NEXT:` — the single next action for the caller.
 

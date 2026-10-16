@@ -35,7 +35,7 @@ export const SUBAGENT_FEATURES = {
     "control-overrides": { actions: [], params: ["control"] },
     "extension-bindings": { actions: [], params: ["extensionBindings"] },
     "external-machines": { actions: [], params: ["machine"] },
-    "workflow-scripts": { actions: ["validate"], params: ["preflight", "globalConcurrencyLimit", "maxSubagentSpawnsPerRun"] },
+    "workflow-scripts": { actions: ["validate"], params: ["workflow", "args", "preflight", "globalConcurrencyLimit", "maxSubagentSpawnsPerRun"] },
 };
 const SCHEDULE_SURFACE = {
     actions: ["schedule.create", "schedule.list", "schedule.show", "schedule.history", "schedule.pause", "schedule.resume", "schedule.run", "schedule.run-due", "schedule.delete"],
@@ -66,10 +66,8 @@ function featureSurface(feature) {
 /** Vendored patch 4: management surfaces this copy hides from the model. The list is fixed here because
  * the agent-dir config, which normally carries disabledFeatures, is not ours to write.
  *
- * `workflow-scripts` stays in the list because that is the one form that still opens a background run:
- * the script form goes through the async executor and detaches the turn, which brings back the wake
- * message and its visible bubble. Without it the model keeps the structured `tasks` form, which the
- * foreground path handles. */
+ * `workflow-scripts` is deliberately absent: the script forms stay available, and patch 16 makes every
+ * workflow run inline, so a script dispatch no longer opens a background run. */
 export const VENDORED_DISABLED_FEATURES = [
     "agent-management",
     "watchdog",
@@ -85,7 +83,6 @@ export const VENDORED_DISABLED_FEATURES = [
     "control-overrides",
     "extension-bindings",
     "external-machines",
-    "workflow-scripts",
 ];
 export function resolveDisabledFeatureSurface(config) {
     const features = new Set(config.disabledFeatures);

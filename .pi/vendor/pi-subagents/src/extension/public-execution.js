@@ -1,9 +1,7 @@
 import { normalizeWorktreeBaseRef } from "../runs/shared/worktree.js";
-// Vendored patch 14 (wording): this copy refuses the script forms (`true`, a path, and the internal
-// `workflowScript`), so every refusal below names the form that this copy accepts.
-const RAW_SCRIPT_FORMS = 'workflow: "parallel" with args.tasks, for example {workflow:"parallel",args:{tasks:[{agent,task},...]}}';
-const REMOVED_WORKFLOW_SCRIPT = `workflowScript is not available in this copy. Use ${RAW_SCRIPT_FORMS}.`;
-const REMOVED_WORKFLOW_SCRIPT_PATH = `workflowScriptPath is not available in this copy. Use ${RAW_SCRIPT_FORMS}.`;
+const RAW_SCRIPT_FORMS = "workflow: true or a workflow script path";
+const REMOVED_WORKFLOW_SCRIPT = "workflowScript was removed; write the script in one ```js workflow block in this reply and call subagent({ workflow: true }), or pass a script file as workflow: \"./path/to/script.js\".";
+const REMOVED_WORKFLOW_SCRIPT_PATH = "workflowScriptPath was removed; pass the script file as workflow: \"./path/to/script.js\" (a workflow value containing '/' is a path).";
 /** A workflow value containing "/" or "\" is a script path; named workflow resource names contain neither. */
 export function isWorkflowScriptPath(workflow) {
     return workflow.includes("/") || workflow.includes("\\");
@@ -49,12 +47,13 @@ export function normalizePublicSubagentExecution(params, options = {}) {
     if (params.workflowScriptPath !== undefined) {
         return { ok: false, error: REMOVED_WORKFLOW_SCRIPT_PATH, mode: params.action === undefined ? "workflow" : "management" };
     }
-    // Vendored patch 14: this copy provides the parallel workflow only. The script forms (true, or a
-    // path) stay closed, because a script dispatch is the one path that opens a background run and
-    // detaches the turn.
+    // Some MCP clients send the boolean branch of the workflow union as the string "true" (#2600).
+    // Coerce it here so no path can resolve it as a named resource or script file called "true".
+    if (params.workflow === "true")
+        params = { ...params, workflow: true };
     const workflow = params.workflow;
-    if (workflow !== undefined && workflow !== "parallel") {
-        return { ok: false, error: 'workflow accepts only "parallel": {workflow:"parallel",args:{tasks:[{agent,task},...]}}. The script form is not available in this copy.', mode: "workflow" };
+    if (workflow !== undefined && workflow !== true && (typeof workflow !== "string" || !workflow.trim())) {
+        return { ok: false, error: "workflow must be true (the ```js workflow block in this reply), a script path containing '/', or a named workflow resource.", mode: "workflow" };
     }
     const hasNamedWorkflow = typeof workflow === "string" && !isWorkflowScriptPath(workflow);
     // workflowScript is the internal script carrier; model tool calls cannot set it.

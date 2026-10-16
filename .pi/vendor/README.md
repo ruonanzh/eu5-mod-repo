@@ -107,7 +107,7 @@ them, and patches none.
 
 ## Local patches
 
-The copy carries seventeen local patches. Every patch names its file and line in the code as well.
+The copy carries sixteen local patches. Items 14 and 17 were tried and reverted, so they stay in the list as history only. Every patch names its file and line in the code as well.
 
 1. Remove the `//# sourceMappingURL=` line from the package's own `.js` files, because the matching
    maps are gone. 325 files, no behaviour change. The dependency trees keep their own maps, so this
@@ -119,10 +119,9 @@ The copy carries seventeen local patches. Every patch names its file and line in
    model reads describes the foreground form only. It names no background run, no `bg_wait`, and no
    `async: true`.
 4. `src/shared/disabled-features.js:73` — the management surface this copy hides from the model is a
-   fixed list, because the agent directory cannot set it. The list keeps the script-only parameters
-   (`preflight` and the two capacity overrides) and the `validate` action off. The `workflow` parameter
-   stays, and patch 14 admits only the value `parallel`, so the one path that opens a background run
-   and detaches the turn stays closed.
+   fixed list, because the agent directory cannot set it. `workflow-scripts` is not in that list: the
+   script forms stay available, patch 16 keeps every workflow in the foreground, and patch 18 lowers the
+   structured forms as well.
 5. `src/extension/index.js:650` — `bg_wait` is not registered: a foreground dispatch returns the answer
    in the receipt.
 6. `src/extension/index.js:1088` — the `subagents_enable` loader is not registered, so `subagent` is
@@ -145,9 +144,9 @@ The copy carries seventeen local patches. Every patch names its file and line in
     live runs from the run directory, calls `deliverAsyncRunStop`, and aborts the live workflow
     controllers. Upstream only reports that the runs keep working, and this copy never reads their
     result.
-14. `src/extension/public-execution.js:52` and `src/extension/schemas.js:203` — the `workflow` parameter
-    admits only `parallel`. This copy refuses the script forms (`true`, or a path) and names the cause.
-    The same file's three refusal constants now quote that form, so a refusal never points at a script.
+14. (reverted, no code) `src/extension/public-execution.js` and `src/extension/schemas.js` — the
+    `workflow` parameter briefly admitted only `parallel`. The script forms are available again, because
+    patch 16 keeps them in the foreground. The revert also restored the upstream `workflow` validation.
 15. `src/runs/background/notify.js:451` — a completion notice stays hidden when the user stopped the
     parent turn. Upstream showed such a notice, and a visible notice becomes a message in the app, so a
     stopped turn left a message behind. The model still receives the notice.
@@ -155,10 +154,13 @@ The copy carries seventeen local patches. Every patch names its file and line in
     form and `{workflow:"parallel"}` both arrive here. The upstream default detached the turn, so the tool
     returned a receipt and the parent polled `status` instead of getting the answers. The inline mode is
     upstream's `async: false`, and this copy always takes it.
-17. `src/extension/schemas.js`, `src/runs/foreground/subagent-executor.js` and `src/extension/doctor.js` —
-    the four strings that still offered the script form now name the parallel form. Three of the four
-    were already unreachable, because the schema replaces the `action` description and removes
-    `preflight`, and patch 14 refuses a script before the hint is appended.
+17. (reverted, no code) `src/extension/schemas.js`, `src/runs/foreground/subagent-executor.js` and
+    `src/extension/doctor.js` — four strings briefly named the parallel form instead of the script form.
+    They are back to the upstream text.
+18. `src/runs/foreground/subagent-executor.js:7552` — both call shapes stay available. Upstream lowers the
+    structured `tasks` and `chain` forms only while `workflow-scripts` is disabled, and it accepts the
+    script forms only while `workflow-scripts` is enabled. This copy keeps the script forms and lowers the
+    structured forms too, so the model may use either shape.
 
 ## How to refresh
 
@@ -166,7 +168,7 @@ The copy carries seventeen local patches. Every patch names its file and line in
 2. Unpack the tarball into this directory.
 3. Remove the parts in the table **What this copy removes**, including the four dependencies.
 4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
-5. Apply local patches 1 to 17 again. Every patch carries a `Vendored patch` comment in the code, so
+5. Apply local patches 1 to 18 again (14 and 17 are reverted and carry no code). Every patch carries a `Vendored patch` comment in the code, so
    `grep -rn "Vendored patch" src/` finds them all. Patches 11 and 12 also edit `package.json`.
 6. Run the load check below, then run `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
    install's node_modules>` and record the new number in this file.

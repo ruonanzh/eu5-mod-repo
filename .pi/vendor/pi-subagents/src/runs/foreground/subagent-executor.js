@@ -7546,7 +7546,10 @@ export function createSubagentExecutor(deps) {
         const disabledFeatureError = disabledFeatureResult(params);
         if (disabledFeatureError)
             return Promise.resolve(disabledFeatureError);
-        const normalized = normalizePublicSubagentExecution(params, { structuredWorkflows: disabledFeatures.features.has("workflow-scripts") });
+        // Vendored patch 18: both call shapes stay available. Upstream admits chain/tasks only when
+        // `workflow-scripts` is disabled, and the script forms only when it is enabled. This copy keeps
+        // the script forms and still lowers chain/tasks, so the model may use either shape.
+        const normalized = normalizePublicSubagentExecution(params, { structuredWorkflows: true });
         if (!normalized.ok) {
             return Promise.resolve({ content: [{ type: "text", text: normalized.error }], isError: true, details: { mode: normalized.mode, results: [] } });
         }
@@ -7554,9 +7557,9 @@ export function createSubagentExecutor(deps) {
         const workflow = publicParams.workflow;
         const errorResult = (text) => Promise.resolve({ content: [{ type: "text", text }], isError: true, details: { mode: publicParams.action ? "management" : "workflow", results: [] } });
         // Models tend to put script text in the workflow string; say how to pass it instead.
-        const scriptTextHint = " The only workflow value this copy accepts is \"parallel\": {workflow:\"parallel\",args:{tasks:[{agent,task},...]}}.";
+        const scriptTextHint = " A workflow string is a named workflow resource or a script file path. To run script text, write it in one ```js workflow block in the same reply and call subagent({ workflow: true }).";
         if (publicParams.tasks !== undefined || publicParams.chain !== undefined) {
-            // Normalization admits chain/tasks only with workflow scripts disabled; the original input was checked above.
+            // chain/tasks are lowered here too (patch 18), so this branch is reachable in this copy.
             const kind = publicParams.tasks !== undefined ? "tasks" : "chain";
             const resolved = resolveStructuredWorkflowResource({ kind, steps: publicParams[kind], task: publicParams.task });
             if (!resolved.ok)

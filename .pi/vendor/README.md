@@ -32,7 +32,7 @@ npm places inside the package, and that is 214 files of 1.90 MB. The installed t
 The real gain is the file count, because most of what leaves is many small files.
 
 The declaration size is measurable. `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
-install's node_modules>` reports **1 tool and 3,255 characters** for this copy, against 4 tools and
+install's node_modules>` reports **1 tool and 3,334 characters** for this copy, against 4 tools and
 5,438 characters for the published package. That tool is the probe the size claims in this file rest
 on, so run it after any change to the copy.
 
@@ -119,7 +119,10 @@ The copy carries nine local patches. Every patch names its file and line in the 
    model reads describes the foreground form only. It names no background run, no `bg_wait`, and no
    `async: true`.
 4. `src/shared/disabled-features.js:66` — the management surface this copy hides from the model is a
-   fixed list, because the agent directory cannot set it.
+   fixed list, because the agent directory cannot set it. The list holds `workflow-scripts`, so the
+   tool offers no script form. That form is the one path that still opens a background run and detaches
+   the turn, which brings back the wake message and its visible bubble. Without it the model keeps the
+   structured `tasks` and `chain` forms, and the foreground path runs them.
 5. `src/extension/index.js:650` — `bg_wait` is not registered: a foreground dispatch returns the answer
    in the receipt.
 6. `src/extension/index.js:1088` — the `subagents_enable` loader is not registered, so `subagent` is

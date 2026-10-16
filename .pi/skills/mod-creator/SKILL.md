@@ -27,8 +27,11 @@ and its bound directory gate those actions.
      that directory carefully to pin down the real vanilla values and their connections: which
      goods, buildings, and modifiers exist, and what consumes or produces what. Do not guess from
      names alone. Three hard ordering rules:
-     1. For a player-worded feature request, grep vanilla first, within calls 2 to 4:
-        `grep -rln <keyword> game-scripts/`, to check "does vanilla already have it?".
+     1. For a player-worded feature request, name the question shape first. For a lookup of a name
+        that you already know, grep vanilla yourself, within calls 2 to 4:
+        `grep -rln <keyword> game-scripts/`. For a survey of what vanilla already has for a theme,
+        dispatch `entry-scout` and read its first candidate. The `## Survey before you research`
+        section below has the details.
      2. Read in this fixed order: `docs/eu5-modding-conventions.md` (the single source of truth),
         then locate 1 or 2 reference mods of the same kind, then write.
      3. Decide the screen first, then research how to mount on that one screen. Where a mechanism
@@ -53,6 +56,22 @@ and its bound directory gate those actions.
   and underscores, at most 40 characters. Do **not** use hyphens: `fix_trade_companies`, not
   `fix-trade-companies`. It must not be a Windows reserved device name: `con`, `prn`, `aux`,
   `nul`, `com1` to `com9`, and `lpt1` to `lpt9`.
+
+## Survey before you research
+
+A survey answers "what does vanilla already have for this theme?". A lookup answers "where is this
+name defined?". The two questions need different work.
+
+Dispatch `entry-scout` for a survey, before you grep the vanilla scripts. Give it the theme and the
+planned change. It returns candidate entry points as `file:line`, with the mechanism family. Its
+answer is a candidate list, not a decision: read its first candidate yourself before you write.
+When the `subagent` tool is not available, run the survey yourself along the lookup path in
+`docs/INDEX.md`.
+
+Run a lookup yourself. When you know the name, `grep -rln <keyword> game-scripts/` finds it within a
+few calls.
+
+Skip this step when the task only changes values inside an existing block.
 
 ## Mod structure
 
@@ -228,7 +247,7 @@ For the question "does X exist, and what is the vanilla value?", follow the look
 - Mechanics concepts: `docs/mod-wiki/`. The modding conventions and the reason behind them:
   `docs/eu5-modding-conventions.md`.
 
-Before you write, `entry-scout` can run this search for you and return candidates as `file:line`.
+For a survey, `entry-scout` runs this search and returns candidates as `file:line`.
 Give it the intent and the planned change list. Its answer is a candidate list, not a decision: read
 its first candidate yourself before you write.
 When the `subagent` tool is not available, run the search yourself along the same path.

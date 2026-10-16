@@ -12,7 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, join, resolve } from "node:path";
-import { checkModInstallDir, readModRepoConfig, readState } from "../lib/game-paths";
+import { checkModInstallDir, effectiveModInstallDir, readModRepoConfig, writeState } from "../lib/game-paths";
 import { readModIdentity } from "../lib/mod-identity";
 
 /**
@@ -175,6 +175,15 @@ export function copyModFiles(from: string, to: string): number {
   return count;
 }
 
+/** Read mod-repo.json and never throw. A missing or unreadable file leaves the recorded path as the only source. */
+const readCfgForTarget = (cwd: string): ReturnType<typeof readModRepoConfig> | null => {
+  try {
+    return readModRepoConfig(cwd);
+  } catch {
+    return null;
+  }
+};
+
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "install_mod",
@@ -207,10 +216,11 @@ export default function (pi: ExtensionAPI) {
 
       // The target comes from the record that try_set_game_dir writes. install_mod does not search.
       // The state read goes through the lib, which check_game_paths and try_set_game_dir share. Do
-      // not parse the JSON here.
-      const remembered = readState(ctx.cwd).modInstallDir;
-      let modRoot: string | null =
-        typeof remembered === "string" && remembered.trim() ? remembered.trim() : null;
+      // not parse the JSON here. The derived path wins over the recorded one, because the player
+      // can move the Documents directory after the tool recorded it, and a stale record would send
+      // the mod to a directory that the launcher does not read.
+      const target = effectiveModInstallDir(ctx.cwd, readCfgForTarget(ctx.cwd));
+      let modRoot = target.dir;
       if (!modRoot) {
         return {
           content: [
@@ -222,6 +232,8 @@ export default function (pi: ExtensionAPI) {
           details: { ok: false, reason: "TARGET_NOT_FOUND" },
         };
       }
+      // Repair the record when the derived path differs, so the next tool reads the right directory.
+      if (target.corrected) writeState(ctx.cwd, { modInstallDir: modRoot });
       // A missing target directory is the normal state on a new machine, because the Paradox
       // launcher and the game have not run yet. It is not an error, so continue. The mkdirSync call
       // below creates the target together with any missing parent.
@@ -396,6 +408,7 @@ export default function (pi: ExtensionAPI) {
           occupiedBy,
           files,
           targetCreated: targetWasMissing,
+          modInstallDirCorrected: target.corrected,
         },
       };
     },

@@ -72,15 +72,17 @@ export default function (pi: ExtensionAPI) {
       }
       const gameDir = verdict.path;
 
-      // The configuration gives the derived paths. The recorded values win, because they are the
-      // facts that the other tools use.
+      // The configuration gives the derived paths. The derived mod install path wins over the
+      // recorded one, because the player can move the Documents directory after the tool recorded
+      // it, and install_mod uses the derived path. This tool is read-only, so it does not repair
+      // the record. The recorded Workshop path wins, because pathsFor does not report a missing one.
       let derived: { modInstallDir: string | null; workshopDir: string | null } | null = null;
       try {
         derived = pathsFor(gameDir, readModRepoConfig(cwd));
       } catch {
         derived = null;
       }
-      const modInstallDir = (state.modInstallDir as string | null | undefined) ?? derived?.modInstallDir ?? null;
+      const modInstallDir = derived?.modInstallDir ?? (state.modInstallDir as string | null | undefined) ?? null;
       const workshopDir = (state.workshopDir as string | null | undefined) ?? derived?.workshopDir ?? null;
 
       const build = typeof state.gameBuild === "string" ? state.gameBuild : null;

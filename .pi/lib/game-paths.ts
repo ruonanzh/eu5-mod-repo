@@ -11,10 +11,12 @@
  *                    install layout. Windows only.
  *   - workshopDir    The directory `<SteamLibrary>/steamapps/workshop/content/<appid>`.
  *   - modInstallDir  The Paradox launcher directory, which is independent of the game location:
- *                    `~/Documents/Paradox Interactive/Europa Universalis V/mod`. There is no
- *                    sibling-directory sentinel to check. The tool therefore checks the shape: an
- *                    absolute path, not a file, and the relative path that mod-repo.json declares
- *                    at the end.
+ *                    `<the player's Documents directory>/Paradox Interactive/Europa Universalis
+ *                    V/mod`. There is no sibling-directory sentinel to check. The tool therefore
+ *                    checks the shape: an absolute path, not a file, and the relative path that
+ *                    mod-repo.json declares at the end. The player can move the Documents
+ *                    directory, and it is then not `<home>/Documents`, so the tool reads the real
+ *                    directory from the registry. See userDocumentsDir.
  *   - The search     The tool must scan Steam: the registry and libraryfolders.vdf in each
  *                    library. It does not use installDirHint.
  */
@@ -117,11 +119,90 @@ export const expandHome = (p: string): string => {
 
 export const resolveUserPath = (cwd: string, p: string): string => resolve(cwd, expandHome(p));
 
-/** The Paradox launcher mod directory: `~/Documents` plus modInstall.path from mod-repo.json. */
-export function modInstallDirFor(cfg: ModRepoConfig): string | null {
+/** Reads the `Personal` value under a registry key. The value line is `    Personal    REG_SZ    <path>`. */
+const readPersonalValue = (key: string): string | null => {
+  try {
+    const out = execFileSync("reg", ["query", key, "/v", "Personal"], { encoding: "utf8", timeout: 5000, windowsHide: true });
+    const line = out.match(/^\s*Personal\s+REG_(?:SZ|EXPAND_SZ)\s+(.+?)\s*$/m);
+    return line ? line[1] : null;
+  } catch {
+    // The key can be missing, and reg.exe can be unavailable. Both cases mean the same: no answer.
+    return null;
+  }
+};
+
+/** Expands `%NAME%`. `User Shell Folders` holds a path such as `%USERPROFILE%\Documents` on some machines. */
+const expandWindowsVars = (p: string): string | null => {
+  const out = p.replace(/%([^%]+)%/g, (_m, name: string) => process.env[name] ?? process.env[name.toUpperCase()] ?? "");
+  return out.includes("%") ? null : out;
+};
+
+const resolveUserDocumentsDir = (): string => {
+  const home = os.homedir();
+  if (process.platform !== "win32") return join(home, "Documents");
+  // `Shell Folders` holds the resolved path. `User Shell Folders` can hold `%USERPROFILE%`, so it
+  // is the second choice. Read both, because a machine can hold only one of them.
+  const roots = [
+    "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+    "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+  ];
+  for (const key of roots) {
+    const raw = readPersonalValue(key);
+    if (!raw) continue;
+    const expanded = expandWindowsVars(raw);
+    if (!expanded) continue;
+    const p = expanded.replace(/[\\/]+$/, "");
+    if (p) return p;
+  }
+  // A machine that never moved the directory, or an unreadable registry. Both give the same answer.
+  return join(process.env.USERPROFILE || home, "Documents");
+};
+
+let documentsDir: string | null = null;
+
+/**
+ * The player's Documents directory. Windows lets the player move it, and `os.homedir()` does not
+ * follow the move. The tool therefore reads the known folder from the registry and caches the
+ * answer for the process.
+ */
+export const userDocumentsDir = (): string => (documentsDir ??= resolveUserDocumentsDir());
+
+/**
+ * The Paradox launcher mod directory. `modInstall.relativeTo` selects the base directory: the
+ * player's Documents directory, or the game directory. mod-repo.json declares `path` relative to
+ * that base. A missing `relativeTo` means `userDocuments`.
+ */
+export function modInstallDirFor(cfg: ModRepoConfig, gameDir?: string | null): string | null {
   const rel = cfg.modInstall?.path;
   if (typeof rel !== "string" || !rel.trim()) return null;
-  return join(os.homedir(), "Documents", rel);
+  if (cfg.modInstall?.relativeTo === "gameDir") return gameDir ? join(expandHome(gameDir), rel) : null;
+  return join(userDocumentsDir(), rel);
+}
+
+/** Two paths name the same directory. Windows paths are case-insensitive and can mix the separators. */
+const sameDir = (a: string, b: string): boolean => {
+  const norm = (v: string) => v.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+  return norm(a) === norm(b);
+};
+
+/**
+ * The mod install directory the tools must use. The recorded value is a cache, and the player can
+ * move the Documents directory after the tool recorded it. The derived value therefore wins when
+ * the two differ, and `corrected` tells the caller to repair the state.
+ */
+export function effectiveModInstallDir(
+  cwd: string,
+  cfg: ModRepoConfig | null,
+): { dir: string | null; recorded: string | null; derived: string | null; corrected: boolean } {
+  const state = readState(cwd);
+  const recorded = typeof state.modInstallDir === "string" && state.modInstallDir.trim() ? state.modInstallDir.trim() : null;
+  const gameDir = typeof state.gameDir === "string" && state.gameDir.trim() ? state.gameDir.trim() : null;
+  // A missing or unreadable mod-repo.json leaves the recorded path as the only source, which is
+  // what the caller must report when it is absent too.
+  const derived = cfg ? modInstallDirFor(cfg, gameDir) : null;
+  if (!derived) return { dir: recorded, recorded, derived, corrected: false };
+  if (recorded && sameDir(recorded, derived)) return { dir: recorded, recorded, derived, corrected: false };
+  return { dir: derived, recorded, derived, corrected: recorded !== null };
 }
 
 const NEXT_SKILL =
@@ -285,7 +366,7 @@ export function pathsFor(
   cfg: ModRepoConfig,
 ): { modInstallDir: string | null; workshopDir: string | null; notes: string[] } {
   const notes: string[] = [];
-  const modInstallDir = modInstallDirFor(cfg);
+  const modInstallDir = modInstallDirFor(cfg, gameDir);
   if (!modInstallDir) notes.push("FAIL: INVALID_WORKSPACE_CONFIG: mod-repo.json has no modInstall.path");
   const workshopDir = workshopDirFor(gameDir, cfg);
   if (!workshopDir && cfg.game?.steamAppId) notes.push("NOTE: the Workshop directory does not exist, so it was not recorded (optional, read-only reference).");

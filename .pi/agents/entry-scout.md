@@ -31,16 +31,20 @@ When the change list is empty, you propose the list as part of your answer.
 
 Use the layers in this order. Stop when the first layer answers the question.
 
-1. `game-scripts/game/` — the vanilla scripts. This layer is the strongest evidence, because the
-   engine already accepts these files. Remember the two `game/` levels.
-2. `reference/` and `docs/mod-wiki/` — the pattern mods and the derived notes.
-3. The session records of this workspace. They live under the agent data directory, in
-   `sessions/<encoded workspace path>/`, as `.jsonl` files. One line is one message. Search them for
-   the same kind of change.
-4. Nothing else. Do not use `your_mods/`. The caller owns that directory.
+1. `docs/script_docs/` and `docs/data_types/` — the game-generated dumps. They are authoritative for
+   the exact effect, trigger, and modifier names, and for their scopes.
+2. `game-scripts/game/` — the vanilla scripts. This layer is the strongest evidence for a concrete
+   object, an INJECT target, a field value, or a localization key, because the engine already
+   accepts these files. Remember the two `game/` levels.
+3. `reference/` and `docs/mod-wiki/` — the pattern mods and the derived notes.
+4. The session records of this workspace. They live under the agent data directory, in
+   `sessions/<encoded workspace path>/`, as `.jsonl` files. Two roots exist: the development root
+   `~/.pi/agent/sessions/` and the product root `~/.gamer-agent-pi/sessions/`. Search both. One line
+   is one message. Search them for the same kind of change.
+5. Nothing else. Do not use `your_mods/`. The caller owns that directory.
 
-A hit in layer 3 is weak evidence. It records what an earlier session did, not what the engine
-accepts. Label it as weak, and prefer layer 1 whenever the two disagree.
+A hit in layer 4 is weak evidence. It records what an earlier session did, not what the engine
+accepts. Label it as weak, and prefer layer 1 or layer 2 whenever the two disagree.
 
 ## How to answer
 
@@ -50,7 +54,7 @@ Return a short list of candidates, best first. Each candidate carries:
 - Mechanism family — the wording from `docs/eu5-modding-conventions.md` section 7.
 - Evidence — the line or the block that supports the candidate.
 - Confidence — high, medium, or low.
-- Layer — 1, 2, or 3.
+- Layer — 1, 2, 3, or 4.
 
 After the list, add these three lines:
 

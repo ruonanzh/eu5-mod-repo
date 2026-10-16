@@ -69,8 +69,7 @@ Judgement rules:
   lost key.
 - `WARN` is for a change that is legal but risky, or that you cannot settle from the files.
 - `PASS` means you found nothing. Say `PASS` plainly. Do not invent findings to look useful.
-- A change that only touches localization, images, or documentation needs no review. Report `PASS`
-  and say so.
+- A change that writes no script file needs no review. Report `PASS` and say so.
 
 Keep the answer under 500 words.
 

@@ -39,7 +39,7 @@ and the `validate_mod` receipt. It reports the semantics that `validate_mod` doe
 - `FAIL`: correct the mod and run `validate_mod` again. The verdict does not block the install, so
   install only when the player agrees.
 
-Skip this step when you write no script file. Localization, images, and text alone need no review.
+Skip this step when you write no script file.
 When the `subagent` tool is not available, work through the last section of
 `docs/eu5-modding-conventions.md` by hand.
 

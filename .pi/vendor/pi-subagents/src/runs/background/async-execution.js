@@ -140,15 +140,14 @@ function supportsNativeRunner(nodeExecutable) {
         && !sourceUnderNodeModules();
 }
 export const DEFAULT_ASYNC_TIMEOUT_MS = 30 * 60 * 1000;
+// Vendored patch 10: this copy runs every dispatch in the foreground, so the receipt that carries this
+// text also carries the result. The text names no detached run and no wait tool, because patch 5
+// removes bg_wait and patch 3 never opens a background run.
 export function formatAsyncStartedMessage(headline, interactive) {
-    const guidance = interactive
-        ? [
-            "Detached. Return control now: native completion wakes you, so do not sleep, poll, or call bg_wait for it.",
-            "One-shot check: subagent({ action: \"status\", id: \"...\" }).",
-        ]
-        : [
-            "Detached non-interactive run: Pi auto-drains current-session subagent work at agent_end. Do not run sleep timers or polling loops. Use bg_wait only for results this turn needs from work without native notification, and subagent({ action: \"status\", id: \"...\" }) for a one-shot check.",
-        ];
+    const guidance = [
+        "The result of this dispatch arrives in this session.",
+        "One-shot check, if you need one: subagent({ action: \"status\", id: \"...\" }).",
+    ];
     return [headline, "", ...guidance].join("\n");
 }
 /** Check whether detached async execution has a supported runtime. */

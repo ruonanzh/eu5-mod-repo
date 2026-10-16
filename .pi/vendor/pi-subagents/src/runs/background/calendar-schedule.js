@@ -1,8 +1,19 @@
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 let cachedTemporal;
+/** Vendored patch 11: this copy does not ship @js-temporal/polyfill. Patch 9 turns scheduled runs off,
+ * so nothing reaches this function. If the agent directory turns them on, the failure names the cause
+ * instead of a bare MODULE_NOT_FOUND. */
 function getTemporal() {
-    return cachedTemporal ??= require("@js-temporal/polyfill").Temporal;
+    if (!cachedTemporal) {
+        try {
+            cachedTemporal = require("@js-temporal/polyfill").Temporal;
+        }
+        catch {
+            throw new Error("Scheduled runs need @js-temporal/polyfill, which this vendored copy does not ship. Keep config.scheduledRuns.enabled false, or restore the dependency.");
+        }
+    }
+    return cachedTemporal;
 }
 export const CALENDAR_WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 const SEARCH_DAYS = 32;

@@ -31,6 +31,11 @@ npm places inside the package, and that is 214 files of 1.90 MB. The installed t
 
 The real gain is the file count, because most of what leaves is many small files.
 
+The declaration size is measurable. `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
+install's node_modules>` reports **1 tool and 3,255 characters** for this copy, against 4 tools and
+5,438 characters for the published package. That tool is the probe the size claims in this file rest
+on, so run it after any change to the copy.
+
 ## What this copy keeps
 
 | Part | Size | Reason |
@@ -63,14 +68,17 @@ parses the profile frontmatter. A load test that removes either one fails.
 | `node_modules/@js-temporal/polyfill` | 2.98 MB / 38 files | The calendar schedule implementation imports it lazily (`src/runs/background/calendar-schedule.js:5`). Patch 9 turns scheduled runs off, so nothing reaches it. |
 | `node_modules/jsbi` | 0.58 MB / 10 files | A dependency of the polyfill. |
 
-The list covers the files the package owns and the four dependencies it does not need. The remaining
+The list covers the files the package owns and the four dependencies it does not need. A path that
+would need one of the four now fails with `MODULE_NOT_FOUND` instead of the clear message above. Patch
+11 makes the calendar path name its cause, and `package.json` declares only the two dependencies this
+copy ships, so nothing resolves a dependency that is not here. The remaining
 dependency trees travel as published, and keep their own sources and maps: 156 `.ts` files and 6
 `.map` files stay inside `node_modules/acorn` and `node_modules/yaml`.
 
 **A deep trim does not pay.** This repository measured one and rejected it. The functional subsystems
 under `src/` (`tui`, `missions`,
 `watchdog`, `inspectors`, `intercom`, `slash`, and the async machinery in `src/runs/background/`) all
-stay. A reachability scan of `src/**` (`325` files, roots the package entry and the Herdr bridge)
+stay. A reachability scan of `src/**` (320 `.js` files, plus the entry and the four workers)
 reports 302 reachable files and 24 unreachable ones of 0.40 MB, and 58 of the reachable files import
 `src/runs/background/` — including the core `src/runs/foreground/subagent-executor.js`, the config
 loader, the TUI renderers, and the workflow runner. The 24 "unreachable" files are still spawned by
@@ -124,6 +132,12 @@ The copy carries nine local patches. Every patch names its file and line in the 
    runs in the foreground, whatever the profile or the caller asks for.
 9. `src/extension/config.js:262` — `scheduledRuns.enabled` is `false` unless the agent directory turns
    it on. That is what makes the calendar dependency unreachable.
+10. `src/runs/background/async-execution.js:143` — the receipt text says the result arrives in this
+    session. It names no detached run and no `bg_wait`. Patch 5 removes the tool and patch 3 never
+    opens a background run, so the old text named things this copy cannot do.
+11. `src/runs/background/calendar-schedule.js:3` and `package.json` — a calendar call that needs the
+    missing `@js-temporal/polyfill` fails with a message that names the cause, and the declared
+    dependency list holds only `acorn` and `yaml`.
 
 ## How to refresh
 
@@ -131,9 +145,10 @@ The copy carries nine local patches. Every patch names its file and line in the 
 2. Unpack the tarball into this directory.
 3. Remove the parts in the table **What this copy removes**, including the four dependencies.
 4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
-5. Apply local patches 1 to 9 again. Every patch carries a `Vendored patch` comment in the code, so
-   `grep -rn "Vendored patch" src/` finds them all.
-6. Run the load check below.
+5. Apply local patches 1 to 11 again. Every patch carries a `Vendored patch` comment in the code, so
+   `grep -rn "Vendored patch" src/` finds them all. Patch 11 also edits `package.json`.
+6. Run the load check below, then run `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
+   install's node_modules>` and record the new number in this file.
 
 To move to a newer version, change the version wherever it appears, then repeat these steps. Record
 the new version and the new size in this file.
@@ -172,6 +187,6 @@ the message `Background children require a supported standalone Pi host or the i
 
 The pi-desktop main process can set this key before it forks the agent host
 (`src/main/host-manager.ts:280`). The value is the host package directory
-`node_modules/@earendil-works/pi-coding-agent`. The product does not set it today:
-this repository dispatches foreground children only, and the key matters only for
-the background form.
+`node_modules/@earendil-works/pi-coding-agent`. **This key has no consumer in this copy today:** patches
+3 and 8 keep every dispatch in the foreground, so no background run starts, and nothing reads the key.
+The key stays documented for a future background form.

@@ -4,7 +4,6 @@ description: Find the candidate entry points for one mod change, before the call
 tools: read, grep
 acceptanceRole: read-only
 thinking: medium
-async: false
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

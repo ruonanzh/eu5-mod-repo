@@ -147,6 +147,7 @@ The copy carries fourteen local patches. Every patch names its file and line in 
     result.
 14. `src/extension/public-execution.js:52` and `src/extension/schemas.js:203` — the `workflow` parameter
     admits only `parallel`. This copy refuses the script forms (`true`, or a path) and names the cause.
+    The same file's three refusal constants now quote that form, so a refusal never points at a script.
 
 ## How to refresh
 

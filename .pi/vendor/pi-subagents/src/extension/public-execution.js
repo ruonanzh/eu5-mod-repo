@@ -1,7 +1,9 @@
 import { normalizeWorktreeBaseRef } from "../runs/shared/worktree.js";
-const RAW_SCRIPT_FORMS = "workflow: true or a workflow script path";
-const REMOVED_WORKFLOW_SCRIPT = "workflowScript was removed; write the script in one ```js workflow block in this reply and call subagent({ workflow: true }), or pass a script file as workflow: \"./path/to/script.js\".";
-const REMOVED_WORKFLOW_SCRIPT_PATH = "workflowScriptPath was removed; pass the script file as workflow: \"./path/to/script.js\" (a workflow value containing '/' is a path).";
+// Vendored patch 14 (wording): this copy refuses the script forms (`true`, a path, and the internal
+// `workflowScript`), so every refusal below names the form that this copy accepts.
+const RAW_SCRIPT_FORMS = 'workflow: "parallel" with args.tasks, for example {workflow:"parallel",args:{tasks:[{agent,task},...]}}';
+const REMOVED_WORKFLOW_SCRIPT = `workflowScript is not available in this copy. Use ${RAW_SCRIPT_FORMS}.`;
+const REMOVED_WORKFLOW_SCRIPT_PATH = `workflowScriptPath is not available in this copy. Use ${RAW_SCRIPT_FORMS}.`;
 /** A workflow value containing "/" or "\" is a script path; named workflow resource names contain neither. */
 export function isWorkflowScriptPath(workflow) {
     return workflow.includes("/") || workflow.includes("\\");
@@ -127,7 +129,7 @@ export function normalizePublicSubagentExecution(params, options = {}) {
     const hasStructuredWorkflow = options.structuredWorkflows === true && !legacyOrchestrationAction && (params.tasks !== undefined || params.chain !== undefined);
     const hasLegacyOrchestration = (!hasStructuredWorkflow && (params.tasks !== undefined || params.chain !== undefined)) || params.parallel !== undefined || params.concurrency !== undefined || params.chainDir !== undefined;
     if (hasLegacyOrchestration) {
-        return { ok: false, error: `Legacy top-level chain and parallel inputs were removed; use a workflow script (${RAW_SCRIPT_FORMS}).`, mode: normalizedAction ? "management" : "workflow" };
+        return { ok: false, error: `Legacy top-level chain and parallel inputs were removed. Use ${RAW_SCRIPT_FORMS}.`, mode: normalizedAction ? "management" : "workflow" };
     }
     if (hasStructuredWorkflow) {
         if (params.tasks !== undefined && params.chain !== undefined) {
@@ -153,7 +155,7 @@ export function normalizePublicSubagentExecution(params, options = {}) {
             return { ok: false, error: "action='single' is not supported. Omit action and pass { agent, task } for one child.", mode: "workflow" };
         }
         if (legacyAction === "parallel" || legacyAction === "tasks" || legacyAction === "chain") {
-            return { ok: false, error: `Legacy top-level chain and parallel inputs were removed; use a workflow script (${RAW_SCRIPT_FORMS}).`, mode: "workflow" };
+            return { ok: false, error: `Legacy top-level chain and parallel inputs were removed. Use ${RAW_SCRIPT_FORMS}.`, mode: "workflow" };
         }
         if (normalizedAction === "validate") {
             if (params.agent !== undefined || params.task !== undefined || params.step !== undefined) {
@@ -182,7 +184,7 @@ export function normalizePublicSubagentExecution(params, options = {}) {
         return { ok: true, params: { ...params, action: normalizedAction } };
     }
     if (params.step !== undefined) {
-        return { ok: false, error: `step is not a public execution field; use a workflow script (${RAW_SCRIPT_FORMS}) for orchestration.`, mode: "workflow" };
+        return { ok: false, error: `step is not a public execution field. Use ${RAW_SCRIPT_FORMS} for orchestration.`, mode: "workflow" };
     }
     if (hasWorkflowInput && (params.agent !== undefined || params.task !== undefined)) {
         return { ok: false, error: "Structured single-child execution cannot be combined with workflow.", mode: "workflow" };

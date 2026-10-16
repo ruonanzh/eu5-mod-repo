@@ -14,9 +14,10 @@
  * The unattended search and the derivation are internal. They are not registered as a tool. See
  * setPathWithFallback in the lib.
  *
- * Note: the mod install directory is in the Paradox launcher directory
- * (`~/Documents/Paradox Interactive/Europa Universalis V/mod`), which is independent of the game
- * location. Its check is therefore a shape check, and not a sibling-directory sentinel.
+ * Note: the mod install directory is in the Paradox launcher directory. The path is
+ * `<the player's Documents directory>/Paradox Interactive/Europa Universalis V/mod`, which is
+ * independent of the game location. The player can move the Documents directory, so the lib reads
+ * it from Windows. Its check is therefore a shape check, and not a sibling-directory sentinel.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
@@ -24,6 +25,7 @@ import {
   checkGameDir,
   checkModInstallDir,
   checkWorkshopDir,
+  effectiveModInstallDir,
   readModRepoConfig,
   readState,
   resolveUserPath,
@@ -125,11 +127,27 @@ export default function (pi: ExtensionAPI) {
         else verdicts[key] = checkModInstallDir(path, cfg);
       }
 
+      // A recorded mod install directory can contradict mod-repo.json. That happens when the player
+      // moves the Documents directory after the tool recorded the path, and the record then names a
+      // directory that the launcher does not read. The check below is a shape check, so the stale
+      // path passes it. The tool therefore compares the record with the derived path and reports
+      // the difference. install_mod and get_game_info use the derived path. This tool is read-only,
+      // so it reports the difference and does not repair the record.
+      // The comparison runs only on the remembered route: the explicit route checks what you pass.
+      const record = explicit ? null : effectiveModInstallDir(cwd, cfg);
+
       const lines: string[] = [];
       const failed: string[] = [];
       const warnings: string[] = [];
       for (const [key, v] of Object.entries(verdicts)) {
         if (v.ok) {
+          if (key === "modInstallDir" && record?.corrected && record.derived) {
+            lines.push(`WARN: modInstallDir ${v.path} - this is not the path that mod-repo.json gives.`);
+            lines.push(`  mod-repo.json gives: ${record.derived}`);
+            lines.push("  NEXT: run try_set_game_dir with no arguments. It records the path that mod-repo.json gives.");
+            warnings.push(key);
+            continue;
+          }
           lines.push(`PASS: ${key} ${v.path} (correct)`);
           continue;
         }

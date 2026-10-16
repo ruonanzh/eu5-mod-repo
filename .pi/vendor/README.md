@@ -107,7 +107,7 @@ them, and patches none.
 
 ## Local patches
 
-The copy carries fifteen local patches. Every patch names its file and line in the code as well.
+The copy carries sixteen local patches. Every patch names its file and line in the code as well.
 
 1. Remove the `//# sourceMappingURL=` line from the package's own `.js` files, because the matching
    maps are gone. 325 files, no behaviour change. The dependency trees keep their own maps, so this
@@ -151,6 +151,10 @@ The copy carries fifteen local patches. Every patch names its file and line in t
 15. `src/runs/background/notify.js:451` — a completion notice stays hidden when the user stopped the
     parent turn. Upstream showed such a notice, and a visible notice becomes a message in the app, so a
     stopped turn left a message behind. The model still receives the notice.
+16. `src/runs/foreground/subagent-executor.js:4888` — a workflow never detaches. The structured `tasks`
+    form and `{workflow:"parallel"}` both arrive here. The upstream default detached the turn, so the tool
+    returned a receipt and the parent polled `status` instead of getting the answers. The inline mode is
+    upstream's `async: false`, and this copy always takes it.
 
 ## How to refresh
 
@@ -158,7 +162,7 @@ The copy carries fifteen local patches. Every patch names its file and line in t
 2. Unpack the tarball into this directory.
 3. Remove the parts in the table **What this copy removes**, including the four dependencies.
 4. Copy `acorn` 8.18.0 and `yaml` 2.8.3 from the Pi npm directory into `node_modules/`.
-5. Apply local patches 1 to 15 again. Every patch carries a `Vendored patch` comment in the code, so
+5. Apply local patches 1 to 16 again. Every patch carries a `Vendored patch` comment in the code, so
    `grep -rn "Vendored patch" src/` finds them all. Patches 11 and 12 also edit `package.json`.
 6. Run the load check below, then run `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
    install's node_modules>` and record the new number in this file.

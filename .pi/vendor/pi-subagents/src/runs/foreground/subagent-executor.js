@@ -4881,7 +4881,11 @@ export function createSubagentExecutor(deps) {
             const boundedScriptPreview = scriptFirstLine.length > 100 ? `${scriptFirstLine.slice(0, 97)}...` : scriptFirstLine;
             const derivedObjective = previewAgent ? `Workflow: ${previewAgent}` : boundedScriptPreview;
             const workflowDepth = checkSubagentDepth(deps.config.maxSubagentDepth, deps.childRuntime).depth;
-            const asyncWorkflow = requestParams.async !== false;
+            // Vendored patch 16: never detach a workflow. The model reaches this branch through the
+            // structured `tasks` form and through `{workflow:"parallel"}`, and the default here detaches the
+            // turn: it returns a receipt instead of the answers and it needs a background runner.
+            // Upstream keeps the inline mode behind `async: false`, so this copy always takes it.
+            const asyncWorkflow = false;
             const topLevelAsyncWorkflow = asyncWorkflow
                 && workflowDepth === 0
                 && !inheritedNestedRoute(deps)

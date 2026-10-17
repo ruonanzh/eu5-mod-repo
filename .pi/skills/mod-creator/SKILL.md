@@ -244,8 +244,9 @@ For the question "does X exist, and what is the vanilla value?", follow the look
   `docs/data_types/`, the game dumps.
 - Exact vanilla object definitions, field values, INJECT targets, and loc keys: `game-scripts/game/`,
   which `sync_game_scripts` generates, or the local game directory.
-- Mechanics concepts: `docs/mod-wiki/`. The modding conventions and the reason behind them:
-  `docs/eu5-modding-conventions.md`.
+- Mechanics concepts and how-to method: `docs/mod-wiki/INDEX.md`. It lists every page with one line
+  on what the page covers. Pick the page there and read it. The modding conventions and the reason
+  behind them: `docs/eu5-modding-conventions.md`.
 
 For a survey, `entry-scout` runs this search and returns candidates as `file:line`.
 Give it the intent and the planned change list. Its answer is a candidate list, not a decision: read

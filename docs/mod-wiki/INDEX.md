@@ -43,7 +43,7 @@ table lines. The dumps carry the same data, they name a game version, and they a
 - `Mission_modding.md` — mission and mission-task structure, select triggers.
 - `Mod.md` — installing mods, mod lists, mods with wiki pages, modding tools.
 - `Mod_compatibility.md` — the only local source for file loading order, overwrite precedence, `INJECT` and `REPLACE` behavior, operation priority, and the GUI and localization exceptions.
-- `Mod_structure.md` — mod folder location, metadata, mod folder layout.
+- `Mod_structure.md` — mod directory location, metadata, mod directory layout.
 - `Modding.md` — getting started, tools and utilities, common problems, terminology.
 - `Modifier_modding.md` — static modifiers, auto modifiers, new modifier types.
 - `On_action.md` — on_action structure and the full on_action list.

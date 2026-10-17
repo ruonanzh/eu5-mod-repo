@@ -7,9 +7,8 @@ actually changed, the `markitdown` converter:
 
     uv run --with markitdown python scripts/crawl_eu5_wiki.py
 
-Default scope is the **kept mod-API topics** (KEEP_TOPICS — the directories committed
-under docs/mod-wiki/, see docs-organization.md). Pass --all-content for the whole
-wiki; --pages-file / --category narrow further.
+Default scope is the **kept mod-API topics** (KEEP_TOPICS, the directories committed under
+docs/mod-wiki/). Pass --all-content for the whole wiki; --pages-file / --category narrow further.
 
 Compliance (eu5.paradoxwikis.com robots.txt asks `Crawl-delay: 15`; MediaWiki
 API etiquette asks for maxlag + an identifiable User-Agent):
@@ -335,8 +334,8 @@ def topic_category(categories: list[str]) -> str | None:
     return None
 
 
-# 保留的 wiki 主题分类（mod API/机制目录，见 docs-organization.md §2.1）。
-# 默认 scope 只 sync 这些分类；--all-content 才全站。
+# The wiki topic categories this repository keeps: the mod API and the mechanics directories.
+# The default scope syncs these only; --all-content takes the whole wiki.
 KEEP_TOPICS = frozenset({
     "Modding", "Game_concepts", "Estates", "Economy", "Laws",
     "Ages", "Government", "Interface", "Modding_tools",
@@ -400,7 +399,7 @@ def clean_markdown(md: str) -> str:
     """Remove wiki maintenance noise: version banners, ambox templates, image links."""
     out: list[str] = []
     for line in md.split("\n"):
-        # 版本横幅 / 维护请求（表格内外都是噪音）
+        # Version banners and maintenance requests: noise, inside a table or outside one.
         if (
             "Please help with verifying" in line
             or "last verified for" in line
@@ -408,18 +407,18 @@ def clean_markdown(md: str) -> str:
             or "Please help expand" in line
         ):
             continue
-        # 图片链接：先去掉普通 ![alt](url)；再处理数学公式等 alt 含特殊字符的图片
+        # Image links: drop a plain ![alt](url) first, then the ones whose alt holds special characters.
         line = _IMG_RE.sub("", line)
         line = re.sub(r"!\[[^\n]*?en\.wikipedia\.org/api/rest_v1/media/math[^\n]*\)", "", line)
-        # 空链接（markitdown 把 [[File:...]] 转成 [](url)，无文字价值）
+        # Empty links: markitdown turns [[File:...]] into [](url), which carries no text.
         line = re.sub(r"\[\]\([^)\n]*\)", "", line)
         s = line.strip()
-        # 去图后只剩空白 / 空表格单元格 / 表格分隔符 → 整行跳过
+        # After the images, a line with only whitespace, empty cells, or separators is skipped.
         if s == "" or re.fullmatch(r"\|[\s|:—-]*\|", s):
             continue
         out.append(line)
     text = "\n".join(out)
-    # 压缩连续空行为一个空行
+    # Collapse a run of blank lines into one.
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip() + "\n"
 

@@ -9,16 +9,16 @@ The game is **Windows-only**.
 These are fixed facts about this machine and this workspace. They prevent wasted turns.
 
 - **Prefer `node` for scripts.** The product ships its own node, so every player machine has it.
-  On this machine `python` is a Microsoft Store stub: it exits with `exit 49`
-  and is a silent no-op. If python is truly needed, run `command -v py` first. If `py`
-  is missing, fall back to `node` / `awk`.
+  On Windows, `python` can be the Microsoft Store stub: it exits with `exit 49`, prints nothing, and
+  does no work. If python is needed, run `command -v py` first. If `py` is missing, fall back to
+  `node` / `awk`.
 - **When you develop, read scripts only from the vanilla scripts at `game-scripts/`** (this does not affect mod
   runtime). The vanilla scripts live at `game-scripts/game/game/...` — **two** `game/`
-  levels. The real install directory `.../Europa Universalis V/game/...` — **one** `game/` level —
-  is the vanilla source that `sync_game_scripts` reads to build that copy. Do not `cat` / `grep`
+  levels. The game directory `.../Europa Universalis V/game/...` — **one** `game/` level — is the
+  vanilla source that `sync_game_scripts` reads to build that copy. Do not `cat` / `grep`
   there while developing. Installing a mod is a third place: `install_mod` writes to the Paradox
   launcher mod directory, `<user documents>/Paradox Interactive/Europa Universalis V/mod/`.
-- **`supported_game_version`: write a patch-level wildcard** (e.g. `1.3.*`). An exact
+- **`supported_game_version`: write a patch-level wildcard** (for example `1.3.*`). An exact
   version such as `1.0.4` goes stale. This game updates its minor version often, and the game flags
   an exact version as outdated. Do not take the easy way out with a loose `1.*` — the linter WARNs on it.
   Read it from `get_game_info`, as section 5 of `docs/eu5-modding-conventions.md` explains.
@@ -56,6 +56,15 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   capabilities and the side effects that each tool declares.
 - `reference/` — read-only mod samples. `reference/example_mod/` is a runnable sample that passes
   `validate_mod`. `reference/README.md` maps the real-world pattern mods.
+- `editors/` — the two workspace editors the app opens on a matching file: `eu5_mod_page/` for
+  `your_mods/*/.preview/*.modpage.html`, and `eu5_metadata/` for `your_mods/*/.metadata/metadata.json`.
+  Each directory holds a `.editor.tool.json` that declares its `match` patterns.
+- `scripts/` — maintainer scripts. `crawl_eu5_wiki.py` re-syncs `docs/mod-wiki/` from the live wiki.
+- `.pi/agents/` — the two read-only subagent profiles (`entry-scout`, `mod-reviewer`).
+  `.pi/prompts/` — the `/page-annotated` prompt. `.pi/vendor/` — the vendored `pi-subagents` copy, and
+  its `README.md` records the local patches and how to refresh it.
+- `lefthook.yml` — the maintainer hook file. It holds no hook today, and the mod checks live in
+  `validate_mod`.
 - `mod-repo.json` — the machine-readable game and environment declaration. `workshop.supported`
   declares whether this game has a Steam Workshop. `workshopDir` is a read-only reference and is
   not used for installing. The rule is in the `setup-workspace` skill.

@@ -1,12 +1,15 @@
-# Python 编译缓存
+# Python bytecode caches
 __pycache__/
 *.pyc
 
-# check_runtime 的运行时状态文件（机器特定，不进 git）
+# Crash dumps from tools that run in this workspace
+*.stackdump
+
+# Runtime path state written by the path tools (machine specific, not versioned)
 .gamer-agent.local.json
 
-# sync_game_scripts 复制的 vanilla 脚本镜像（只读参考，不进 git）
+# The vanilla script mirror that sync_game_scripts writes (read-only reference, not versioned)
 game-scripts/
 
-# 需求讨论的预览网页（玩家自己看，不进游戏、不进 git）
+# Preview pages for the requirements discussion (the player reads them; not part of the mod)
 .preview/

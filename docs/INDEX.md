@@ -17,9 +17,8 @@ task needs, instead of pulling the whole `docs/` directory into context.
 > modifier names with their scopes. `game-scripts/` holds the script source from the game and from
 > the Workshop mods: object definitions and field values. Grep `game-scripts/` for exact values,
 > INJECT targets, and loc keys. Use the dumps to check that a name exists and to read its scope.
-> Both are text-only, and both come from the local game directory. Prefer `game-scripts/` after you
-> run
-> `sync_game_scripts`.
+> Both are text-only, and both come from the local game directory. Prefer `game-scripts/` after
+> you run `sync_game_scripts`.
 
 - **Start here:** [`eu5-modding-conventions.md`](eu5-modding-conventions.md). This cheat-sheet
   covers override and `INJECT` semantics, ASCII load order, localization, and metadata. It answers

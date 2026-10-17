@@ -26,7 +26,7 @@ enforces nothing.
 > [Localization](https://eu5.paradoxwikis.com/Localization). The wiki asks for verification of
 > `Mod_compatibility`. Where the precedence is version-sensitive, this page notes it.
 
-## 1. Overriding vanilla: file overwrite, implicit replace, and INJECT:/REPLACE:
+## 1. Overriding vanilla: file overwrite, implicit replace, and the INJECT:/REPLACE: keywords
 
 EU5 loads the mod files on top of the vanilla files. Three override mechanisms exist. See
 `Mod_compatibility`, sections "Overview" and "Inject and replace".
@@ -34,17 +34,20 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
 - **Direct file overwrite:** a mod file with the *same path and filename* as a base-game/DLC/other-mod
   file takes precedence. The lower-in-playlist mod wins, and the losing files are treated "as if they
   did not exist." Whole-file, so anything you omit is lost - brittle across patches.
-- **Implicit replace:** in folders that do **not** use the keyword system, if two files define the
+- **Implicit replace:** in directories that do **not** use the keyword system, if two files define the
   same top-level object, the **later-loaded definition wins** (the object is redefined). This works
-  only outside keyword folders.
-- **`INJECT:` / `REPLACE:` keywords:** most `<top_folder>/common/` folders (and some others) require
+  only outside keyword directories.
+- **`INJECT:` / `REPLACE:` keywords:** most `<top_folder>/common/` directories (and some others) require
   a keyword to modify an existing object without a full file overwrite. Implicit replace does **not**
-  work in these folders. **Write the keyword at the file's top level.** `Mod_compatibility` states
+  work in these directories. **Write the keyword at the file's top level.** `Mod_compatibility` states
   this as a rule, in these words: "The `INJECT:` and `REPLACE:` keywords can only be used on
-  top-level blocks in a file." In most `common/` folders that entry is a top-level object. The one
-  exception is a *container* folder, where the entry is **one level in**, e.g.
+  top-level blocks in a file." In most `common/` directories that entry is a top-level object. The one
+  exception is a *container* directory, where the entry is **one level in**, for example
   `genes/accessory_genes = { <entry> = { … } }`, where vanilla itself writes
   `INJECT_OR_CREATE:<entry> = { … }` (see `dlc/D008_fate_of_the_phoenix/in_game/common/genes/D008_genes_accessories.txt`).
+  **That exception is untested here.** The wiki states the top-level rule without a container case, and
+  the evidence for the exception is the shape vanilla itself uses. Treat the top-level form as the safe
+  default, and use the one-level form only inside a container such as `genes/`.
   Injecting into a sub-block **below the entry level** is still invalid:
 
   | Keyword | Effect |
@@ -72,11 +75,11 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
   `REPLACE:`, or add a new object.
 
 **Rule of thumb:** prefer additive new objects. Use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
-variants) for surgical changes in keyword folders. Reserve full-file overwrite for when you must
+variants) for surgical changes in keyword directories. Reserve full-file overwrite for when you must
 change most of a file. `validate_mod` flags a keyword nested below the entry level as a **WARN** (not a
-hard error — container folders legitimately nest entries one level in, and vanilla does so). Whether a
+hard error — container directories legitimately nest entries one level in, and vanilla does so). Whether a
 top-level object redefines a vanilla name **without** a keyword is a soft rule the agent checks with
-`grep`/`read` against the local game directory (the exact list of keyword folders is not yet fully
+`grep`/`read` against the local game directory (the exact list of keyword directories is not yet fully
 documented on the wiki - marked "TBA").
 
 ## 2. Load order (ASCII order, a subdirectory after its parent, and operation order)
@@ -190,7 +193,7 @@ is a situation, and a feature that puts a button on an existing screen is a scri
 need one of them at most, and many need none.
 
 Pick the entry **before** you write script. Read the row that matches your feature, then open the
-folder it names and read one of the examples in it.
+directory it names and read one of the examples in it.
 
 | Entry point | Use it when | Defined in / read this example |
 | --- | --- | --- |
@@ -199,9 +202,9 @@ folder it names and read one of the examples in it.
 | `generic_actions` | The feature needs a **custom action** (an action that the player or the AI triggers. The action's `type` decides where it shows). | `in_game/common/generic_actions/`, for example `black_death.txt` |
 | `events` | The feature surfaces as an **event popup** (a one-off window with a choice or a notification). | `in_game/events/`, for example `ages.txt` |
 | `situations` | The feature is a **persistent state** (it stays active, is visible to a subset of countries, and runs until its end condition is met). | `in_game/common/situations/`, for example `black_death.txt` |
-| Other mechanisms for existing screens and hooks | These hook into an existing screen or hook, and the five entry points above do not cover them. | Read the folder each one lives in: `in_game/gui/` (`lateralview`, `topbar`, `context_menu`), `in_game/common/on_action/` (`on_action`), `loading_screen/gui/shortcuts.shortcuts` (`shortcut`), `main_menu/gui/scripted_widgets/` (`scripted_widgets`). |
+| Other mechanisms for existing screens and hooks | These hook into an existing screen or hook, and the five entry points above do not cover them. | Read the directory each one lives in: `in_game/gui/` (`lateralview`, `topbar`, `context_menu`), `in_game/common/on_action/` (`on_action`), `loading_screen/gui/shortcuts.shortcuts` (`shortcut`), `main_menu/gui/scripted_widgets/` (`scripted_widgets`). |
 
-A mod can also add its own content to one of the game's own data folders, such as scripted effects,
+A mod can also add its own content to one of the game's own data directories, such as scripted effects,
 script values, laws, or traits. The `mod-creator` skill lists the common ones.
 
 The four families are a **target interaction** (`character_interactions`), a **panel**
@@ -209,8 +212,8 @@ The four families are a **target interaction** (`character_interactions`), a **p
 one-off popup, `situations` for the persistent state).
 
 **Decide this before you write any script: does this version need its own panel, or any new entry
-point at all?** If it does, open the folder that the row names, read one of the examples there or the
-readme the game ships for that folder, then write. If it does not, skip this whole page.
+point at all?** If it does, open the directory that the row names, read one of the examples there or the
+readme the game ships for that directory, then write. If it does not, skip this whole page.
 
 ---
 

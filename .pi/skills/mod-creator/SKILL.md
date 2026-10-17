@@ -17,7 +17,7 @@ and its bound directory gate those actions.
 ## Usage modes (two roles)
 
 - **Q&A and consultation (read-only).** Answer game-mechanics and mod API questions by reading the
-  knowledge layer. Start from [`docs/INDEX.md`](docs/INDEX.md) to locate the right source. Do **not**
+  knowledge layer. Start from `docs/INDEX.md` to locate the right source. Do **not**
   create files or prepare the environment, unless the player explicitly asks about their
   environment. Preparing the environment means locating paths and mirroring the scripts into
   `game-scripts/`.
@@ -142,13 +142,13 @@ The `.txt`, `.gui`, `.gfx`, and `.asset` files are under `in_game/` and `main_me
   line comment outside a string, and `#` is literal inside a string. A GUI string can span several
   lines.
 - Put the `INJECT:` and `REPLACE:` keywords at the **top level** of the file, directly before a
-  database entry, in the form `KEYWORD:key = {`. A container folder such as `genes/` is the one
+  database entry, in the form `KEYWORD:key = {`. A container directory such as `genes/` is the one
   exception: there the entry sits one level in, and a keyword below it is invalid.
 
 ## Overriding vanilla
 
 Three mechanisms exist. The reason and the edge cases are in
-[`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md).
+`docs/eu5-modding-conventions.md`.
 
 1. **Direct file overwrite.** A file with the same path and filename replaces the vanilla file
    entirely. This is brittle.
@@ -226,17 +226,17 @@ The text after each message below is the fix. Each one is the start of an `ERROR
 - `line N: unbalanced '"' (unterminated string)`: close the string, or quote the text.
 - `unbalanced braces: N '{' never closed`, or `extra '}'`: balance the braces.
 - `line N: 'INJECT:' override keyword is nested (depth N)` (**WARN**): the keyword must sit directly
-  before a database entry. That is the file top level in most `common/` folders, but a container
-  folder nests its entries one level in. Confirm before you change it.
+  before a database entry. That is the file top level in most `common/` directories, but a container
+  directory nests its entries one level in. Confirm before you change it.
 
 ## Entry mechanisms and data kinds (what to add, and where it lives)
 
 Pick the entry mechanism from the table in `docs/eu5-modding-conventions.md` section 7, then open the
-folder it names and read one of the examples there. Send the intent to `entry-scout` first and read
+directory it names and read one of the examples there. Send the intent to `entry-scout` first and read
 the candidate it returns, in two cases: when you are unsure which mechanism fits, and when you must
 survey the mechanisms that the game already has for a feature.
 
-A mod can also add its own content to one of the game's own data folders. The common ones are:
+A mod can also add its own content to one of the game's own data directories. The common ones are:
 
 | Kind | Folder | One real example |
 | --- | --- | --- |
@@ -251,7 +251,7 @@ A mod can also add its own content to one of the game's own data folders. The co
 | attribute columns | `in_game/common/attribute_columns/` | `130_bureaucracy_type.txt` |
 | modifier type definitions | `main_menu/common/modifier_type_definitions/` | `02_generic_bureaucracies.txt` |
 
-Most of these folders ship a `readme.txt` or a `.info` file that lists the fields. Read that file
+Most of these directories ship a `readme.txt` or a `.info` file that lists the fields. Read that file
 before you write the block. When a task only changes values inside an existing block, there is no new
 definition to place.
 

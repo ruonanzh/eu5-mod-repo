@@ -57,6 +57,14 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
   }
   ```
 
+**Two limits on `INJECT:`.** See `Mod_compatibility`, section "Behavior".
+
+- A block that the target already defines cannot be injected. Injecting `is_visible` into a law that
+  already has an `is_visible` block fails. The same `INJECT:` works when the block is absent.
+- `INJECT:` does not work on a scripted effect or a scripted trigger. It overwrites the whole
+  definition, as `REPLACE:` does. `validate_mod` reports this as `semantic:c1-inject-scripted`. Use
+  `REPLACE:`, or add a new object.
+
 **Rule of thumb:** prefer additive new objects. Use `INJECT:`/`REPLACE:` (or the `TRY_`/`_OR_CREATE`
 variants) for surgical changes in keyword folders. Reserve full-file overwrite for when you must
 change most of a file. `validate_mod` flags a keyword nested below the entry level as a **WARN** (not a
@@ -65,7 +73,7 @@ top-level object redefines a vanilla name **without** a keyword is a soft rule t
 `grep`/`read` against the local game directory (the exact list of keyword folders is not yet fully
 documented on the wiki - marked "TBA").
 
-## 2. Load order (ASCII order, and a subdirectory after its parent)
+## 2. Load order (ASCII order, a subdirectory after its parent, and operation order)
 
 Per `Mod_files_load_order`, section "File loading order":
 
@@ -82,6 +90,22 @@ Per `Mod_files_load_order`, section "File loading order":
 - **GUI is an exception.** **Mod load order**, which is the playlist position, resolves a `type` or
   `template` definition that clashes across mods. It does not resolve a `types` container. The
   definition that loads last wins. **Filenames have no effect** for GUI.
+
+### Operation order beats filename order
+
+For database entry keywords, the game processes every declaration by **operation type first, then by
+filename**. The operation therefore outranks the file's ASCII position. The order is:
+
+`INJECT_OR_CREATE` → `REPLACE_OR_CREATE` → `TRY_INJECT` → `TRY_REPLACE` → `INJECT` → `REPLACE`
+
+Three consequences, from `Mod_compatibility`, section "Processing order":
+
+- Two files that both `REPLACE:` the same object: the later filename wins.
+- One file uses `REPLACE_OR_CREATE:` and another uses `REPLACE:` on the same object: `REPLACE:` wins,
+  whatever the filenames are, because it is processed later.
+- `INJECT:` and `TRY_INJECT:` are processed before `REPLACE:`, so a replace overwrites an injected
+  change. `REPLACE_OR_CREATE:` is processed before every inject, so a later inject still applies to
+  the object it created.
 
 ## 3. Localization (BOM, filename, header, and the override directory)
 

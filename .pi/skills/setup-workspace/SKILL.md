@@ -48,7 +48,8 @@ Do not mix these tools up. They share one implementation in `.pi/lib/game-paths.
 | Tool | What it does | Side effects |
 |---|---|---|
 | `try_set_game_dir` | **Ensure the game directory is ready.** No arguments, and idempotent. If the state is ready, it reports only. If the state is missing or stale, it locates the game and records the game directory and the two derived directories. | Writes path state, but only when it records. |
-| `set_game_dir` | **Record one concrete game directory**, either from the player or one you found. It checks the path first, then records it. | Writes path state. |
+| `set_game_dir` | **Record one concrete game directory**, either from the player or one you found. It checks the path. If the check fails, it searches for the game, records the path it found instead, and returns WARN. | Writes path state. |
+| `get_game_info` | **Report the recorded facts in one call**: the three paths, `supportedGameVersion`, the script layout, and whether the vanilla mirror exists. It takes no arguments and writes nothing. | None. |
 | `check_game_paths` | **Check only.** Read-only. It checks the paths you give or the remembered ones, and it records nothing. | None. |
 | `check_runtime` | **Report the runtime prerequisites only.** EU5 has none, so it always passes. It does **not** locate the game, and it does not touch the paths. | None. |
 | `sync_game_scripts` | **Mirror the vanilla and Workshop scripts into `game-scripts/`.** This is the context you need before you write mods. | Writes `game-scripts/`. |

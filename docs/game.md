@@ -11,12 +11,13 @@ The game is **Windows-only**.
   `<the player's Documents directory>\Paradox Interactive\Europa Universalis V\mod\<name>\`.
   The player can move the Documents directory, so the tools read it from Windows.
   The Paradox launcher loads the mod from there.
-- The mod directory holds `.metadata/metadata.json` (required), `in_game/` (in-game content),
-  `main_menu/` (main-menu content), and an optional `loading_screen/`.
-- At load time, the game layers the mod files on top of the vanilla files. A file with the same
-  name overwrites the vanilla file. A top-level object with the same name replaces the vanilla
-  object, per the directory's keyword rules (`INJECT:` and `REPLACE:`). Files load in ASCII order
-  by filename, and a subdirectory loads after its parent.
+- The mod directory holds `.metadata/metadata.json` (required) and `in_game/` (in-game content).
+  `main_menu/` (main-menu content) and `loading_screen/` are optional, and a mod holds only the ones
+  it changes.
+- At load time, the game layers the mod files on top of the vanilla files. A file with the same path
+  **and** the same filename overwrites the vanilla file. A top-level object with the same name
+  replaces the vanilla object, per the directory's keyword rules (`INJECT:` and `REPLACE:`). Files
+  load in ASCII order by filename, and a subdirectory loads after its parent.
 
 ## Where to find the reference
 

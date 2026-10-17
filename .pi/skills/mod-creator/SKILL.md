@@ -198,8 +198,12 @@ Call `validate_mod` with `modDir = your_mods/<ModName>/`.
   above and re-run validate_mod.` That sentence is fixed. It points at nothing, so read the
   `ERROR:` lines to locate the file.
 - The tool checks syntax, conventions, and **name-level semantics**: a misspelled effect, trigger, or
-  modifier name, a missing `INJECT:`/`REPLACE:` target, and a new object without localization keys.
-  It does **not** check scope or type. Use `how-to-speak` to report the result to the player.
+  modifier name, a missing `INJECT:`/`REPLACE:` target, and a new building or good without
+  localization keys. Those are the only two object kinds the localization check covers. Every
+  semantic finding is a `WARN:` or a `NOTE:`, so a `PASS` line does not mean those are clean: read
+  them. The existence checks read `game-scripts/`, so `sync_game_scripts` comes first. Without it the
+  tool skips the vanilla side, reports a NOTE, and can look as if it passed.
+- Use `how-to-speak` for what you tell the player about the result.
 
 ## Common errors
 

@@ -6,8 +6,9 @@ tool cannot check on its own. This is the **knowledge layer**: read it for guida
 enforces nothing.
 
 - Enforcement lives in `.pi/extensions/mod-lint.ts` (the `validate_mod` tool).
-- This document is the **single source of truth** for the modding rules. `AGENTS.md` and
-  `.pi/skills/mod-creator/SKILL.md` reference it instead of repeating the rules.
+- This document is the **authoritative version** of the modding rules. `AGENTS.md` and
+  `.pi/skills/mod-creator/SKILL.md` carry short summaries at the point where the agent needs them.
+  When a summary and this page disagree, this page wins.
 - The boundaries and the mandatory `validate_mod` step live in [`AGENTS.md`](../AGENTS.md). The
   step-by-step procedure, with the product shapes and the `validate_mod` usage, is in
   [`../.pi/skills/mod-creator/SKILL.md`](../.pi/skills/mod-creator/SKILL.md).
@@ -159,18 +160,19 @@ Per `Mod_structure`, section "Metadata": every mod **requires** a `metadata.json
 `.metadata` directory, or "the game will error". The documented standard structure is valid JSON
 with `name`, `id`, `version` (`x.x` or `x.x.x`), `supported_game_version` (for example `1.3.*`),
 `short_description`, and `tags`, plus optional `relationships` and `game_custom_data`. The summary
-field is `short_description`, not `description`. The wiki does not document an individual missing
-field as load-fatal, so the linter treats a missing file or invalid JSON as an ERROR, and a missing
-standard field as a WARN.
+field is `short_description`, not `description`. The linter treats a missing file or invalid JSON as
+an ERROR. It reports a missing field as a WARN for these five only: `name`, `id`, `version`,
+`supported_game_version`, and `tags`. A missing `short_description`, `picture`, or `relationships`
+passes without a message.
 Read `supported_game_version` from the `supportedGameVersion` value of `get_game_info`. Do not do
 binary forensics.
 
 The `.metadata` directory should also hold a `thumbnail.png`: the launcher and Workshop image. It
 must be smaller than 1 MB, and the recommended size is 512x512. Reference it with a
-`"picture": "thumbnail.png"` entry, placed after `tags`. The image can live only in the Paradox mod
-directory, and you do not have to version it in the repository. The linter still warns when the
-`picture` value names no existing file in the mod root or `.metadata/`. Only the warning wording
-depends on whether other image files **are** versioned.
+`"picture": "thumbnail.png"` entry, placed after `tags`. Keep the image in the mod directory, because
+`install_mod` copies only the contents of `your_mods/<name>/`, so an image that lives elsewhere alone
+never reaches the installed copy. The linter warns when the `picture` value names no existing file in
+the mod root or `.metadata/`.
 
 ## 6. Housekeeping
 

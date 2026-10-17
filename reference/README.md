@@ -1,8 +1,9 @@
 # Reference mods
 
 Real-world mod examples. The agent reads them to learn EU5 (pdx-script) modding patterns. Each
-subdirectory is a complete mod (`.metadata/`, `in_game/`, and `main_menu/`). Do not edit these
-files. Copy the pattern you need into `your_mods/<ModName>/`.
+subdirectory is a mod: all of them hold `.metadata/` and `in_game/`, and the three that need
+main-menu content also hold `main_menu/`. Do not edit these files. Copy the pattern you need into
+`your_mods/<ModName>/`.
 
 - `example_mod/` — the **minimal runnable sample**, which must pass `validate_mod`. It holds one
   tweak and a bilingual localization. Start here for the bare skeleton.
@@ -10,7 +11,7 @@ files. Copy the pattern you need into `your_mods/<ModName>/`.
 
 | Mod | What it demonstrates | Key files to read |
 |---|---|---|
-| `megalopolis_core_upgrade` | The simplest tweak: replace one vanilla rank with `REPLACE` | `in_game/common/location_ranks/00_default.txt` |
+| `megalopolis_core_upgrade` | The simplest tweak: a whole-file overwrite of one vanilla rank file, with no keyword | `in_game/common/location_ranks/00_default.txt` |
 | `sync_market_ui_focus` | GUI only: overwrite a vanilla `.gui` file and call a GUI API (`SetUIFocusMarket`) | `in_game/gui/selected_market_view.gui` |
 | `character_traits_on_cards` | GUI and data: a full `.gui` overwrite, `attribute_columns/`, `gui/filters/`, and a bilingual localization | `in_game/gui/people_lateral_view.gui`, `in_game/common/attribute_columns/09_character.txt`, `in_game/gui/filters/98_character_trait_filters.txt` |
 | `slave_redistribute` | Scripted GUIs: a right-click context menu that drives gameplay | `in_game/common/scripted_guis/slave_redistribute.txt`, `in_game/gui/context_menu.gui` |

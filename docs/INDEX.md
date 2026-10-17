@@ -42,18 +42,25 @@ task needs, instead of pulling the whole `docs/` directory into context.
 ## Game-generated reference dumps (authoritative)
 
 The running game exports these dumps through the `script_docs` and `dump_data_types` console
-commands. They are plain text, one entry per record, and easy to grep. They match the installed
-game version, so they are the source of truth for exact keywords.
+commands. They are plain text, one entry per record, and easy to grep. They are the source of truth
+for exact keywords.
+
+**The version behind these files is not recorded.** They arrived with the initial commit `e968448`
+and have not changed since, and the files carry no version or date header. The counts below were
+re-counted on 2026-10-18. To refresh them, take `current_docs/` from the
+[`modding-digests`](https://github.com/Europa-Universalis-5-Modding-Co-op/modding-digests) repository,
+which versions the same files per game release, or run the two console commands in the game. When you
+record a new set, note the game build next to it. The repository has no dump refresh script.
 
 | Dump | Entries | Load it when you need to |
 |------|--------:|------------------------|
-| [`script_docs/effects.log`](script_docs/effects.log) | ~1490 | Check an **effect** name and its supported scopes and targets. |
-| [`script_docs/triggers.log`](script_docs/triggers.log) | ~1725 | Check a **trigger** name and its supported scopes and targets. |
-| [`script_docs/modifiers.log`](script_docs/modifiers.log) | ~2333 | Check a **modifier** tag and its category. |
-| [`script_docs/event_targets.log`](script_docs/event_targets.log) | ~326 | Check a **scope link** or event target and its input and output scopes. |
-| [`script_docs/on_actions.log`](script_docs/on_actions.log) | ~244 | Check an **on_action** hook name and its expected scope. |
-| [`script_docs/custom_localization.log`](script_docs/custom_localization.log) | ~927 | Check a **custom localization** promote and its entries. |
-| [`data_types/data_types_*.txt`](data_types/) | ~27000 | Check a **GUI or script data-type promote or function** (name and return type) for `.gui` datamodel bindings, scripted GUI, and script values. The dumps are the only source, because the wiki has no equivalent. |
+| [`script_docs/effects.log`](script_docs/effects.log) | 1,534 | Check an **effect** name and its supported scopes and targets. |
+| [`script_docs/triggers.log`](script_docs/triggers.log) | 1,798 | Check a **trigger** name and its supported scopes and targets. |
+| [`script_docs/modifiers.log`](script_docs/modifiers.log) | 2,437 | Check a **modifier** tag and its category. |
+| [`script_docs/event_targets.log`](script_docs/event_targets.log) | 334 | Check a **scope link** or event target and its input and output scopes. |
+| [`script_docs/on_actions.log`](script_docs/on_actions.log) | 257 | Check an **on_action** hook name and its expected scope. |
+| [`script_docs/custom_localization.log`](script_docs/custom_localization.log) | 464 promotes | Check a **custom localization** promote and its entries. |
+| [`data_types/data_types_*.txt`](data_types/) | 28,527 definitions | Check a **GUI or script data-type promote or function** (name and return type) for `.gui` datamodel bindings, scripted GUI, and script values. The dumps are the only source, because the wiki has no equivalent. |
 
 > `data_types/` has no wiki counterpart, so it is the only reference for GUI and script promotes
 > and functions. The files are split by area: `_gui`, `_script`, `_common`,

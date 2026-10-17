@@ -110,8 +110,11 @@ Keep these in mind while you write a mod. They prevent most `validate_mod` failu
 After you finish or change a mod, run `validate_mod` on `your_mods/<ModName>/`.
 Clear every ERROR before you end the turn.
 The tool checks syntax, conventions, and **name-level semantics**: that effect, trigger, and modifier
-names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new object has its localization
-keys. It is not a scope or type validator.
+names exist, that `INJECT:`/`REPLACE:` targets exist, and that a new building or good has its
+localization keys. It is not a scope or type validator. Its semantic findings are **WARN or NOTE,
+never FAIL**, so a `PASS` line means the mechanical checks found nothing. Read the `WARN:` and `NOTE:`
+lines before you call the mod done. The existence checks read `game-scripts/`, so run
+`sync_game_scripts` first: without it the tool skips the vanilla side and reports a NOTE.
 
 `mod-reviewer` covers the semantics that `validate_mod` cannot see. Dispatch it before `install_mod`
 and before you report a mod as finished. It reads the `validate_mod` receipt, so it does not repeat

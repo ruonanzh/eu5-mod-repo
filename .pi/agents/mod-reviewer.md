@@ -3,7 +3,7 @@ name: mod-reviewer
 description: Review one mod change for the semantics that validate_mod does not check, before the caller installs it. Use it after validate_mod is clean and before install_mod runs. The caller dispatches this profile. The caller does not run the review itself.
 tools: read, grep
 acceptanceRole: read-only
-thinking: high
+thinking: minimal
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

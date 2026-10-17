@@ -32,7 +32,7 @@ npm places inside the package, and that is 214 files of 1.90 MB. The installed t
 The real gain is the file count, because most of what leaves is many small files.
 
 The declaration size is measurable. `node .pi/vendor/tools/measure-tool-context.mjs --host <the Pi
-install's node_modules>` reports **1 tool and 3,334 characters** for this copy, against 4 tools and
+install's node_modules>` reports **1 tool and 3,255 characters** for this copy, against 4 tools and
 5,438 characters for the published package. That tool is the probe the size claims in this file rest
 on, so run it after any change to the copy.
 
@@ -99,68 +99,71 @@ them, and patches none.
   `docs/configuration.md#modelresponsealiases`. This copy leaves the docs out, so the pointer is dead
   text.
 - `src/extension/upgrade-notice.js:11` takes `CHANGELOG.md` as a default argument. That file sits in
-  the removal table. `src/extension/index.js:82` imports the function, and `:1083` calls it on every
+  the removal table. `src/extension/index.js:84` imports the function, and `:1133` calls it on every
   `session_start`. The consequence is small: the function returns early without a UI (`:12`), it
   returns early when the version did not change (`:18`), and it writes its state file before it reads
   the changelog (`:20`), so it tries once. A missing file prints one `console.error` from
-  `index.js:1083`, and the upgrade notice never appears.
+  `index.js:1133`, and the upgrade notice never appears.
 
 ## Local patches
 
-The copy carries sixteen local patches. Items 14 and 17 were tried and reverted, so they stay in the list as history only. Every patch names its file and line in the code as well.
+The copy carries sixteen local patches. Items 14 and 17 were tried and reverted, so they stay in the list as history only. Every patch carries a `Vendored patch N` comment in the code, and the list names the `grep -n "Vendored patch N" <file>` anchor that finds it (line numbers drift as later patches insert lines).
 
 1. Remove the `//# sourceMappingURL=` line from the package's own `.js` files, because the matching
    maps are gone. 325 files, no behaviour change. The dependency trees keep their own maps, so this
    patch does not touch them.
-2. `src/extension/schemas.js:267` — the `async` parameter is not offered to the model, because this
+2. `grep -n "Vendored patch 2" src/extension/schemas.js` — the `async` parameter is not offered to the model, because this
    copy always dispatches in the foreground.
-3. `src/runs/foreground/subagent-executor.js:7525` and `:7064` — always dispatch in the foreground, and
-   never request a background run. `src/extension/tool-description.js:13,16,21,38` — the text the
+3. `grep -n "Vendored patch 3" src/runs/foreground/subagent-executor.js` — always dispatch in the foreground, and
+   never request a background run. `src/extension/tool-description.js` — the text the
    model reads describes the foreground form only. It names no background run, no `bg_wait`, and no
    `async: true`.
-4. `src/shared/disabled-features.js:73` — the management surface this copy hides from the model is a
+4. `grep -n "Vendored patch 4" src/shared/disabled-features.js` — the management surface this copy hides from the model is a
    fixed list, because the agent directory cannot set it. `workflow-scripts` is not in that list: the
    script forms stay available, patch 16 keeps every workflow in the foreground, and patch 18 lowers the
    structured forms as well.
-5. `src/extension/index.js:650` — `bg_wait` is not registered: a foreground dispatch returns the answer
+5. `grep -n "Vendored patch 5" src/extension/index.js` — `bg_wait` is not registered: a foreground dispatch returns the answer
    in the receipt.
-6. `src/extension/index.js:1088` — the `subagents_enable` loader is not registered, so `subagent` is
+6. `grep -n "Vendored patch 6" src/extension/index.js` — the `subagents_enable` loader is not registered, so `subagent` is
    active from the first request.
-7. `src/extension/index.js:631` and `src/intercom/native-supervisor-channel.js:14` — the supervisor
+7. `grep -n "Vendored patch 7" src/extension/index.js src/intercom/native-supervisor-channel.js` — the supervisor
    tools are not offered. A child answers in its own receipt.
-8. `src/runs/foreground/subagent-executor.js:2560` and `:4046` — every child and every single dispatch
+8. `grep -n "Vendored patch 8" src/runs/foreground/subagent-executor.js` — every child and every single dispatch
    runs in the foreground, whatever the profile or the caller asks for.
-9. `src/extension/config.js:262` — `scheduledRuns.enabled` is `false` unless the agent directory turns
+9. `grep -n "Vendored patch 9" src/extension/config.js` — `scheduledRuns.enabled` is `false` unless the agent directory turns
    it on. That is what makes the calendar dependency unreachable.
-10. `src/runs/background/async-execution.js:143` — the receipt text says the result arrives in this
+10. `grep -n "Vendored patch 10" src/runs/background/async-execution.js` — the receipt text says the result arrives in this
     session. It names no detached run and no `bg_wait`. Patch 5 removes the tool and patch 3 never
     opens a background run, so the old text named things this copy cannot do.
-11. `src/runs/background/calendar-schedule.js:3` and `package.json` — a calendar call that needs the
+11. `grep -n "Vendored patch 11" src/runs/background/calendar-schedule.js` and `package.json` — a calendar call that needs the
     missing `@js-temporal/polyfill` fails with a message that names the cause, and the declared
     dependency list holds only `acorn` and `yaml`.
-12. `package.json` — no `bin` field and no `types` field, and no `types` condition inside `exports`.
-    Every one of them pointed at a file this copy removes.
-13. `src/extension/index.js:656` — a user stop stops the runs the turn started. It reads the session's
+12. `package.json` — no `bin` field and no `types` field, and no `types` condition inside `exports`,
+    and no `skills` or `prompts` entry in the `pi` field. Every one of them pointed at a file or
+    directory this copy removes.
+13. `grep -n "Vendored patch 13" src/extension/index.js` — a user stop stops the runs the turn started. It reads the session's
     live runs from the run directory, calls `deliverAsyncRunStop`, and aborts the live workflow
     controllers. Upstream only reports that the runs keep working, and this copy never reads their
-    result.
+    result. **This is defensive code today:** patch 16 keeps every workflow in the foreground, so
+    nothing writes into `DIRS.async` and this handler finds nothing. It only matters if a future
+    change re-opens an async producer (scheduled tasks, external CLI runners, or a herdr pane).
 14. (reverted, no code) `src/extension/public-execution.js` and `src/extension/schemas.js` — the
     `workflow` parameter briefly admitted only `parallel`. The script forms are available again, because
     patch 16 keeps them in the foreground. The revert also restored the upstream `workflow` validation.
-15. `src/runs/background/notify.js:451` — a completion notice stays hidden when the user stopped the
+15. `grep -n "Vendored patch 15" src/runs/background/notify.js` — a completion notice stays hidden when the user stopped the
     parent turn. Upstream showed such a notice, and a visible notice becomes a message in the app, so a
     stopped turn left a message behind. The model still receives the notice.
-16. `src/runs/foreground/subagent-executor.js:4888` — a workflow never detaches. The structured `tasks`
+16. `grep -n "Vendored patch 16" src/runs/foreground/subagent-executor.js` — a workflow never detaches. The structured `tasks`
     form and `{workflow:"parallel"}` both arrive here. The upstream default detached the turn, so the tool
     returned a receipt and the parent polled `status` instead of getting the answers. The inline mode is
     upstream's `async: false`, and this copy always takes it.
 17. (reverted, no code) `src/extension/schemas.js`, `src/runs/foreground/subagent-executor.js` and
     `src/extension/doctor.js` — four strings briefly named the parallel form instead of the script form.
     They are back to the upstream text.
-18. `src/runs/foreground/subagent-executor.js:7552` — both call shapes stay available. Upstream lowers the
+18. `grep -n "Vendored patch 18" src/runs/foreground/subagent-executor.js` — both call shapes stay available. Upstream lowers the
     structured `tasks` and `chain` forms only while `workflow-scripts` is disabled, and it accepts the
     script forms only while `workflow-scripts` is enabled. This copy keeps the script forms and lowers the
-    structured forms too, so the model may use either shape.
+    structured forms too, so the flat and RPC callers may use either shape.
 
 ## How to refresh
 

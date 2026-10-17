@@ -76,9 +76,13 @@ try {
     console.log(`  ${tool.name}: description ${description.length} + schema ${schema.length} + snippet ${snippet.length} + guidelines ${guidelines.length} = ${size}`);
   }
   console.log(`tool declaration characters per request: ${total}`);
+  // The `others` keys are fake-API proxy paths, not a distinct-handler count: every property access
+  // on the recording Proxy builds a longer path name, so `on` and `events.on` count separately and
+  // `registerEntryRenderer.call` is the Proxy's name, not a real method. R20's "29 event handlers" is a
+  // different count; this line is only a sanity check that nothing else registered a tool.
   const counts = {};
   for (const call of others) counts[call.m] = (counts[call.m] ?? 0) + 1;
-  console.log(`other API calls: ${JSON.stringify(counts)}`);
+  console.log(`other API calls (fake-API proxy paths, not a distinct-handler count): ${JSON.stringify(counts)}`);
 } finally {
   fs.rmSync(work, { recursive: true, force: true });
 }

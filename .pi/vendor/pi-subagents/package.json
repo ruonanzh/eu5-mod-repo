@@ -104,12 +104,6 @@
   "pi": {
     "extensions": [
       "./index.js"
-    ],
-    "skills": [
-      "./skills"
-    ],
-    "prompts": [
-      "./prompts"
     ]
   }
 }

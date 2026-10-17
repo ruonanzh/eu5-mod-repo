@@ -61,7 +61,7 @@ The `workflow` field selects the script source:
 
 `workflow: true` works only from a model tool call. Slash commands, RPC, and schedules pass scripts through their own inputs. Examples below that show only a ```` ```js workflow ```` block run with `subagent({ workflow: true })` in the same reply.
 
-For multi-step or parallel work, make exactly one top-level `subagent` workflow call with `async:true` and launch children only inside it. Read this guide for recipes rather than constructing a second top-level orchestration. Available sandbox helpers include `runs.run`, `runs.all`, `runs.lanes`, `runs.steer`, `runs.status`, `runs.ref`/`runs.refs`, `emit`, `console`, standard JavaScript, and mission `state` when enabled. No filesystem, shell, arbitrary Pi tools, or host globals are available; named resources alone may grant `runs.host` authority.
+For multi-step or parallel work, make exactly one top-level `subagent` workflow call and launch children only inside it. Read this guide for recipes rather than constructing a second top-level orchestration. Available sandbox helpers include `runs.run`, `runs.all`, `runs.lanes`, `runs.steer`, `runs.status`, `runs.ref`/`runs.refs`, `emit`, `console`, standard JavaScript, and mission `state` when enabled. No filesystem, shell, arbitrary Pi tools, or host globals are available; named resources alone may grant `runs.host` authority.
 
 Workflow-level child controls default onto each `runs.run`/`runs.all` launch; explicit child fields override them. See [retained children](tool-reference.md#retained-children) for follow-up challenges, [output binding](tool-reference.md#output-mode-details) for durable artifacts, and [schedules](missions.md#schedules) for delayed/recurring scripts.
 

@@ -79,10 +79,14 @@ function sectionText(lines, section) {
     const intro = lines.slice(section.start, section.children[0].start).join("\n").trim();
     return `${intro}\n\nSubsections (read one with {action:"guide",options:{topic:"<address>"}}):\n${section.children.map((child) => `${child.address} — ${child.title}`).join("\n")}`;
 }
+// The vendored copy runs every dispatch in the foreground and drops the background/supervisor tools,
+// but the docs/ guide files still describe the upstream async surface. Prepend one line so a topic-level
+// read cannot point the model at a path this copy does not offer.
+const VENDORED_GUIDE_BANNER = "> Vendored copy notice: this copy runs everything in the foreground; sections on bg_wait/async/supervisor tools do not apply here.\n";
 function readGuideFiles(topic, files, root) {
     try {
         // Windows checkouts can convert docs to CRLF; sections and their boundaries are defined on LF lines.
-        return files.map((file) => fs.readFileSync(path.join(root, file), "utf-8").replace(/\r\n/g, "\n"));
+        return files.map((file) => `${VENDORED_GUIDE_BANNER}${fs.readFileSync(path.join(root, file), "utf-8").replace(/\r\n/g, "\n")}`);
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);

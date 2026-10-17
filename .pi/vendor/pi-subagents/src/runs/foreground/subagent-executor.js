@@ -7548,7 +7548,7 @@ export function createSubagentExecutor(deps) {
             return Promise.resolve(disabledFeatureError);
         // Vendored patch 18: both call shapes stay available. Upstream admits chain/tasks only when
         // `workflow-scripts` is disabled, and the script forms only when it is enabled. This copy keeps
-        // the script forms and still lowers chain/tasks, so the model may use either shape.
+        // the script forms and still lowers chain/tasks, so the flat and RPC callers may use either shape.
         const normalized = normalizePublicSubagentExecution(params, { structuredWorkflows: true });
         if (!normalized.ok) {
             return Promise.resolve({ content: [{ type: "text", text: normalized.error }], isError: true, details: { mode: normalized.mode, results: [] } });

@@ -9,8 +9,6 @@ inheritProjectContext: true
 inheritSkills: false
 defaultReads:
   - docs/eu5-modding-conventions.md
-  - .pi/skills/mod-creator/SKILL.md
-  - .pi/skills/mod-installer/SKILL.md
 ---
 
 # Mod reviewer (EU5)

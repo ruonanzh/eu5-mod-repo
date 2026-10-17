@@ -31,7 +31,9 @@ Read `docs/eu5-modding-conventions.md`, and start with its last section,
    every key the change produces must be declared. Example: `metadata.json` declares
    `picture: thumbnail.png` while the file is absent.
 2. **Pairing and scope.** A name must match its host list, its category, and its scope. Example:
-   `local_unrest`, a Location modifier, placed in a country static modifier.
+   `local_unrest`, a Location modifier, placed in a country static modifier. A promote in `.gui`, in
+   a scripted GUI, in a script value, or in a localization data function: check its name and its
+   return type in `docs/data_types/`. That directory is the only source for them.
 3. **Override form.** The choice between a full-file override, `INJECT:`, and `REPLACE:` must match
    the intent. Example: a block-level change written as a full-file override, so keys are lost. When
    the change overwrites a whole file, name the entries that the current vanilla file defines and

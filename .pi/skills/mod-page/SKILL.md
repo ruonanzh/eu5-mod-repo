@@ -7,7 +7,7 @@ description: >
   game mechanics to explain.
 ---
 
-# The mod page (EU5 mod workspace)
+# The page (EU5 mod workspace)
 
 A mod page is one HTML file that the player reads. It shows what the mod changes, which values it
 sets, and which choices are still open. The player comments on the page, and you revise.

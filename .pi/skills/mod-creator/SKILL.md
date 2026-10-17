@@ -239,8 +239,7 @@ definition to place.
 
 ## Semantic lookup path
 
-For the question "does X exist, and what is the vanilla value?", follow the lookup hierarchy in
-[`docs/INDEX.md`](docs/INDEX.md). It is the single authoritative map of which source to use.
+For the question "does X exist, and what is the vanilla value?", use the source that matches it:
 
 - Exact effect, trigger, and modifier names, and their scopes: `docs/script_docs/` and
   `docs/data_types/`, the game dumps.
@@ -263,7 +262,6 @@ When you cannot dispatch, run the search yourself along the same path.
   `megalopolis_core_upgrade` (the simplest tweak), `sync_market_ui_focus` (GUI only),
   `character_traits_on_cards` (GUI, attribute columns, and filters), `slave_redistribute` (scripted
   GUIs and a context menu), and `globalization_age` (a full situation and event mechanic).
-- Knowledge-layer navigation, and what to load when: `docs/INDEX.md`.
 - The game overview: `docs/game.md`.
 - The modding conventions, the single source of truth: `docs/eu5-modding-conventions.md`.
 

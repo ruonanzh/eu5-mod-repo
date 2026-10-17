@@ -42,7 +42,7 @@ table lines. The dumps carry the same data, they name a game version, and they a
 - `Mean_time_to_happen.md` — MTTH syntax and scripted modifiers.
 - `Mission_modding.md` — mission and mission-task structure, select triggers.
 - `Mod.md` — installing mods, mod lists, mods with wiki pages, modding tools.
-- `Mod_compatibility.md` — `INJECT` and `REPLACE`, and the exceptions to them.
+- `Mod_compatibility.md` — the only local source for file loading order, overwrite precedence, `INJECT` and `REPLACE` behavior, operation priority, and the GUI and localization exceptions.
 - `Mod_structure.md` — mod folder location, metadata, mod folder layout.
 - `Modding.md` — getting started, tools and utilities, common problems, terminology.
 - `Modifier_modding.md` — static modifiers, auto modifiers, new modifier types.

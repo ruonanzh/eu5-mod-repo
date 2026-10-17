@@ -16,16 +16,19 @@ enforces nothing.
 - A mod is PDXScript text only. The game engine is C++, and it is out of scope. A mod cannot add
   behavior that the engine does not expose.
 
-> Sources: the EU5 wiki grounds the mechanics below. Online pages:
-> [Mod files load order](https://eu5.paradoxwikis.com/Mod_files_load_order),
+> Sources: the EU5 wiki grounds the mechanics below. The local snapshot is the copy to read:
+> `docs/mod-wiki/Modding/Mod_compatibility.md` (file loading order, overwrites, `INJECT:` and
+> `REPLACE:` behavior, processing order, and the GUI and localization exceptions) and
+> `docs/mod-wiki/Modding/Mod_structure.md`. Online pages:
+> [Mod compatibility](https://eu5.paradoxwikis.com/Mod_compatibility),
 > [Mod structure](https://eu5.paradoxwikis.com/Mod_structure),
-> [Localization](https://eu5.paradoxwikis.com/Localization). The wiki flags some pages as
-> "requires verification". Where the precedence is version-sensitive, this page notes it.
+> [Localization](https://eu5.paradoxwikis.com/Localization). The wiki asks for verification of
+> `Mod_compatibility`. Where the precedence is version-sensitive, this page notes it.
 
 ## 1. Overriding vanilla: file overwrite, implicit replace, and INJECT:/REPLACE:
 
 EU5 loads the mod files on top of the vanilla files. Three override mechanisms exist. See
-`Mod_files_load_order`, sections "Overview" and "Inject and replace".
+`Mod_compatibility`, sections "Overview" and "Inject and replace".
 
 - **Direct file overwrite:** a mod file with the *same path and filename* as a base-game/DLC/other-mod
   file takes precedence. The lower-in-playlist mod wins, and the losing files are treated "as if they
@@ -77,7 +80,7 @@ documented on the wiki - marked "TBA").
 
 ## 2. Load order (ASCII order, a subdirectory after its parent, and operation order)
 
-Per `Mod_files_load_order`, section "File loading order":
+Per `Mod_compatibility`, section "File loading order":
 
 - Files load in **ASCII order** by name: `00_foo.txt` before `01_bar.txt`. Vanilla compared with mod
   does not matter for ordering. It does matter for overwrite precedence, which section 1 covers.
@@ -112,7 +115,7 @@ Three consequences, from `Mod_compatibility`, section "Processing order":
 ## 3. Localization (BOM, filename, header, and the override directory)
 
 Write the files under `your_mods/<name>/<top_folder>/localization/<lang>/...`. See `Localization`
-and `Mod_files_load_order`, section "Localization".
+and `Mod_compatibility`, section "Localization".
 
 - **Encoding (mandatory):** UTF-8 **with BOM** (`EF BB BF`). Without a BOM the game **ignores the
   file**. This failure is fatal, not cosmetic, so the linter treats a missing BOM as an ERROR.
@@ -130,9 +133,9 @@ and `Mod_files_load_order`, section "Localization".
 - **Overriding vanilla loc keys:** the reliable mechanism is a `replace` **subdirectory**,
   `<lang>/replace/overwriting_l_<lang>.yml`. Keys there overwrite identical keys elsewhere. Outside
   `replace/`, the precedence between duplicate keys is version-sensitive. The `Localization` page
-  notes reverse-alphabetical processing with an `a` or `0` prefix trick. `Mod_files_load_order`
-  states that a key that loads later does **not** overwrite an earlier one. Prefer the `replace/`
-  directory, and do not rely on filename ordering to win a key.
+  notes reverse-alphabetical processing with an `a` or `0` prefix trick. `Mod_compatibility`, section
+  "Localization", states that a key that loads later does **not** overwrite an earlier one. Prefer the
+  `replace/` directory, and do not rely on filename ordering to win a key.
 - **No duplicate keys** within one file. They are ambiguous and easy to miss, and the linter flags
   them.
 

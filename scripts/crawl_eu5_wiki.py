@@ -60,6 +60,20 @@ STATE_DIR = Path.home() / ".cache" / "paradox-wiki-crawl"
 # behavior or want a quick curated subset. Kept for reference.
 PAGES: tuple[str, ...] = ()
 
+# Titles whose page body is a pure dump of the game files: effect, trigger, scope, modifier and
+# define tables, and the GUI function table. The authoritative copies are the dumps under
+# docs/script_docs/ and docs/data_types/, which carry a game version and are cheaper to read, so
+# this snapshot skips the titles instead of carrying a second copy. Titles use underscores, which is
+# how the crawler normalizes them.
+EXCLUDED_TITLES: frozenset[str] = frozenset({
+    "Effect",
+    "Trigger",
+    "Scope",
+    "Modifier_types",
+    "Defines",
+    "List_of_GUI_script_functions",
+})
+
 
 class BlockedError(Exception):
     """Server asked us to back off (HTTP block code or maxlag); stop the round."""
@@ -492,6 +506,12 @@ def main(argv: list[str] | None = None) -> int:
                 pages = {t: cats for t, cats in pages.items() if topic_category(cats) in KEEP_TOPICS}
             titles = list(pages)
             print(f"{'Keep-topics' if not args.all_content else 'All-content'} scope: {len(titles)} article(s) on {host}")
+        skipped = [t for t in titles if t in EXCLUDED_TITLES]
+        if skipped:
+            titles = [t for t in titles if t not in EXCLUDED_TITLES]
+            for t in skipped:
+                pages.pop(t, None)
+            print(f"Excluded {len(skipped)} dump-only page(s): {', '.join(sorted(skipped))}")
         if not titles:
             sys.stderr.write("Empty scope; nothing to fetch.\n")
             return 2

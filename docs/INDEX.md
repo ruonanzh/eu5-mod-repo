@@ -30,7 +30,7 @@ task needs, instead of pulling the whole `docs/` directory into context.
   game exports them, so they match the installed version. Prefer them over the wiki, which is a
   periodic copy and can lag.
 - **Concepts and how-to method: use [`mod-wiki/`](mod-wiki/), a curated wiki snapshot.** It
-  explains how the systems work and the mod API concepts, in 118 pages under 9 topic directories.
+  explains how the systems work and the mod API concepts, in 112 pages under 9 topic directories.
   See [`mod-wiki/INDEX.md`](mod-wiki/INDEX.md). The live wiki (eu5.paradoxwikis.com) is newer.
   Re-sync with `scripts/crawl_eu5_wiki.py` when it drifts.
 
@@ -61,12 +61,12 @@ game version, so they are the source of truth for exact keywords.
 
 ## mod-wiki (mod API reference)
 
-A curated snapshot of the EU5 wiki. It has 118 pages that cover the mod API and the core mechanics,
+A curated snapshot of the EU5 wiki. It has 112 pages that cover the mod API and the core mechanics,
 under 9 topic directories. See [`mod-wiki/INDEX.md`](mod-wiki/INDEX.md) for the full page list.
 
 | Directory | Pages | Covers |
 |---|---:|---|
-| `Modding/` | 53 | The mod API. Start here for almost any modding question. The directory listing for [`Modding/`](mod-wiki/Modding/) is the full list. |
+| `Modding/` | 47 | The mod API. Start here for almost any modding question. The directory listing for [`Modding/`](mod-wiki/Modding/) is the full list. |
 | `Game_concepts/` | 29 | The `$game_concept_*$` references. |
 | `Estates/` | 8 | Estate mechanics. |
 | `Economy/` | 7 | Building, goods, and market mechanics. |
@@ -75,6 +75,11 @@ under 9 topic directories. See [`mod-wiki/INDEX.md`](mod-wiki/INDEX.md) for the 
 | `Government/` | 4 | Government forms and reforms. |
 | `Interface/` | 2 | GUI and user-interface modding. |
 | `Modding_tools/` | 3 | The Paradox official tools. |
+
+**Six wiki pages are left out:** `Effect`, `Trigger`, `Scope`, `Modifier_types`, `Defines`, and
+`List_of_GUI_script_functions`. They are 97 to 100 percent name tables, and the dumps above carry the
+same data with a game version. Read [`script_docs/`](script_docs/) and [`data_types/`](data_types/)
+instead. `scripts/crawl_eu5_wiki.py` skips the six titles.
 
 ## Other pages in `docs/`
 

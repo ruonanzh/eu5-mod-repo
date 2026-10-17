@@ -1,13 +1,19 @@
 # EU5 mod API reference (mod-wiki)
 
-The mod API and mechanics reference. A curated snapshot of `eu5.paradoxwikis.com`: **118 pages** under
+The mod API and mechanics reference. A curated snapshot of `eu5.paradoxwikis.com`: **112 pages** under
 9 topic directories, captured 2026-09-09 and 2026-09-10. Load a page only when the task needs it. See
 [`../INDEX.md`](../INDEX.md) for the overall docs map.
 
 **Pick the page from this list. Do not list or grep the directory to find one.** A name in
 `backticks` is a file under that directory. The words after the dash are what the page covers.
 
-## Modding/ (53 pages)
+**Six wiki pages are not in this snapshot.** `Effect`, `Trigger`, `Scope`, `Modifier_types`,
+`Defines`, and `List_of_GUI_script_functions` are pure name-and-scope tables, 97 to 100 percent
+table lines. The dumps carry the same data, they name a game version, and they are cheaper to read:
+[`../script_docs/`](../script_docs/) and [`../data_types/`](../data_types/). Read those instead.
+`scripts/crawl_eu5_wiki.py` skips the six titles, so a re-sync does not bring them back.
+
+## Modding/ (47 pages)
 
 - `Action_modding.md` — generic actions, character and country interactions, cabinet actions.
 - `Advance_modding.md` — advances: definition, syntax, localization, script use.
@@ -19,10 +25,8 @@ The mod API and mechanics reference. A curated snapshot of `eu5.paradoxwikis.com
 - `Console_commands.md` — debug mode and the full console command list.
 - `Country_modding.md` — country definition and country setup.
 - `Culture_modding.md` — cultures, culture groups, languages and dialects.
-- `Defines.md` — overriding defines, and the full list of defines.
 - `Disaster_modding.md` — disaster structure.
 - `Disease_modding.md` — spawning a disease, infection rate, mortality, spread, stagnation.
-- `Effect.md` — every effect, grouped by scope, with iterators, flow and variables.
 - `Estate_modding.md` — estate structure, modifier blocks, opinion, base-game estates.
 - `Event_modding.md` — event file structure, options, illustrations, firing an event.
 - `Flag_modding.md` — flags, coats of arms, dynasty emblems, coat-of-arms templates.
@@ -32,7 +36,6 @@ The mod API and mechanics reference. A curated snapshot of `eu5.paradoxwikis.com
 - `Interface_modding_guide.md` — build a custom window step by step, tooltip widgets.
 - `International_organization_modding.md` — IO structure, statuses, variables, parliament.
 - `Law_modding.md` — law structure, law categories, estate preferences, base-game law groups.
-- `List_of_GUI_script_functions.md` — the full GUI function table.
 - `Localization.md` — localization format, data functions, concepts, variables.
 - `Macro.md` — scripted effects and triggers used as macros.
 - `Map_modding.md` — heightmap, terrain texture, splines, rivers, map borders.
@@ -43,12 +46,10 @@ The mod API and mechanics reference. A curated snapshot of `eu5.paradoxwikis.com
 - `Mod_structure.md` — mod folder location, metadata, mod folder layout.
 - `Modding.md` — getting started, tools and utilities, common problems, terminology.
 - `Modifier_modding.md` — static modifiers, auto modifiers, new modifier types.
-- `Modifier_types.md` — modifier-type behaviour, definitions, the full list of types.
 - `On_action.md` — on_action structure and the full on_action list.
 - `Pop_modding.md` — pop types, estate assignment, impact modifiers, promotion chains.
 - `Religion_modding.md` — religions, schools, aspects, figures, focuses, factions.
 - `Save-game_editing.md` — save file location and format, PDX Unlimiter, packed saves.
-- `Scope.md` — scopes, base scope, iterators, event targets, scope types.
 - `Scope_link.md` — data and value scope links, wildcards, every link by scope.
 - `Script_value.md` — named and inline values, operators, conditionals, iterators.
 - `Scripted_gui.md` — scripted GUI definitions, key attributes, saved scopes, AI use.
@@ -58,7 +59,6 @@ The mod API and mechanics reference. A curated snapshot of `eu5.paradoxwikis.com
 - `Subject_type_modding.md` — subject types: war participation, acceptance, modifiers.
 - `Terrain_modding.md` — add terrain, topography, vegetation and climate per location.
 - `Trait_modding.md` — trait structure, categories, flavours, allow blocks.
-- `Trigger.md` — every trigger by scope, with iterators, flow and variables.
 - `Unit_modding.md` — unit definitions, categories, abilities, recruitment, levies.
 - `Variable.md` — variable types, lists, maps, variable effects and triggers.
 - `War_modding.md` — casus belli, wargoal types, scripted peace treaties.

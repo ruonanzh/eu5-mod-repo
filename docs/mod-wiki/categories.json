@@ -180,10 +180,6 @@
   "Modding",
   "Potentially_outdated"
  ],
- "Defines": [
-  "1.3",
-  "Modding"
- ],
  "Dhimmi": [
   "Estates",
   "Potentially_outdated",
@@ -220,11 +216,6 @@
   "Game_concepts",
   "Potentially_outdated",
   "Pre-release"
- ],
- "Effect": [
-  "1.2",
-  "Modding",
-  "Potentially_outdated"
  ],
  "Estate": [
   "Game_concepts",
@@ -354,10 +345,6 @@
   "Interface",
   "Timeless"
  ],
- "List_of_GUI_script_functions": [
-  "Modding",
-  "Modding_lists"
- ],
  "Localization": [
   "1.0",
   "Expand",
@@ -449,10 +436,6 @@
   "Modding",
   "Potentially_outdated"
  ],
- "Modifier_types": [
-  "1.3",
-  "Modding"
- ],
  "Monarchy": [
   "Government"
  ],
@@ -530,11 +513,6 @@
  "Save-game_editing": [
   "Modding"
  ],
- "Scope": [
-  "Modding",
-  "Potentially_outdated",
-  "Pre-release"
- ],
  "Scope_link": [
   "1.2",
   "Expand",
@@ -610,11 +588,6 @@
   "Estates",
   "Potentially_outdated",
   "Pre-release"
- ],
- "Trigger": [
-  "1.1",
-  "Modding",
-  "Potentially_outdated"
  ],
  "Unit_modding": [
   "1.0",

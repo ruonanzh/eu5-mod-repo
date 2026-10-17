@@ -24,16 +24,19 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   Read it from `get_game_info`, as section 5 of `docs/eu5-modding-conventions.md` explains.
 - **Two read-only subagents ship with this repository.** `.pi/settings.json` declares the vendored
   `pi-subagents` package at `.pi/vendor/pi-subagents/`, so the `subagent` tool is available in a
-  trusted project. Prefer `entry-scout` over your own grep of `game-scripts/`. It runs in parallel,
-  one per question, and its searches stay in the child session, so your context holds answers, not
-  greps. Read its first candidate yourself. `mod-reviewer` checks the semantics that `validate_mod`
-  cannot see, before you install. Neither writes, so you apply every change. When you cannot
-  dispatch, run the search yourself, and work through the last section of
+  trusted project. For a survey, dispatch `entry-scout`. It runs in parallel, one per question, and
+  its searches stay in the child session, so your context holds answers, not greps. Read its first
+  candidate yourself. For a lookup of a name you already know, grep `game-scripts/` yourself.
+  `mod-reviewer` checks the semantics that `validate_mod` cannot see, before you install. Neither
+  writes, so you apply every change. When you cannot dispatch, run the search yourself, and work
+  through the last section of
   `docs/eu5-modding-conventions.md` by hand.
 
 ## Directory map
 
-- `docs/` — the knowledge layer. Start at [`docs/INDEX.md`](docs/INDEX.md) for the map.
+- `docs/` — the knowledge layer. Start at [`docs/INDEX.md`](docs/INDEX.md) for the map. A request
+  about a game system reads the pages that `docs/mod-wiki/INDEX.md` names before it searches
+  `game-scripts/`. A request that only changes a value skips that step.
   The modding conventions live **only** in
   [`docs/eu5-modding-conventions.md`](docs/eu5-modding-conventions.md). They cover override,
   load order, localization, and metadata.

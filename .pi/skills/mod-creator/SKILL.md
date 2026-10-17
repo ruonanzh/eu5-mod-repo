@@ -188,28 +188,41 @@ file.
 
 Call `validate_mod` with `modDir = your_mods/<ModName>/`.
 
-- `PASS: <name> is valid` means the static syntax, convention, **and name-level semantic** checks
-  passed. It does not mean the mod ran in the game.
-- `FAIL: <reason>` gives one reason per line, in English, and points at the offending file or field.
-  Use the `NEXT:` line to locate it. Fix every ERROR, and do not modify another mod.
+- `PASS: <name> is valid - names only. Scope, type, and values are not checked.` means the
+  static syntax, convention, **and name-level semantic** checks passed. `(N warning(s))` follows when
+  warnings exist. It does not mean the mod ran in the game.
+- `FAIL: <name> has N error(s), M warning(s)` is the first line of a failure. The lines after it
+  carry the detail: one `ERROR: <path>: <message>` per error, one `WARN: <path>: <message>` per
+  warning, and `NOTE:` lines from the semantic pass. The last line is always `NEXT: fix the errors
+  above and re-run validate_mod.` That sentence is fixed. It points at nothing, so read the
+  `ERROR:` lines to locate the file.
 - The tool checks syntax, conventions, and **name-level semantics**: a misspelled effect, trigger, or
   modifier name, a missing `INJECT:`/`REPLACE:` target, and a new object without localization keys.
   It does **not** check scope or type. Use `how-to-speak` to report the result to the player.
 
 ## Common errors
 
-The `FAIL` messages below are the common ones. The text after each one is the fix.
+The text after each message below is the fix. Each one is the start of an `ERROR:` line, or of a
+`WARN:` line where marked. The message is the same text the tool prints.
 
-- `FAIL: .metadata/metadata.json not found`: create the file with the standard fields above.
-- `FAIL: metadata.json is not valid JSON` or `not an object`: fix the JSON.
-- `FAIL: metadata.version is not semver`: use `x.x` or `x.x.x`.
-- `FAIL: localization file is not UTF-8 with BOM`: save the file as UTF-8 **with BOM** (`EF BB BF`).
-- `FAIL: filename must end with _l_<language>`: rename the file to `<name>_l_<language>.yml`.
-- `FAIL: missing/incorrect l_<lang>: header`: the first content line must be `l_<lang>:`.
-- `FAIL: key line not in 'key: "value"' form`: write `  key: "value"` with a closing double quote
-  on the same line.
-- `FAIL: unbalanced { }` or `unbalanced "`: fix the brace balance or add the missing closing quote.
-- `FAIL: INJECT:/REPLACE: must be in a top-level block`: move the keyword to the top level.
+- `missing .metadata/metadata.json`: create the file with the standard fields above.
+- `metadata.json top-level value must be an object`, or `invalid JSON (`: fix the JSON.
+- `version '...' is not semver x.x or x.x.x`: use two or three numeric parts.
+- `missing expected field 'id'`: add the field the message names.
+- `missing 'picture' entry`: add it, for example `"thumbnail.png"`.
+- `supported_game_version '...' is too loose` (**WARN**): write a patch-level wildcard such as `1.3.*`.
+- `missing UTF-8 BOM`: save the file as UTF-8 **with BOM** (`EF BB BF`).
+- `filename must end with '_l_<language>.yml'`: rename the file to `<name>_l_<language>.yml`.
+- `line N: expected a language header 'l_<lang>:' as the first content line`: the first content line
+  must be `l_<lang>:`.
+- `line N: malformed localization line`: write `  key: "value"` on one line, or `  key:0 "value"`.
+- `line N: value must be double-quoted`, or `line N: unbalanced '"' in value`: close the quote.
+- `line N: duplicate key '...'`: keep one entry for the key.
+- `line N: unbalanced '"' (unterminated string)`: close the string, or quote the text.
+- `unbalanced braces: N '{' never closed`, or `extra '}'`: balance the braces.
+- `line N: 'INJECT:' override keyword is nested (depth N)` (**WARN**): the keyword must sit directly
+  before a database entry. That is the file top level in most `common/` folders, but a container
+  folder nests its entries one level in. Confirm before you change it.
 
 ## Entry mechanisms and data kinds (what to add, and where it lives)
 

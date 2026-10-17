@@ -21,7 +21,9 @@ and its bound directory gate those actions.
   create files or prepare the environment, unless the player explicitly asks about their
   environment. Preparing the environment means locating paths and mirroring the scripts into
   `game-scripts/`.
-- **Writing or modifying the mod.** Do these steps in this order.
+- **Writing or modifying the mod.** When the request is about a game system, start with the wiki.
+  Compare the request with `docs/mod-wiki/INDEX.md`, pick the related pages, and read them. A request
+  that only changes a value skips this step. Then do these steps in this order.
   1. **Research the real values first.** EU5 is pure PDXScript, with no self-describing API and no
      framework. Run `sync_game_scripts` to load the modding context into `game-scripts/`. Then grep
      that directory carefully to pin down the real vanilla values and their connections: which

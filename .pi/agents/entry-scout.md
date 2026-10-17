@@ -36,8 +36,7 @@ Use the layers in this order. Stop when the first layer answers the question.
 2. `game-scripts/game/` — the vanilla scripts. This layer is the strongest evidence for a concrete
    object, an INJECT target, a field value, or a localization key, because the engine already
    accepts these files. Remember the two `game/` levels.
-3. `reference/` and the pages listed in `docs/mod-wiki/INDEX.md` — the pattern mods, and the page list
-   for the derived notes. Pick a page from that list instead of listing the directory.
+3. `reference/` — the pattern mods.
 4. The session records of this workspace. They live in the product data directory, in
    `~/.gamer-agent-pi/sessions/<encoded workspace path>/`, as `.jsonl` files. The directory name
    encodes the workspace path: replace each `:` and each path separator with `-`, and wrap the whole

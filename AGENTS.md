@@ -24,12 +24,12 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   Read it from `get_game_info`, as section 5 of `docs/eu5-modding-conventions.md` explains.
 - **Two read-only subagents ship with this repository.** `.pi/settings.json` declares the vendored
   `pi-subagents` package at `.pi/vendor/pi-subagents/`, so the `subagent` tool is available in a
-  trusted project. Dispatch `entry-scout` before you survey the vanilla scripts, and read its first
-  candidate yourself. `mod-reviewer` checks the semantics that `validate_mod` cannot see, before you
-  install. Neither writes, so you apply every change. When the `subagent` tool does not appear in
-  your tool list, run the search yourself, and work through the last section of
-  `docs/eu5-modding-conventions.md` by hand. When a dispatch fails, report the failure and do the
-  same.
+  trusted project. Prefer `entry-scout` over your own grep of `game-scripts/`. It runs in parallel,
+  one per question, and its searches stay in the child session, so your context holds answers, not
+  greps. Read its first candidate yourself. `mod-reviewer` checks the semantics that `validate_mod`
+  cannot see, before you install. Neither writes, so you apply every change. When you cannot
+  dispatch, run the search yourself, and work through the last section of
+  `docs/eu5-modding-conventions.md` by hand.
 
 ## Directory map
 
@@ -42,8 +42,9 @@ These are fixed facts about this machine and this workspace. They prevent wasted
   before writing mods. PDXScript has no self-describing API, so you cannot write a correct override
   or `INJECT` without it.
 - `.pi/skills/` — the step guidance: role skills `setup-workspace`, `mod-creator`, and `mod-installer`,
-  plus `how-to-speak` (how to write anything the player reads) and `mod-page` (how to write a mod page
-  and revise it from the player's marks). Each skill describes its own scope and trigger. Pi keeps the
+  plus `how-to-speak` (how to write anything the player reads) and `mod-page` (how to write a mod
+  page, revise it from the player's marks, and when to answer a game mechanics or game content
+  question with a reference page). Each skill describes its own scope and trigger. Pi keeps the
   descriptions in context, so read the matching skill. This repo's step guidance lives there, not in
   the product prompt.
 - `.pi/extensions/` — the tools. Path tools: `try_set_game_dir`, `set_game_dir`, and

@@ -1,6 +1,6 @@
 ---
 name: entry-scout
-description: Find the candidate entry points for one mod change, before the caller writes any file. Use it when the caller asks where a value, a definition, or a mechanic lives, and which entry mechanism the change needs.
+description: Find candidate entry points before the caller writes any file. Prefer it over the caller's own grep when a request needs several searches of the vanilla scripts. It runs in parallel, one per question, and its searches stay in the child session, so the caller's context holds answers, not greps. Use it when the caller asks where a value, a definition, or a mechanic lives, and which entry mechanism the change needs.
 tools: read, grep
 acceptanceRole: read-only
 thinking: medium

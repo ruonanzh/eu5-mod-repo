@@ -29,7 +29,7 @@ and its bound directory gate those actions.
      names alone. Three hard ordering rules:
      1. For a player-worded feature request, name the question shape first. For a lookup of a name
         that you already know, grep vanilla yourself, within calls 2 to 4:
-        `grep -rln <keyword> game-scripts/`. For a survey of what vanilla already has for a theme,
+        `grep -rln <keyword> game-scripts/`. For a survey of what vanilla already has for a feature,
         dispatch `entry-scout` and read its first candidate. The `## Survey before you research`
         section below has the details.
      2. Read in this fixed order: `docs/eu5-modding-conventions.md` (the single source of truth),
@@ -59,21 +59,17 @@ and its bound directory gate those actions.
 
 ## Survey before you research
 
-A survey answers "what does vanilla already have for this theme?". A lookup answers "where is this
+A survey answers "what does vanilla already have for this feature?". A lookup answers "where is this
 name defined?". The two questions need different work.
 
-Dispatch `entry-scout` for a survey, before you grep the vanilla scripts. Give it the theme and the
-planned change. It returns candidate entry points as `file:line`, with the mechanism family. Its
-answer is a candidate list, not a decision: read its first candidate yourself before you write.
-When the `subagent` tool does not appear in your tool list, run the survey yourself along the
-lookup path in `docs/INDEX.md`. When a dispatch fails, report the failure and run the survey
-yourself.
+For a survey, try `entry-scout` first. It runs in parallel, one per question, and its greps stay in
+the child session, so your context holds the answers, not the searches. Its answer is a candidate
+list, not a decision: read its first candidate yourself before you write.
 
-Run a lookup yourself. When you know the name, `grep -rln <keyword> game-scripts/` finds it within a
-few calls.
+You choose. Run a lookup yourself when you know the name: `grep -rln <keyword> game-scripts/` finds it
+within a few calls.
 
-When the change has two or three independent parts, send one survey per part, one after another.
-Each dispatch returns its answer before the next one starts.
+When the change has two or three independent parts, send all the surveys at once, one per part.
 
 Skip this step when the task only changes values inside an existing block.
 
@@ -218,7 +214,7 @@ The `FAIL` messages below are the common ones. The text after each one is the fi
 Pick the entry mechanism from the table in `docs/eu5-modding-conventions.md` section 7, then open the
 folder it names and read one of the examples there. Send the intent to `entry-scout` first and read
 the candidate it returns, in two cases: when you are unsure which mechanism fits, and when you must
-survey the mechanisms that the game already has for a theme.
+survey the mechanisms that the game already has for a feature.
 
 A mod can also add its own content to one of the game's own data folders. The common ones are:
 
@@ -254,8 +250,7 @@ For the question "does X exist, and what is the vanilla value?", follow the look
 For a survey, `entry-scout` runs this search and returns candidates as `file:line`.
 Give it the intent and the planned change list. Its answer is a candidate list, not a decision: read
 its first candidate yourself before you write.
-When the `subagent` tool does not appear in your tool list, run the search yourself along the
-same path. When a dispatch fails, report the failure and run the search yourself.
+When you cannot dispatch, run the search yourself along the same path.
 
 ## Reference
 

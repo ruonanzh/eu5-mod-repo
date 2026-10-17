@@ -1,11 +1,10 @@
 ---
 name: mod-page
 description: >
-  Write a mod page: one self-contained HTML file under the mod directory's `.preview/` that shows
-  what a mod changes, which values it sets, and which choices are still open. The player comments on
-  the page in the app, and you revise from the comments. Read it before you answer with options, a
-  scope, or a value to agree on, and before you describe what a mod does. The answer is a page, not a
-  long reply. No effect on tool calls or internal reasoning.
+  Write a page the player reads: one HTML file under `.preview/`. Use it for a mod change, or for
+  game mechanics and game content too large for a reply. The player comments on the page, and you
+  revise from the comments. Read it before you answer with options, a scope, a value to agree on, or
+  game mechanics to explain.
 ---
 
 # The mod page (EU5 mod workspace)
@@ -26,6 +25,16 @@ Write a page when any of these is true:
 
 A plain reply is enough only when the answer fits in one short paragraph. The page costs the player
 one click, and it pays for itself as soon as there is a choice to make.
+
+## Reference pages
+
+A page can answer a game question instead of describing a mod: how game mechanics work, what game
+content means. Same styles. Path: `your_mods/<ModName>/.preview/ref-<topic>.modpage.html`.
+
+- One subject per page.
+- Say where each value comes from, in plain words: `docs/script_docs/`, the vanilla scripts, or the
+  wiki.
+- Say what the page does not cover.
 
 ## Where the page goes
 

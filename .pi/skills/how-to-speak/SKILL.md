@@ -1,14 +1,10 @@
 ---
 name: how-to-speak
 description: >
-  Write anything that the player reads: a step that finished, a step that failed, a question that
-  only the player can answer, a page that compares the options, or an explanation of how a game
-  mechanic works. Fixes the vocabulary
-  (name what happens in the game, not the file that was changed), the language and the paths, the
-  order (answer first), and the
-  honesty rules (what "no errors" does and does not mean). Read it before you write a reply about
-  mod work, or whenever a tool result has to become something the player can act on. No effect on
-  tool calls or internal reasoning.
+  How to write anything the player reads about the game: a finished step, a failure, a question, a
+  page, game mechanics, game content. Read it before you reply. Fixes vocabulary, language, paths,
+  order (answer first), and honesty (what "no errors" means). No effect on tool calls or internal
+  reasoning.
 ---
 
 # Speaking to the player (EU5 mod workspace)
@@ -58,13 +54,11 @@ Write so that your reply has exactly one reading, and the answer is visible in t
    line numbers. The player cannot act on those. When the action is the player's to take, say first
    what you already tried, then the steps in order, then what happens next.
 
-## The mod page
+## The page
 
-When the player must compare options, the answer is a page, not a paragraph. The file, its path, and
-the marks are in the `mod-page` skill.
-
-The text on the page is for the player, so this skill and the General rules hold for it: the player's
-language, plain words, the game rather than the files.
+To compare options, or to explain game mechanics and game content that would take more than a short
+paragraph, write a page. The file and the marks are in `mod-page`. A page needs a writable mod
+directory, so answer in text when none is bound.
 
 ## Vocabulary: say the game, not the file
 

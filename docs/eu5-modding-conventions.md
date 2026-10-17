@@ -35,8 +35,9 @@ EU5 loads the mod files on top of the vanilla files. Three override mechanisms e
   only outside keyword folders.
 - **`INJECT:` / `REPLACE:` keywords:** most `<top_folder>/common/` folders (and some others) require
   a keyword to modify an existing object without a full file overwrite. Implicit replace does **not**
-  work in these folders. Keywords must sit **directly before a database entry** — that is the file's
-  **top level** in most `common/` folders, but in *container* folders the entry is **one level in**, e.g.
+  work in these folders. **Write the keyword at the file's top level**, directly before a database
+  entry. In most `common/` folders that entry is a top-level object. The one exception is a *container*
+  folder, where the entry is **one level in**, e.g.
   `genes/accessory_genes = { <entry> = { … } }`, where vanilla itself writes
   `INJECT_OR_CREATE:<entry> = { … }` (see `dlc/D008_fate_of_the_phoenix/in_game/common/genes/D008_genes_accessories.txt`).
   Injecting into a sub-block **below the entry level** is still invalid:

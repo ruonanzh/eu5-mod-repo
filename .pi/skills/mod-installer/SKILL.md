@@ -22,9 +22,9 @@ creates it.
 - **A re-install updates in place.** The tool identifies its own previous install through the
   workspace-side record `your_mods/<mod name>/.pi-mod.json`, which holds `name` and `installedDir`.
 - **Another mod owns the target directory.** The tool does not overwrite it. It installs as
-  `<directory name>_pimod` and adds a marker. It does not modify that copy's `metadata.json`. Tell
-  the player the directory name that the tool used. The in-game title `name` and the `id` stay the
-  same.
+  `<directory name>_pimod`, then `<directory name>_pimod2`, then `_pimod3`, up to the first free name.
+  It does not modify that copy's `metadata.json`. Tell the player the directory name that the tool
+  used. The in-game title `name` and the `id` stay the same.
 - **The replace is transactional.** The tool moves the old copy aside instead of deleting it, and it
   deletes that copy only after the new copy lands. If the new copy fails, the old version is still
   there.
@@ -47,8 +47,10 @@ When the `subagent` tool is not available, work through the last section of
 
 An `install_mod` success does not mean the game loaded or enabled the mod. Report the three states
 separately: copied into the mod directory, visible in the launcher, and active in the game.
-The player must enable the mod in the launcher **playlist**. Follow the instructions in
-`docs/INDEX.md` and `docs/game.md` for the next step that you give the player.
+The player must enable the mod in the launcher **playlist**. The steps are in
+`docs/mod-wiki/Modding/Mod.md`, section "Enable the Mod in the main menu": open the "Dlcs and Mods
+View", create a playset, add the mod to that playset, select the playset, and click "Apply". The game
+then reloads with the mod active.
 
 ## Related skills
 

@@ -106,7 +106,7 @@ Keep these in mind while you write a mod. They prevent most `validate_mod` failu
   inside a string.
 - To override a vanilla-defined object in a keyword directory, prefix it with `REPLACE:` or
   `INJECT:`. Put the keyword at the file's **top level**. `Mod_compatibility` states this as a rule,
-  not a suggestion. The one exception is a container folder such as `genes/`, where the entry sits one
+  not a suggestion. The one exception is a container directory such as `genes/`, where the entry sits one
   level in.
 - Use load-order prefixes so an override loads after its target: `00_` early, and `zz_`, `98_`, or
   `99_` late.

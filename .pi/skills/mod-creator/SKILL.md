@@ -141,8 +141,9 @@ The `.txt`, `.gui`, `.gfx`, and `.asset` files are under `in_game/` and `main_me
 - The encoding is UTF-8. Keep the `{` and `}` balanced, and keep the `"` balanced. A `#` starts a
   line comment outside a string, and `#` is literal inside a string. A GUI string can span several
   lines.
-- The `INJECT:` and `REPLACE:` keywords go in **top-level blocks** only, in the form
-  `KEYWORD:key = {`.
+- The `INJECT:` and `REPLACE:` keywords go **directly before a database entry**, in the form
+  `KEYWORD:key = {`. In most `common/` folders that entry is a top-level object. In a container folder
+  such as `genes/`, the entry sits one level in. A keyword below the entry level is invalid.
 
 ## Overriding vanilla
 
